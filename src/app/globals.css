@@ -1,27 +1,86 @@
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* ── Anchora design tokens (from visual reference) ── */
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --surface-2: #F2F1EE;
+    --border-color: #E8E6E1;
+    --border-strong: #D4D1CB;
+    --text-primary: #1A1915;
+    --text-secondary: #6B6860;
+    --text-tertiary: #9C9A96;
+    --accent: #2B5CE6;
+    --accent-light: #EEF2FD;
+    --accent-hover: #1E4ACC;
+    --green: #1D7A4A;
+    --green-light: #E8F5EE;
+    --amber: #B45309;
+    --amber-light: #FEF3C7;
+    --red: #B91C1C;
+    --red-light: #FEE2E2;
+    --gold: #C8963A;
+    --navy: #0F2060;
+
+    /* ── shadcn/ui semantic tokens (mapped to Anchora palette) ── */
+    --background: #F7F6F3;
+    --foreground: #1A1915;
+    --card: #FFFFFF;
+    --card-foreground: #1A1915;
+    --popover: #FFFFFF;
+    --popover-foreground: #1A1915;
+    --primary: #2B5CE6;
+    --primary-foreground: #FFFFFF;
+    --secondary: #F2F1EE;
+    --secondary-foreground: #1A1915;
+    --muted: #F2F1EE;
+    --muted-foreground: #6B6860;
+    --accent-ui: #F2F1EE;
+    --accent-foreground: #1A1915;
+    --destructive: #B91C1C;
+    --destructive-foreground: #FFFFFF;
+    --border: #E8E6E1;
+    --input: #E8E6E1;
+    --ring: #2B5CE6;
+    --radius: 0.5rem;
+
+    /* ── shadows ── */
+    --sh-sm: 0 1px 3px rgba(26,25,21,.06),0 1px 2px rgba(26,25,21,.04);
+    --sh-md: 0 4px 12px rgba(26,25,21,.08),0 2px 4px rgba(26,25,21,.04);
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @layer utilities {
+  .font-heading {
+    font-family: var(--font-heading), ui-serif, Georgia, serif;
+  }
   .text-balance {
     text-wrap: balance;
+  }
+  .shadow-sm-anchora {
+    box-shadow: var(--sh-sm);
+  }
+  .shadow-md-anchora {
+    box-shadow: var(--sh-md);
   }
 }

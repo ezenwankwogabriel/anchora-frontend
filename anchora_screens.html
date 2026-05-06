@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anchora — Screen Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F7F6F3;
+  --surface: #FFFFFF;
+  --surface-2: #F2F1EE;
+  --border: #E8E6E1;
+  --border-strong: #D4D1CB;
+  --text: #1A1915;
+  --text-2: #6B6860;
+  --text-3: #9C9A96;
+  --accent: #2B5CE6;
+  --accent-l: #EEF2FD;
+  --accent-h: #1E4ACC;
+  --green: #1D7A4A;
+  --green-l: #E8F5EE;
+  --amber: #B45309;
+  --amber-l: #FEF3C7;
+  --red: #B91C1C;
+  --red-l: #FEE2E2;
+  --gold: #C8963A;
+  --sh-sm: 0 1px 3px rgba(26,25,21,.06),0 1px 2px rgba(26,25,21,.04);
+  --sh-md: 0 4px 12px rgba(26,25,21,.08),0 2px 4px rgba(26,25,21,.04);
+  --r: 12px; --r-sm: 8px; --r-lg: 16px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+
+/* ── NAV PROTOTYPE BAR ── */
+.proto-nav{position:fixed;top:0;left:0;right:0;z-index:999;background:#1A1915;padding:10px 20px;display:flex;align-items:center;gap:8px;overflow-x:auto}
+.proto-nav span{color:#9C9A96;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-right:4px;white-space:nowrap}
+.proto-btn{padding:5px 12px;border-radius:6px;font-size:11.5px;font-weight:500;cursor:pointer;border:1px solid #3A3A35;background:transparent;color:#C8C6C2;white-space:nowrap;transition:all .15s;font-family:'DM Sans',sans-serif}
+.proto-btn:hover{background:#2E2D29;color:#fff}
+.proto-btn.active{background:#2B5CE6;color:#fff;border-color:#2B5CE6}
+.proto-divider{width:1px;height:18px;background:#3A3A35;margin:0 4px;flex-shrink:0}
+
+/* ── APP SHELL ── */
+.app-wrap{padding-top:48px;min-height:100vh}
+.screen{display:none}.screen.visible{display:flex;min-height:calc(100vh - 48px)}
+
+/* ── AUTH SCREENS ── */
+.auth-layout{display:flex;min-height:calc(100vh - 48px)}
+.auth-left{width:420px;flex-shrink:0;background:linear-gradient(160deg,#0F2060 0%,#1E3A8A 50%,#1A3A8F 100%);padding:48px;display:flex;flex-direction:column;justify-content:space-between}
+.auth-brand{display:flex;align-items:center;gap:10px}
+.auth-logo-mark{width:36px;height:36px;background:rgba(255,255,255,.15);border-radius:9px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.2)}
+.auth-logo-mark svg{width:20px;height:20px}
+.auth-logo-text{font-family:'DM Serif Display',serif;font-size:20px;color:#fff}
+.auth-hero{margin:auto 0}
+.auth-tagline{font-family:'DM Serif Display',serif;font-size:32px;color:#fff;line-height:1.25;margin-bottom:16px}
+.auth-tagline em{color:#93B4FF;font-style:normal}
+.auth-sub{font-size:14px;color:rgba(255,255,255,.65);line-height:1.6;margin-bottom:28px}
+.auth-trust{display:flex;flex-direction:column;gap:10px}
+.trust-item{display:flex;align-items:center;gap:10px;color:rgba(255,255,255,.75);font-size:13px}
+.trust-icon{width:28px;height:28px;background:rgba(255,255,255,.1);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.trust-icon svg{width:14px;height:14px}
+.auth-footer-note{font-size:11.5px;color:rgba(255,255,255,.4);border-top:1px solid rgba(255,255,255,.1);padding-top:20px}
+
+.auth-right{flex:1;display:flex;align-items:center;justify-content:center;padding:48px;background:var(--bg)}
+.auth-form-wrap{width:100%;max-width:420px}
+.auth-form-title{font-family:'DM Serif Display',serif;font-size:26px;color:var(--text);margin-bottom:6px}
+.auth-form-sub{font-size:13.5px;color:var(--text-2);margin-bottom:28px}
+.auth-form-sub a{color:var(--accent);cursor:pointer;font-weight:500}
+
+/* ── FORM ELEMENTS ── */
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12.5px;font-weight:600;color:var(--text-2);margin-bottom:6px;letter-spacing:.02em}
+.field input,.field select,.field textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:14px;font-family:'DM Sans',sans-serif;color:var(--text);background:var(--surface);transition:border-color .15s;outline:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(43,92,230,.12)}
+.field input::placeholder{color:var(--text-3)}
+.field textarea{resize:vertical;min-height:80px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field-hint{font-size:11.5px;color:var(--text-3);margin-top:5px}
+.field-error{font-size:11.5px;color:var(--red);margin-top:5px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 20px;border-radius:var(--r-sm);font-size:13.5px;font-weight:600;cursor:pointer;border:none;transition:all .15s ease;font-family:'DM Sans',sans-serif;letter-spacing:.01em}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 1px 3px rgba(43,92,230,.30)}
+.btn-primary:hover{background:var(--accent-h);box-shadow:0 4px 12px rgba(43,92,230,.30);transform:translateY(-1px)}
+.btn-secondary{background:var(--surface);color:var(--text);border:1.5px solid var(--border-strong);box-shadow:var(--sh-sm)}
+.btn-secondary:hover{background:var(--surface-2)}
+.btn-ghost{background:transparent;color:var(--text-2);border:1.5px solid var(--border)}
+.btn-ghost:hover{background:var(--surface-2);color:var(--text)}
+.btn-danger{background:var(--red-l);color:var(--red);border:1.5px solid #F5B0B0}
+.btn-danger:hover{background:#FCCFCF}
+.btn-full{width:100%}
+.btn svg{width:15px;height:15px}
+
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--text-3);font-size:12.5px}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── SIDEBAR ── */
+.sidebar{width:240px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:24px 0}
+.logo{display:flex;align-items:center;gap:10px;padding:0 20px 24px;border-bottom:1px solid var(--border);margin-bottom:8px}
+.logo-mark{width:34px;height:34px;background:linear-gradient(135deg,#1A3A8F,#2B5CE6);border-radius:9px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(43,92,230,.25)}
+.logo-mark svg{width:18px;height:18px}
+.logo-text{font-family:'DM Serif Display',serif;font-size:18px;color:var(--text)}
+.nav{flex:1;padding:0 12px}
+.nav-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);padding:14px 8px 5px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--r-sm);cursor:pointer;color:var(--text-2);font-size:13.5px;font-weight:450;transition:all .15s;margin-bottom:2px}
+.nav-item:hover{background:var(--surface-2);color:var(--text)}
+.nav-item.active{background:var(--accent-l);color:var(--accent);font-weight:550}
+.nav-item svg{width:17px;height:17px;opacity:.7;flex-shrink:0}
+.nav-item.active svg{opacity:1}
+.nav-badge{margin-left:auto;background:var(--amber);color:#fff;font-size:10px;font-weight:600;padding:1px 6px;border-radius:20px}
+.sidebar-footer{padding:16px 20px;border-top:1px solid var(--border)}
+.user-card{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--r-sm);cursor:pointer;transition:background .15s}
+.user-card:hover{background:var(--surface-2)}
+.avatar{width:32px;height:32px;background:linear-gradient(135deg,#1A3A8F,#2B5CE6);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:13px;font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-email{font-size:11px;color:var(--text-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ── MAIN ── */
+.main{flex:1;padding:32px 36px;overflow-y:auto;max-width:1060px}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px}
+.page-title{font-family:'DM Serif Display',serif;font-size:24px;letter-spacing:-.3px}
+.page-sub{font-size:13px;color:var(--text-2);margin-top:3px}
+.header-actions{display:flex;align-items:center;gap:10px}
+
+/* ── INACTIVITY BANNER ── */
+.status-bar{border-radius:var(--r);padding:12px 18px;display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.status-bar.green{background:var(--green-l);border:1px solid #A7D7B8}
+.status-bar.amber{background:var(--amber-l);border:1px solid #FCD37A}
+.status-bar.red{background:var(--red-l);border:1px solid #F5B0B0}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.status-bar.green .status-dot{background:var(--green);box-shadow:0 0 0 3px rgba(29,122,74,.15)}
+.status-bar.amber .status-dot{background:var(--amber);box-shadow:0 0 0 3px rgba(180,83,9,.15)}
+.status-bar.red .status-dot{background:var(--red);box-shadow:0 0 0 3px rgba(185,28,28,.15)}
+.status-text{flex:1;font-size:13px}
+.status-text strong{font-weight:600}
+.status-bar.green .status-text strong{color:var(--green)}
+.status-bar.amber .status-text strong{color:var(--amber)}
+.status-bar.red .status-text strong{color:var(--red)}
+.status-cta{font-size:12.5px;font-weight:600;cursor:pointer;padding:6px 12px;border-radius:6px;border:none;font-family:'DM Sans',sans-serif;transition:background .15s;white-space:nowrap}
+.status-bar.green .status-cta{color:var(--green);background:rgba(29,122,74,.10)}
+.status-bar.amber .status-cta{color:var(--amber);background:rgba(180,83,9,.10)}
+.status-bar.red .status-cta{color:var(--red);background:rgba(185,28,28,.10)}
+
+/* ── HEALTH GRID ── */
+.health-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.health-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh-sm);cursor:pointer;transition:all .15s;position:relative;overflow:hidden}
+.health-card:hover{box-shadow:var(--sh-md);transform:translateY(-1px)}
+.health-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0}
+.health-card.good::before{background:var(--green)}
+.health-card.warn::before{background:var(--gold)}
+.health-card.bad::before{background:var(--red)}
+.h-label{font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px}
+.h-value{font-family:'DM Serif Display',serif;font-size:28px;line-height:1;margin-bottom:4px}
+.h-sub{font-size:12px;color:var(--text-2)}
+.h-badge{display:inline-flex;align-items:center;gap:5px;margin-top:10px;font-size:11.5px;font-weight:550;padding:3px 9px;border-radius:20px}
+.h-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
+.h-badge.green{background:var(--green-l);color:var(--green)}
+.h-badge.amber{background:var(--amber-l);color:var(--amber)}
+.h-badge.red{background:var(--red-l);color:var(--red)}
+
+/* ── CONTENT GRID ── */
+.content-grid{display:grid;grid-template-columns:1fr 320px;gap:20px;align-items:start}
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.section-title{font-size:14.5px;font-weight:600}
+.section-link{font-size:12.5px;color:var(--accent);font-weight:550;cursor:pointer}
+
+/* ── ASSET LIST ── */
+.asset-list{display:flex;flex-direction:column;gap:10px}
+.asset-cat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh-sm);transition:box-shadow .15s}
+.asset-cat:hover{box-shadow:var(--sh-md)}
+.cat-header{display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;transition:background .15s}
+.cat-header:hover{background:var(--surface-2)}
+.cat-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cat-icon svg{width:18px;height:18px}
+.cat-icon.bank{background:#EEF2FD;color:#2B5CE6}
+.cat-icon.invest{background:#E8F5EE;color:#1D7A4A}
+.cat-icon.crypto{background:#FEF3C7;color:#B45309}
+.cat-icon.pension{background:#F3E8FF;color:#7C3AED}
+.cat-icon.insurance{background:#FEE2E2;color:#B91C1C}
+.cat-icon.foreign{background:#E0F2FE;color:#0369A1}
+.cat-name{font-size:13.5px;font-weight:550}
+.cat-count{font-size:12px;color:var(--text-3);margin-top:1px}
+.cat-count.empty{color:var(--amber)}
+.cat-chev{color:var(--text-3);margin-left:auto;transition:transform .2s}
+.cat-chev.open{transform:rotate(90deg)}
+.cat-chev svg{width:16px;height:16px}
+.cat-records{border-top:1px solid var(--border);background:var(--bg)}
+.record-row{display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .15s}
+.record-row:last-child{border-bottom:none}
+.record-row:hover{background:var(--surface)}
+.record-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.record-name{font-size:13px;font-weight:500}
+.record-meta{font-size:11.5px;color:var(--text-3);margin-top:1px}
+.record-acts{display:flex;gap:6px;margin-left:auto;opacity:0;transition:opacity .15s}
+.record-row:hover .record-acts{opacity:1}
+.icon-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text-2);transition:all .15s}
+.icon-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-l)}
+.icon-btn svg{width:13px;height:13px}
+.add-row{display:flex;align-items:center;gap:8px;padding:9px 18px;font-size:12.5px;color:var(--accent);font-weight:550;cursor:pointer;transition:background .15s;border-top:1px solid var(--border)}
+.add-row:hover{background:var(--accent-l)}
+.add-row svg{width:13px;height:13px}
+.cat-empty{padding:14px 18px;text-align:center;color:var(--text-3);font-size:12.5px;border-top:1px solid var(--border)}
+.cat-empty a{color:var(--accent);font-weight:550;cursor:pointer}
+
+/* ── PANEL CARDS ── */
+.panel-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh-sm)}
+.panel-title{font-size:13.5px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.ben-row{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer;transition:all .15s;margin-bottom:8px}
+.ben-row:hover{border-color:var(--accent);background:var(--accent-l)}
+.ben-av{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0}
+.ben-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ben-rel{font-size:11px;color:var(--text-3)}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap;margin-left:auto}
+.badge.green{background:var(--green-l);color:var(--green)}
+.badge.amber{background:var(--amber-l);color:var(--amber)}
+.badge.blue{background:var(--accent-l);color:var(--accent)}
+.badge.red{background:var(--red-l);color:var(--red)}
+.dashed-btn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:9px;border:1.5px dashed var(--border-strong);border-radius:var(--r-sm);color:var(--text-3);font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;background:none;font-family:'DM Sans',sans-serif;margin-top:4px}
+.dashed-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-l)}
+.dashed-btn svg{width:14px;height:14px}
+
+/* ── ACTIVITY ── */
+.act-item{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--border)}
+.act-item:last-child{border-bottom:none}
+.act-icon{width:28px;height:28px;border-radius:7px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text-2)}
+.act-icon svg{width:13px;height:13px}
+.act-desc{font-size:12.5px;line-height:1.4}
+.act-time{font-size:11px;color:var(--text-3);margin-top:2px}
+
+/* ── TIP CARD ── */
+.tip-card{background:var(--accent-l);border:1px solid #C7D6FB;border-radius:var(--r);padding:16px}
+.tip-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.tip-icon svg{width:15px;height:15px}
+.tip-title{font-size:13px;font-weight:600;color:var(--accent);margin-bottom:4px}
+.tip-body{font-size:12.5px;color:#3D5FC9;line-height:1.5}
+.tip-link{font-size:12.5px;font-weight:600;color:var(--accent);cursor:pointer;margin-top:8px}
+
+/* ── CHECKLIST ── */
+.checklist-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;box-shadow:var(--sh-sm);margin-bottom:22px}
+.cl-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cl-title{font-size:14.5px;font-weight:600}
+.cl-prog{font-size:12.5px;color:var(--text-2)}
+.prog-track{height:4px;background:var(--surface-2);border-radius:2px;margin-bottom:14px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),#5B8DF7);border-radius:2px;transition:width .5s ease}
+.cl-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:var(--r-sm);border:1px solid var(--border);cursor:pointer;transition:all .15s;margin-bottom:6px}
+.cl-item:hover{border-color:var(--accent);background:var(--accent-l)}
+.cl-item.done{opacity:.55}
+.check-c{width:22px;height:22px;border-radius:50%;border:2px solid var(--border-strong);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.check-c.checked{background:var(--green);border-color:var(--green)}
+.check-c svg{width:11px;height:11px}
+.cl-text{flex:1;font-size:13.5px}
+.cl-text.done{text-decoration:line-through;color:var(--text-3)}
+.cl-act{font-size:12px;color:var(--accent);font-weight:550}
+
+/* ── STEP FORM ── */
+.step-form{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:36px;box-shadow:var(--sh-md);max-width:560px;margin:0 auto}
+.step-indicator{display:flex;gap:8px;margin-bottom:32px}
+.step-pip{flex:1;height:4px;border-radius:2px;background:var(--border)}
+.step-pip.active{background:var(--accent)}
+.step-pip.done{background:var(--green)}
+.step-labels{display:flex;justify-content:space-between;margin-top:6px;margin-bottom:24px}
+.step-label{font-size:11px;color:var(--text-3);font-weight:500}
+.step-label.active{color:var(--accent)}
+.step-label.done{color:var(--green)}
+.form-title{font-family:'DM Serif Display',serif;font-size:22px;margin-bottom:4px}
+.form-sub{font-size:13.5px;color:var(--text-2);margin-bottom:24px;line-height:1.5}
+.form-actions{display:flex;gap:10px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+
+/* ── CATEGORY SELECTOR ── */
+.cat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px}
+.cat-option{display:flex;align-items:center;gap:12px;padding:14px 16px;border:1.5px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .15s}
+.cat-option:hover{border-color:var(--accent);background:var(--accent-l)}
+.cat-option.selected{border-color:var(--accent);background:var(--accent-l)}
+.cat-option-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cat-option-icon svg{width:19px;height:19px}
+.cat-option-name{font-size:13.5px;font-weight:550}
+.cat-option-desc{font-size:11.5px;color:var(--text-3);margin-top:1px}
+
+/* ── CONFIRM BOX ── */
+.confirm-box{background:var(--amber-l);border:1.5px solid #FCD37A;border-radius:var(--r-sm);padding:14px 16px;margin-top:20px;font-size:13px;color:var(--amber)}
+.confirm-box.danger{background:var(--red-l);border-color:#F5B0B0;color:var(--red)}
+.confirm-box strong{font-weight:600}
+.cb-check{display:flex;align-items:flex-start;gap:10px;margin-top:12px;font-size:12.5px;color:var(--text-2)}
+.cb-check input[type=checkbox]{margin-top:2px;flex-shrink:0}
+
+/* ── RELEASE REPORT ── */
+.report-wrap{max-width:700px;margin:0 auto}
+.report-cover{background:linear-gradient(135deg,#0F2060,#1E3A8A);border-radius:var(--r-lg);padding:36px;margin-bottom:20px;color:#fff}
+.report-cover-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:12px}
+.report-cover-name{font-family:'DM Serif Display',serif;font-size:32px;margin-bottom:6px}
+.report-cover-meta{font-size:13px;color:rgba(255,255,255,.65);display:flex;gap:20px;flex-wrap:wrap;margin-top:16px}
+.report-cover-meta span{display:flex;align-items:center;gap:6px}
+.report-cover-meta svg{width:14px;height:14px}
+.report-message{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:16px;box-shadow:var(--sh-sm)}
+.message-from{font-size:12px;color:var(--text-3);margin-bottom:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.message-text{font-family:'DM Serif Display',serif;font-size:17px;color:var(--text);line-height:1.6;font-style:italic}
+.message-sig{font-size:13px;color:var(--text-2);margin-top:12px}
+.report-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:12px;box-shadow:var(--sh-sm)}
+.report-section-hdr{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--surface-2)}
+.report-section-hdr h3{font-size:13.5px;font-weight:600}
+.report-asset-row{padding:14px 20px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.report-asset-row:last-child{border-bottom:none}
+.asset-field-label{font-size:11px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.asset-field-value{font-size:13.5px;color:var(--text);font-weight:500}
+.report-guidance{background:#F0F4FF;border:1px solid #C7D6FB;border-radius:var(--r);padding:20px;margin-bottom:12px}
+.guidance-title{font-size:13px;font-weight:600;color:var(--accent);margin-bottom:10px}
+.guidance-step{display:flex;gap:10px;margin-bottom:8px;font-size:13px;color:#3D5FC9}
+.guidance-step::before{content:counter(gs);counter-increment:gs;width:20px;height:20px;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.guidance-list{counter-reset:gs}
+.report-disclaimer{font-size:12px;color:var(--text-3);border-top:1px solid var(--border);padding-top:16px;margin-top:8px;line-height:1.6}
+
+/* ── ID VERIFY ── */
+.upload-zone{border:2px dashed var(--border-strong);border-radius:var(--r);padding:36px 24px;text-align:center;cursor:pointer;transition:all .15s;background:var(--surface)}
+.upload-zone:hover{border-color:var(--accent);background:var(--accent-l)}
+.upload-icon{width:44px;height:44px;background:var(--surface-2);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px}
+.upload-icon svg{width:22px;height:22px;color:var(--text-3)}
+.upload-title{font-size:14px;font-weight:600;margin-bottom:4px}
+.upload-sub{font-size:12.5px;color:var(--text-3)}
+.accepted-ids{display:flex;flex-direction:column;gap:6px;margin-top:16px}
+.id-row{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--surface-2);border-radius:6px;font-size:13px}
+.id-row svg{width:15px;height:15px;color:var(--green);flex-shrink:0}
+
+/* ── ADMIN ── */
+.admin-table{width:100%;border-collapse:collapse;font-size:13px}
+.admin-table th{padding:10px 14px;text-align:left;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);border-bottom:1.5px solid var(--border);background:var(--surface-2)}
+.admin-table td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+.admin-table tr:hover td{background:var(--surface-2)}
+.admin-table tr:last-child td{border-bottom:none}
+.status-pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:20px}
+.status-pill::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
+.status-pill.active{background:var(--green-l);color:var(--green)}
+.status-pill.warning{background:var(--amber-l);color:var(--amber)}
+.status-pill.release{background:var(--red-l);color:var(--red)}
+.status-pill.pending{background:#F3E8FF;color:#7C3AED}
+.admin-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px}
+.admin-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh-sm)}
+.admin-stat-label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px}
+.admin-stat-value{font-family:'DM Serif Display',serif;font-size:32px;color:var(--text);line-height:1}
+.admin-stat-sub{font-size:12px;color:var(--text-2);margin-top:4px}
+.alert-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:var(--r-sm);margin-bottom:8px}
+.alert-row.amber{background:var(--amber-l);border:1px solid #FCD37A}
+.alert-row.red{background:var(--red-l);border:1px solid #F5B0B0}
+.alert-icon svg{width:16px;height:16px}
+.alert-row.amber .alert-icon{color:var(--amber)}
+.alert-row.red .alert-icon{color:var(--red)}
+.alert-body{flex:1;font-size:13px}
+.alert-body strong{font-weight:600}
+.alert-row.amber .alert-body{color:var(--amber)}
+.alert-row.red .alert-body{color:var(--red)}
+.alert-action{font-size:12px;font-weight:600;cursor:pointer;opacity:.8}
+
+/* ── SETTINGS ── */
+.settings-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:16px;box-shadow:var(--sh-sm)}
+.settings-section-title{padding:14px 20px;font-size:13.5px;font-weight:600;border-bottom:1px solid var(--border);background:var(--surface-2)}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border)}
+.settings-row:last-child{border-bottom:none}
+.settings-label{font-size:13.5px;font-weight:500}
+.settings-desc{font-size:12px;color:var(--text-3);margin-top:2px}
+.settings-value{font-size:13px;color:var(--text-2)}
+.settings-danger{color:var(--red)}
+.toggle{width:40px;height:22px;background:var(--border-strong);border-radius:11px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
+.toggle.on{background:var(--green)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle.on::after{left:21px}
+
+/* ── CHECKIN SCREEN ── */
+.checkin-wrap{max-width:480px;margin:0 auto;text-align:center;padding-top:20px}
+.checkin-shield{width:80px;height:80px;background:linear-gradient(135deg,#0F2060,#2B5CE6);border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 24px}
+.checkin-shield svg{width:40px;height:40px}
+.timeline-visual{display:flex;align-items:center;gap:0;margin:24px 0;background:var(--surface-2);border-radius:var(--r);padding:16px 20px}
+.tl-stage{flex:1;text-align:center}
+.tl-label{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text-3);margin-bottom:6px}
+.tl-dot{width:12px;height:12px;border-radius:50%;background:var(--border-strong);margin:0 auto 6px;border:2px solid var(--border)}
+.tl-dot.current{background:var(--green);border-color:var(--green);box-shadow:0 0 0 4px rgba(29,122,74,.15)}
+.tl-date{font-size:11px;color:var(--text-2)}
+.tl-line{width:1px;height:24px;background:var(--border);margin:0 4px;flex-shrink:0;align-self:center;margin-top:-16px}
+
+/* ── MFA ── */
+.mfa-options{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.mfa-opt{display:flex;align-items:center;gap:14px;padding:14px 18px;border:2px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .15s}
+.mfa-opt:hover{border-color:var(--accent)}
+.mfa-opt.selected{border-color:var(--accent);background:var(--accent-l)}
+.mfa-opt-icon{width:40px;height:40px;border-radius:10px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mfa-opt-icon svg{width:20px;height:20px;color:var(--text-2)}
+.mfa-opt.selected .mfa-opt-icon{background:var(--accent-l);color:var(--accent)}
+.mfa-opt-title{font-size:13.5px;font-weight:600}
+.mfa-opt-sub{font-size:12px;color:var(--text-3);margin-top:2px}
+.qr-placeholder{width:140px;height:140px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;margin:16px auto}
+.recovery-codes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0}
+.code-pill{background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-family:monospace;font-size:13px;text-align:center;letter-spacing:.1em;color:var(--text)}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.screen.visible > *{animation:fadeUp .3s ease both}
+</style>
+</head>
+<body>
+
+<!-- PROTOTYPE NAVIGATION -->
+<div class="proto-nav">
+  <span>Owner</span>
+  <button class="proto-btn" onclick="show('signup')">Signup</button>
+  <button class="proto-btn" onclick="show('mfa')">MFA Setup</button>
+  <button class="proto-btn active" onclick="show('dashboard')">Dashboard</button>
+  <button class="proto-btn" onclick="show('add-asset')">Add Asset</button>
+  <button class="proto-btn" onclick="show('edit-asset')">Edit Asset</button>
+  <button class="proto-btn" onclick="show('beneficiaries')">Beneficiaries</button>
+  <button class="proto-btn" onclick="show('add-ben')">Add Beneficiary</button>
+  <button class="proto-btn" onclick="show('checkin')">Check-In</button>
+  <button class="proto-btn" onclick="show('warning-9m')">9-Mo Warning</button>
+  <button class="proto-btn" onclick="show('settings')">Settings</button>
+  <div class="proto-divider"></div>
+  <span>Beneficiary</span>
+  <button class="proto-btn" onclick="show('ben-verify')">ID Verify</button>
+  <button class="proto-btn" onclick="show('ben-report')">Report View</button>
+  <div class="proto-divider"></div>
+  <span>Admin</span>
+  <button class="proto-btn" onclick="show('admin')">Dashboard</button>
+  <button class="proto-btn" onclick="show('admin-users')">Users</button>
+  <button class="proto-btn" onclick="show('admin-releases')">Releases</button>
+</div>
+
+<div class="app-wrap">
+
+<!-- ════════════════════════════════════════
+     SIGNUP
+════════════════════════════════════════ -->
+<div id="screen-signup" class="screen auth-layout">
+  <div class="auth-left">
+    <div class="auth-brand">
+      <div class="auth-logo-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3L4 7V12C4 16.4 7.4 20.5 12 21C16.6 20.5 20 16.4 20 12V7L12 3Z" fill="white" opacity=".9"/><path d="M9 12L11 14L15 10" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/></svg></div>
+      <span class="auth-logo-text">Anchora</span>
+    </div>
+    <div class="auth-hero">
+      <div class="auth-tagline">Your financial life, <em>safely</em> organised for the people you love.</div>
+      <div class="auth-sub">Register your accounts. Designate who gets access. Anchora ensures nothing is lost if something happens to you.</div>
+      <div class="auth-trust">
+        <div class="trust-item"><div class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div>AES-256 encryption — your data is never readable by us</div>
+        <div class="trust-item"><div class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>Distributed trust model — no single point of failure</div>
+        <div class="trust-item"><div class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg></div>Your beneficiaries are verified before receiving anything</div>
+      </div>
+    </div>
+    <div class="auth-footer-note">Anchora is a software information platform. We do not hold funds or execute financial transactions.</div>
+  </div>
+  <div class="auth-right">
+    <div class="auth-form-wrap">
+      <h1 class="auth-form-title">Create your account</h1>
+      <p class="auth-form-sub">Already have one? <a>Sign in instead</a></p>
+      <div class="field-row">
+        <div class="field"><label>First name</label><input type="text" placeholder="Olumide"></div>
+        <div class="field"><label>Last name</label><input type="text" placeholder="Adeyemi"></div>
+      </div>
+      <div class="field"><label>Email address</label><input type="email" placeholder="olumide@gmail.com"></div>
+      <div class="field"><label>Password</label><input type="password" placeholder="At least 8 characters"><div class="field-hint">Must include uppercase, number, and special character</div></div>
+      <div class="field"><label>Confirm password</label><input type="password" placeholder="Repeat your password"></div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+        <label style="display:flex;align-items:flex-start;gap:8px;font-size:12.5px;color:var(--text-2);cursor:pointer"><input type="checkbox" style="margin-top:2px">I accept the <a style="color:var(--accent)">Terms of Service</a> and <a style="color:var(--accent)">Privacy Policy</a></label>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="show('mfa')">Create account →</button>
+      <div style="margin-top:20px;text-align:center;font-size:12px;color:var(--text-3)">After creating your account, we'll send you a verification email.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     MFA SETUP
+════════════════════════════════════════ -->
+<div id="screen-mfa" class="screen auth-layout">
+  <div class="auth-left">
+    <div class="auth-brand">
+      <div class="auth-logo-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3L4 7V12C4 16.4 7.4 20.5 12 21C16.6 20.5 20 16.4 20 12V7L12 3Z" fill="white" opacity=".9"/></svg></div>
+      <span class="auth-logo-text">Anchora</span>
+    </div>
+    <div class="auth-hero">
+      <div class="auth-tagline">Your vault is only as strong as its <em>lock.</em></div>
+      <div class="auth-sub">Multi-factor authentication ensures only you can access your vault. This is mandatory for all accounts.</div>
+    </div>
+    <div class="auth-footer-note">Recovery codes are the only way to regain access if you lose your authenticator. Store them somewhere safe.</div>
+  </div>
+  <div class="auth-right">
+    <div class="auth-form-wrap">
+      <h1 class="auth-form-title">Secure your account</h1>
+      <p class="auth-form-sub">Choose how you'd like to verify your identity on login.</p>
+      <div class="mfa-options">
+        <div class="mfa-opt selected">
+          <div class="mfa-opt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg></div>
+          <div><div class="mfa-opt-title">Authenticator app</div><div class="mfa-opt-sub">Google Authenticator, Authy, 1Password</div></div>
+        </div>
+        <div class="mfa-opt">
+          <div class="mfa-opt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 014.07 8.81a19.79 19.79 0 01-3.07-8.63A2 2 0 012.98 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L7.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></div>
+          <div><div class="mfa-opt-title">SMS code</div><div class="mfa-opt-sub">One-time code sent to your phone</div></div>
+        </div>
+      </div>
+      <div class="qr-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:32px;height:32px;color:var(--text-3)"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
+      </div>
+      <div class="field"><label>Enter the 6-digit code from your app to confirm setup</label><input type="text" placeholder="000 000" style="font-size:18px;letter-spacing:.2em;text-align:center"></div>
+      <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px 16px;margin-top:16px">
+        <div style="font-size:12.5px;font-weight:600;margin-bottom:10px">Your recovery codes — save these now</div>
+        <div class="recovery-codes">
+          <div class="code-pill">A3K2-9PQR</div><div class="code-pill">B7X1-MNVW</div>
+          <div class="code-pill">C9L4-STUV</div><div class="code-pill">D2R8-YZAB</div>
+          <div class="code-pill">E5M3-CDEF</div><div class="code-pill">F1N6-GHIJ</div>
+          <div class="code-pill">G8P0-KLMN</div><div class="code-pill">H4Q7-OPQR</div>
+        </div>
+        <label style="display:flex;align-items:flex-start;gap:8px;font-size:12.5px;color:var(--text-2);cursor:pointer;margin-top:10px"><input type="checkbox" style="margin-top:2px">I have saved my recovery codes in a safe place</label>
+      </div>
+      <button class="btn btn-primary btn-full" style="margin-top:16px" onclick="show('dashboard')">Enable MFA and go to vault →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     DASHBOARD
+════════════════════════════════════════ -->
+<div id="screen-dashboard" class="screen">
+  <aside class="sidebar">
+    <div class="logo"><div class="logo-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3L4 7V12C4 16.4 7.4 20.5 12 21C16.6 20.5 20 16.4 20 12V7L12 3Z" fill="white" opacity=".9"/></svg></div><span class="logo-text">Anchora</span></div>
+    <nav class="nav">
+      <div class="nav-label">Vault</div>
+      <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+      <div class="nav-item" onclick="show('add-asset')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>My Assets</div>
+      <div class="nav-item" onclick="show('beneficiaries')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Beneficiaries<span class="nav-badge">1</span></div>
+      <div class="nav-label">Account</div>
+      <div class="nav-item" onclick="show('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+    </nav>
+    <div class="sidebar-footer"><div class="user-card"><div class="avatar">OA</div><div class="user-info"><div class="user-name">Olumide Adeyemi</div><div class="user-email">olumide@gmail.com</div></div></div></div>
+  </aside>
+  <main class="main">
+    <div class="page-header">
+      <div><h1 class="page-title">Your Vault</h1><p class="page-sub">Manage your financial asset records and beneficiaries</p></div>
+      <div class="header-actions"><button class="btn btn-secondary" onclick="show('checkin')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Check In</button><button class="btn btn-primary" onclick="show('add-asset')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Asset</button></div>
+    </div>
+    <div class="status-bar green">
+      <div class="status-dot"></div>
+      <div class="status-text"><strong>Vault active · </strong><span>Last check-in today · Next reminder in 6 months</span></div>
+      <button class="status-cta" onclick="show('checkin')">Confirm I'm Active</button>
+    </div>
+    <div class="health-grid">
+      <div class="health-card warn"><div class="h-label">Asset Coverage</div><div class="h-value">4<span style="font-size:16px;font-family:'DM Sans';font-weight:400;color:var(--text-2)">/7</span></div><div class="h-sub">categories registered</div><div class="h-badge amber">3 categories missing</div></div>
+      <div class="health-card good"><div class="h-label">Beneficiaries</div><div class="h-value">2</div><div class="h-sub">designated recipients</div><div class="h-badge green">All invitations accepted</div></div>
+      <div class="health-card good"><div class="h-label">Last Review</div><div class="h-value" style="font-size:20px;padding-top:4px">Mar 2025</div><div class="h-sub">vault last updated</div><div class="h-badge green">Up to date</div></div>
+    </div>
+    <div class="checklist-card">
+      <div class="cl-header"><span class="cl-title">Complete your vault setup</span><span class="cl-prog">1 of 3 complete</span></div>
+      <div class="prog-track"><div class="prog-fill" style="width:33%"></div></div>
+      <div class="cl-item done"><div class="check-c checked"><svg viewBox="0 0 12 12" fill="none" stroke="white" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg></div><span class="cl-text done">Register your first financial asset</span><span class="cl-act">Done</span></div>
+      <div class="cl-item" onclick="show('add-ben')"><div class="check-c"></div><span class="cl-text">Add a beneficiary to your vault</span><span class="cl-act">Add now →</span></div>
+      <div class="cl-item"><div class="check-c"></div><span class="cl-text">Complete your first vault review</span><span class="cl-act">Review →</span></div>
+    </div>
+    <div class="content-grid">
+      <div>
+        <div class="section-hdr"><span class="section-title">Registered Assets</span><span class="section-link" onclick="show('add-asset')">+ Add category</span></div>
+        <div class="asset-list">
+          <div class="asset-cat">
+            <div class="cat-header">
+              <div class="cat-icon bank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg></div>
+              <div><div class="cat-name">Bank Accounts</div><div class="cat-count">2 accounts</div></div>
+              <div class="cat-chev open"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+            </div>
+            <div class="cat-records">
+              <div class="record-row" onclick="show('edit-asset')"><div class="record-dot"></div><div style="flex:1"><div class="record-name">GTBank — Current Account</div><div class="record-meta">Acct. ····4821 · GTB Ikoyi Branch</div></div><div class="record-acts"><div class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></div></div></div>
+              <div class="record-row"><div class="record-dot"></div><div style="flex:1"><div class="record-name">Zenith Bank — Savings</div><div class="record-meta">Acct. ····2207</div></div><div class="record-acts"><div class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg></div></div></div>
+              <div class="add-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add another bank account</div>
+            </div>
+          </div>
+          <div class="asset-cat"><div class="cat-header"><div class="cat-icon invest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div><div><div class="cat-name">Investment Platforms</div><div class="cat-count">1 account</div></div><div class="cat-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div></div>
+          <div class="asset-cat"><div class="cat-header"><div class="cat-icon crypto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 9h4.5a2.5 2.5 0 010 5H9v-5z"/></svg></div><div><div class="cat-name">Crypto Wallets</div><div class="cat-count">1 wallet</div></div><div class="cat-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div></div>
+          <div class="asset-cat"><div class="cat-header"><div class="cat-icon pension"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg></div><div><div class="cat-name">Pension Portal</div><div class="cat-count empty">Not registered</div></div><div class="cat-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div></div>
+          <div class="asset-cat"><div class="cat-header"><div class="cat-icon insurance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div><div class="cat-name">Insurance Policies</div><div class="cat-count empty">Not registered</div></div><div class="cat-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div></div>
+          <div class="asset-cat"><div class="cat-header"><div class="cat-icon foreign"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg></div><div><div class="cat-name">Foreign Accounts</div><div class="cat-count empty">Not registered</div></div><div class="cat-chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div></div></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div class="panel-card">
+          <div class="panel-title">Beneficiaries <span class="section-link" onclick="show('beneficiaries')" style="font-size:12px">Manage</span></div>
+          <div class="ben-row"><div class="ben-av" style="background:linear-gradient(135deg,#1D7A4A,#34D399)">FA</div><div style="flex:1;min-width:0"><div class="ben-name">Fatima Adeyemi</div><div class="ben-rel">Spouse</div></div><div class="badge green">Active</div></div>
+          <div class="ben-row"><div class="ben-av" style="background:linear-gradient(135deg,#7C3AED,#A78BFA)">KA</div><div style="flex:1;min-width:0"><div class="ben-name">Kunle Adeyemi</div><div class="ben-rel">Sibling</div></div><div class="badge amber">Invited</div></div>
+          <button class="dashed-btn" onclick="show('add-ben')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add beneficiary</button>
+        </div>
+        <div class="panel-card">
+          <div class="panel-title">Recent Activity</div>
+          <div class="act-item"><div class="act-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div><div><div class="act-desc">Added <strong>Zenith Bank Savings</strong></div><div class="act-time">Today, 2:14 PM</div></div></div>
+          <div class="act-item"><div class="act-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div><div class="act-desc">Invitation sent to <strong>Kunle Adeyemi</strong></div><div class="act-time">Yesterday, 10:32 AM</div></div></div>
+          <div class="act-item"><div class="act-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div><div class="act-desc"><strong>Fatima</strong> accepted invitation</div><div class="act-time">Mar 10, 11:45 AM</div></div></div>
+        </div>
+        <div class="tip-card"><div style="display:flex;gap:10px;align-items:flex-start"><div class="tip-icon"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width:15px;height:15px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div><div class="tip-title">3 categories uncovered</div><div class="tip-body">Add pension, insurance and foreign accounts for a complete picture.</div><div class="tip-link" onclick="show('add-asset')">Fill the gaps →</div></div></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════
+     ADD ASSET
+════════════════════════════════════════ -->
+<div id="screen-add-asset" class="screen" style="align-items:flex-start;justify-content:center;padding:40px 20px">
+  <div class="step-form" style="max-width:600px;width:100%">
+    <div style="margin-bottom:24px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+        <button class="btn btn-ghost" onclick="show('dashboard')" style="padding:6px 10px;font-size:12px">← Back</button>
+        <span style="font-size:13px;color:var(--text-3)">Add New Asset</span>
+      </div>
+      <div class="step-indicator"><div class="step-pip active"></div><div class="step-pip"></div></div>
+      <div class="step-labels"><span class="step-label active">Select type</span><span class="step-label">Enter details</span></div>
+    </div>
+    <h2 class="form-title">What type of asset?</h2>
+    <p class="form-sub">Select the category that best describes the account you're registering.</p>
+    <div class="cat-grid">
+      <div class="cat-option selected"><div class="cat-option-icon bank"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg></div><div><div class="cat-option-name">Bank Account</div><div class="cat-option-desc">GTB, Zenith, Access...</div></div></div>
+      <div class="cat-option"><div class="cat-option-icon invest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div><div><div class="cat-option-name">Investment Platform</div><div class="cat-option-desc">Bamboo, Risevest...</div></div></div>
+      <div class="cat-option"><div class="cat-option-icon crypto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></div><div><div class="cat-option-name">Crypto Wallet</div><div class="cat-option-desc">Hardware, exchange...</div></div></div>
+      <div class="cat-option"><div class="cat-option-icon pension"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/></svg></div><div><div class="cat-option-name">Pension Portal</div><div class="cat-option-desc">ARM, NLPC, Stanbic...</div></div></div>
+      <div class="cat-option"><div class="cat-option-icon insurance"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div><div class="cat-option-name">Insurance Policy</div><div class="cat-option-desc">Life, health, auto...</div></div></div>
+      <div class="cat-option"><div class="cat-option-icon foreign"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/></svg></div><div><div class="cat-option-name">Foreign Account</div><div class="cat-option-desc">UK ISA, US brokerage...</div></div></div>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:20px">
+      <h3 style="font-size:15px;font-weight:600;margin-bottom:16px">Bank Account Details</h3>
+      <div class="field"><label>Institution name <span style="color:var(--red)">*</span></label><input type="text" placeholder="e.g. Guaranty Trust Bank"></div>
+      <div class="field-row">
+        <div class="field"><label>Account type <span style="color:var(--red)">*</span></label><select><option>Current</option><option>Savings</option><option>Domiciliary</option></select></div>
+        <div class="field"><label>Account number <span style="color:var(--red)">*</span></label><input type="text" placeholder="0123456789"></div>
+      </div>
+      <div class="field"><label>Branch name</label><input type="text" placeholder="e.g. Ikoyi Branch (optional)"></div>
+      <div class="field"><label>Instructions for your beneficiary</label><textarea placeholder="Add any instructions or context that would help your beneficiary understand or access this account..."></textarea><div class="field-hint">Optional · Max 500 characters</div></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="show('dashboard')">Cancel</button>
+      <button class="btn btn-primary" style="margin-left:auto" onclick="show('dashboard')">Save asset →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     EDIT ASSET
+════════════════════════════════════════ -->
+<div id="screen-edit-asset" class="screen" style="align-items:flex-start;justify-content:center;padding:40px 20px">
+  <div class="step-form" style="max-width:560px;width:100%">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
+      <button class="btn btn-ghost" onclick="show('dashboard')" style="padding:6px 10px;font-size:12px">← Back</button>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">Edit Asset</div><div style="font-size:12px;color:var(--text-3)">Last edited Mar 18, 2025</div></div>
+      <button class="btn btn-danger" style="font-size:12.5px;padding:7px 14px">Delete asset</button>
+    </div>
+    <h2 class="form-title">GTBank — Current Account</h2>
+    <p class="form-sub">Bank Account · Update any details below.</p>
+    <div class="field"><label>Institution name <span style="color:var(--red)">*</span></label><input type="text" value="Guaranty Trust Bank"></div>
+    <div class="field-row">
+      <div class="field"><label>Account type <span style="color:var(--red)">*</span></label><select><option selected>Current</option><option>Savings</option><option>Domiciliary</option></select></div>
+      <div class="field"><label>Account number <span style="color:var(--red)">*</span></label><input type="text" value="0134824821"></div>
+    </div>
+    <div class="field"><label>Branch name</label><input type="text" value="Ikoyi Branch"></div>
+    <div class="field"><label>Instructions for your beneficiary</label><textarea>Contact the branch manager at Ikoyi. The account holds my salary and should be the first account Fatima accesses.</textarea></div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="show('dashboard')">Cancel</button>
+      <button class="btn btn-primary" style="margin-left:auto" onclick="show('dashboard')">Save changes →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     BENEFICIARIES
+════════════════════════════════════════ -->
+<div id="screen-beneficiaries" class="screen">
+  <aside class="sidebar">
+    <div class="logo"><div class="logo-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3L4 7V12C4 16.4 7.4 20.5 12 21C16.6 20.5 20 16.4 20 12V7L12 3Z" fill="white" opacity=".9"/></svg></div><span class="logo-text">Anchora</span></div>
+    <nav class="nav">
+      <div class="nav-label">Vault</div>
+      <div class="nav-item" onclick="show('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+      <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>Beneficiaries</div>
+      <div class="nav-label">Account</div>
+      <div class="nav-item" onclick="show('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+    </nav>
+    <div class="sidebar-footer"><div class="user-card"><div class="avatar">OA</div><div class="user-info"><div class="user-name">Olumide Adeyemi</div><div class="user-email">olumide@gmail.com</div></div></div></div>
+  </aside>
+  <main class="main">
+    <div class="page-header">
+      <div><h1 class="page-title">Beneficiaries</h1><p class="page-sub">2 of 5 maximum slots used · All invitations accepted</p></div>
+      <button class="btn btn-primary" onclick="show('add-ben')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add beneficiary</button>
+    </div>
+    <div style="background:var(--accent-l);border:1px solid #C7D6FB;border-radius:var(--r);padding:14px 18px;margin-bottom:22px;font-size:13px;color:#3D5FC9;line-height:1.5">
+      <strong style="color:var(--accent)">Annual review due in 6 months.</strong> You last confirmed your beneficiaries in September 2024. We'll remind you in March 2026.
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;box-shadow:var(--sh-sm)">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div class="ben-av" style="width:44px;height:44px;background:linear-gradient(135deg,#1D7A4A,#34D399);font-size:14px">FA</div>
+          <div style="flex:1"><div style="font-size:15px;font-weight:600">Fatima Adeyemi</div><div style="font-size:13px;color:var(--text-3);margin-top:2px">Spouse · fatima@gmail.com</div></div>
+          <div class="badge green">Active</div>
+          <button class="btn btn-ghost" style="font-size:12.5px;padding:7px 14px">Edit</button>
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;font-size:12.5px">
+          <div><div style="color:var(--text-3);margin-bottom:3px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;font-weight:600">Added</div><div>Sep 12, 2024</div></div>
+          <div><div style="color:var(--text-3);margin-bottom:3px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;font-weight:600">Account created</div><div>Sep 14, 2024</div></div>
+          <div><div style="color:var(--text-3);margin-bottom:3px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;font-weight:600">Last seen</div><div>Today</div></div>
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;box-shadow:var(--sh-sm)">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div class="ben-av" style="width:44px;height:44px;background:linear-gradient(135deg,#7C3AED,#A78BFA);font-size:14px">KA</div>
+          <div style="flex:1"><div style="font-size:15px;font-weight:600">Kunle Adeyemi</div><div style="font-size:13px;color:var(--text-3);margin-top:2px">Sibling · kunle@yahoo.com</div></div>
+          <div class="badge amber">Invited</div>
+          <button class="btn btn-ghost" style="font-size:12.5px;padding:7px 14px">Edit</button>
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border);background:var(--amber-l);border-radius:var(--r-sm);padding:12px 14px;font-size:12.5px;color:var(--amber)">
+          <strong>Invitation pending.</strong> Kunle hasn't created their Anchora account yet. They'll need one to receive your vault. <span style="font-weight:600;cursor:pointer;text-decoration:underline">Resend invitation</span>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════
+     ADD BENEFICIARY
+════════════════════════════════════════ -->
+<div id="screen-add-ben" class="screen" style="align-items:flex-start;justify-content:center;padding:40px 20px">
+  <div class="step-form" style="max-width:500px;width:100%">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
+      <button class="btn btn-ghost" onclick="show('beneficiaries')" style="padding:6px 10px;font-size:12px">← Back</button>
+      <span style="font-size:13px;color:var(--text-3)">Add Beneficiary · 3 of 5 slots remaining</span>
+    </div>
+    <h2 class="form-title">Add a beneficiary</h2>
+    <p class="form-sub">This person will receive a report of your registered financial assets if your vault is released. We'll send them an invitation email.</p>
+    <div class="field-row">
+      <div class="field"><label>First name <span style="color:var(--red)">*</span></label><input type="text" placeholder="Emeka"></div>
+      <div class="field"><label>Last name <span style="color:var(--red)">*</span></label><input type="text" placeholder="Okonkwo"></div>
+    </div>
+    <div class="field"><label>Email address <span style="color:var(--red)">*</span></label><input type="email" placeholder="emeka@gmail.com"><div class="field-hint">We'll send an invitation to this address</div></div>
+    <div class="field"><label>Relationship <span style="color:var(--red)">*</span></label><select><option value="">Select relationship...</option><option>Spouse</option><option>Parent</option><option>Child</option><option>Sibling</option><option>Friend</option><option>Lawyer</option><option>Other</option></select></div>
+    <div class="field"><label>Phone number</label><input type="tel" placeholder="+234 800 000 0000"><div class="field-hint">Optional</div></div>
+    <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:14px 16px;font-size:12.5px;color:var(--text-2);line-height:1.6;margin-top:4px">
+      <strong style="color:var(--text)">What happens next?</strong> We'll send Emeka an invitation explaining what Anchora is and that they've been named as a beneficiary. They won't see your vault contents — only a prompt to create an account so they're ready when the time comes.
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="show('beneficiaries')">Cancel</button>
+      <button class="btn btn-primary" style="margin-left:auto" onclick="show('beneficiaries')">Add beneficiary →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     CHECK-IN
+════════════════════════════════════════ -->
+<div id="screen-checkin" class="screen" style="align-items:flex-start;justify-content:center;padding:40px 20px">
+  <div class="step-form" style="max-width:480px;width:100%;text-align:center">
+    <div class="checkin-shield"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M12 3L4 7V12C4 16.4 7.4 20.5 12 21C16.6 20.5 20 16.4 20 12V7L12 3Z"/><path d="M9 12l2 2 4-4"/></svg></div>
+    <h2 class="form-title">Vault Check-In</h2>
+    <p class="form-sub" style="text-align:center">Confirming you're active resets your inactivity clock and keeps your vault from entering the release workflow.</p>
+    <div style="background:var(--green-l);border:1px solid #A7D7B8;border-radius:var(--r);padding:16px;margin:20px 0;text-align:left">
+      <div style="font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--green);margin-bottom:10px">Your current status</div>
+      <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--text-2)">Last activity</span><span style="font-weight:500;color:var(--green)">Today, 2:14 PM</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--text-2)">Current stage</span><span style="font-weight:500;color:var(--green)">Active — No inactivity</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--text-2)">Next reminder (6 months)</span><span style="font-weight:500">Sep 15, 2025</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--text-2)">Release would trigger</span><span style="font-weight:500">Mar 15, 2026</span></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:0;background:var(--surface-2);border-radius:var(--r);overflow:hidden;margin:20px 0;border:1px solid var(--border)">
+      <div style="flex:1;text-align:center;padding:14px 8px"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--green);margin-bottom:4px">Now</div><div style="width:10px;height:10px;border-radius:50%;background:var(--green);margin:0 auto 4px;box-shadow:0 0 0 4px rgba(29,122,74,.15)"></div><div style="font-size:11px;color:var(--text-2)">Active</div></div>
+      <div style="width:1px;height:40px;background:var(--border)"></div>
+      <div style="flex:1;text-align:center;padding:14px 8px"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:4px">6 months</div><div style="width:10px;height:10px;border-radius:50%;background:var(--border);margin:0 auto 4px"></div><div style="font-size:11px;color:var(--text-3)">Reminder</div></div>
+      <div style="width:1px;height:40px;background:var(--border)"></div>
+      <div style="flex:1;text-align:center;padding:14px 8px"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:4px">9 months</div><div style="width:10px;height:10px;border-radius:50%;background:var(--border);margin:0 auto 4px"></div><div style="font-size:11px;color:var(--text-3)">Warning</div></div>
+      <div style="width:1px;height:40px;background:var(--border)"></div>
+      <div style="flex:1;text-align:center;padding:14px 8px"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:4px">12 months</div><div style="width:10px;height:10px;border-radius:50%;background:var(--border);margin:0 auto 4px"></div><div style="font-size:11px;color:var(--text-3)">Release</div></div>
+    </div>
+    <button class="btn btn-primary btn-full" style="font-size:15px;padding:13px" onclick="show('dashboard')">Confirm I'm Active</button>
+    <button class="btn btn-ghost btn-full" style="margin-top:10px" onclick="show('dashboard')">Return to vault</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     9-MONTH WARNING
+════════════════════════════════════════ -->
+<div id="screen-warning-9m" class="screen" style="align-items:flex-start;justify-content:center;padding:40px 20px">
+  <div class="step-form" style="max-width:480px;width:100%;text-align:center">
+    <div style="width:64px;height:64px;background:var(--amber-l);border:2px solid #FCD37A;border-radius:16px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px"><svg viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2" style="width:28px;height:28px"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <h2 class="form-title" style="color:var(--amber)">Important: Release approaching</h2>
+    <p class="form-sub" style="text-align:center">Your vault has been inactive for approximately <strong>9 months</strong>. If no activity is detected in the next 90 days, your vault will be released to your beneficiaries.</p>
+    <div class="status-bar amber" style="text-align:left;margin:20px 0">
+      <div class="status-dot"></div>
+      <div class="status-text"><strong>Stage 2 Warning · </strong><span>Inactive since Sep 15, 2024 · Release in approx. 90 days</span></div>
+    </div>
+    <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:20px;text-align:left">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">If you do nothing:</div>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--text-2)">
+        <div style="display:flex;align-items:center;gap:8px"><div style="width:6px;height:6px;border-radius:50%;background:var(--amber);flex-shrink:0"></div>Jun 15, 2025 — Release workflow initiates</div>
+        <div style="display:flex;align-items:center;gap:8px"><div style="width:6px;height:6px;border-radius:50%;background:var(--amber);flex-shrink:0"></div>Your beneficiaries are contacted and asked to verify identity</div>
+        <div style="display:flex;align-items:center;gap:8px"><div style="width:6px;height:6px;border-radius:50%;background:var(--amber);flex-shrink:0"></div>Verified beneficiaries receive your vault report</div>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" style="font-size:15px;padding:13px" onclick="show('checkin')">Confirm I'm Active — stop the release</button>
+    <button class="btn btn-ghost btn-full" style="margin-top:10px" onclick="show('dashboard')">Go to my vault</button>
+    <div style="font-size:12px;color:var(--text-3);margin-top:16px;line-height:1.6">This notification was triggered automatically. If you believe this is in error, confirm your activity above.</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SETTINGS
+════════════════════════════════════════ -->
+<div id="screen-settings" class="screen">
+  <aside class="sidebar">
+    <div class="logo"><div class="logo-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3L4 7V12C4 16.4 7.4 20.5 12 21C16.6 20.5 20 16.4 20 12V7L12 3Z" fill="white" opacity=".9"/></svg></div><span class="logo-text">Anchora</span></div>
+    <nav class="nav">
+      <div class="nav-label">Vault</div>
+      <div class="nav-item" onclick="show('dashboard')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</div>
+      <div class="nav-label">Account</div>
+      <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>Settings</div>
+    </nav>
+    <div class="sidebar-footer"><div class="user-card"><div class="avatar">OA</div><div class="user-info"><div class="user-name">Olumide Adeyemi</div><div class="user-email">olumide@gmail.com</div></div></div></div>
+  </aside>
+  <main class="main" style="max-width:680px">
+    <div class="page-header"><div><h1 class="page-title">Account Settings</h1><p class="page-sub">Manage your security preferences and account details</p></div></div>
+    <div class="settings-section">
+      <div class="settings-section-title">Profile</div>
+      <div class="settings-row"><div><div class="settings-label">Full name</div><div class="settings-desc">Shown to your beneficiaries in the release report</div></div><div class="settings-value">Olumide Adeyemi</div></div>
+      <div class="settings-row"><div><div class="settings-label">Email address</div><div class="settings-desc">Your login email — cannot be changed at this time</div></div><div class="settings-value">olumide@gmail.com</div></div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Security</div>
+      <div class="settings-row"><div><div class="settings-label">Password</div><div class="settings-desc">Last changed 3 months ago</div></div><button class="btn btn-ghost" style="font-size:12.5px;padding:7px 14px">Change password</button></div>
+      <div class="settings-row"><div><div class="settings-label">Two-factor authentication</div><div class="settings-desc">Authenticator app enabled</div></div><button class="btn btn-ghost" style="font-size:12.5px;padding:7px 14px">Manage MFA</button></div>
+      <div class="settings-row"><div><div class="settings-label">Active sessions</div><div class="settings-desc">2 sessions — web and mobile</div></div><button class="btn btn-ghost" style="font-size:12.5px;padding:7px 14px">View sessions</button></div>
+      <div class="settings-row"><div><div class="settings-label">Recovery codes</div><div class="settings-desc">8 codes remaining</div></div><button class="btn btn-ghost" style="font-size:12.5px;padding:7px 14px">View codes</button></div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Notifications</div>
+      <div class="settings-row"><div><div class="settings-label">Annual vault review reminder</div><div class="settings-desc">Email reminder when your annual review is due</div></div><div class="toggle on"></div></div>
+      <div class="settings-row"><div><div class="settings-label">Inactivity reminders</div><div class="settings-desc">Mandatory — cannot be disabled</div></div><div style="font-size:12px;color:var(--text-3)">Always on</div></div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Vault</div>
+      <div class="settings-row"><div><div class="settings-label">Personal message to beneficiaries</div><div class="settings-desc">Shown at the top of your release report</div></div><button class="btn btn-ghost" style="font-size:12.5px;padding:7px 14px">Edit message</button></div>
+      <div class="settings-row"><div><div class="settings-label">Export vault data</div><div class="settings-desc">Download a copy of all your records as JSON</div></div><button class="btn btn-ghost" style="font-size:12.5px;padding:7px 14px">Request export</button></div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-section-title">Danger Zone</div>
+      <div class="settings-row"><div><div class="settings-label settings-danger">Delete account</div><div class="settings-desc">Permanently deletes your vault and all records after a 14-day period</div></div><button class="btn btn-danger" style="font-size:12.5px;padding:7px 14px">Delete account</button></div>
+    </div>
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════
+     BENEFICIARY — ID VERIFY
+════════════════════════════════════════ -->
+<div id="screen-ben-verify" class="screen" style="align-items:flex-start;justify-content:center;padding:40px 20px;background:var(--bg)">
+  <div class="step-form" style="max-width:520px;width:100%">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="width:56px;height:56px;background:linear-gradient(135deg,#0F2060,#2B5CE6);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" style="width:26px;height:26px"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M7 10h4M7 13h2"/><circle cx="16" cy="12" r="2"/></svg></div>
+      <h2 class="form-title">Verify your identity</h2>
+      <p class="form-sub" style="text-align:center">To receive <strong>Olumide Adeyemi's</strong> vault, we need to confirm who you are. This protects the information from reaching the wrong person.</p>
+    </div>
+    <div class="accepted-ids" style="margin-bottom:20px">
+      <div style="font-size:12.5px;font-weight:600;color:var(--text-2);margin-bottom:8px">Accepted government-issued photo ID</div>
+      <div class="id-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Nigerian National ID (NIN slip or card)</div>
+      <div class="id-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>International Passport (data page)</div>
+      <div class="id-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Driver's Licence (front and back)</div>
+    </div>
+    <div class="upload-zone">
+      <div class="upload-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+      <div class="upload-title">Upload your ID document</div>
+      <div class="upload-sub">Drag and drop or click to browse · Max 10MB · JPEG, PNG, or PDF</div>
+      <button class="btn btn-secondary" style="margin-top:16px;font-size:13px">Choose file</button>
+    </div>
+    <div style="font-size:12px;color:var(--text-3);line-height:1.6;margin-top:16px;padding:12px;background:var(--surface-2);border-radius:var(--r-sm)">
+      Your ID is used for identity verification only. It is deleted from our systems within 24 hours of a decision being made. It is never shared with the vault owner or other beneficiaries.
+    </div>
+    <button class="btn btn-primary btn-full" style="margin-top:16px">Submit for verification →</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     BENEFICIARY — RELEASE REPORT
+════════════════════════════════════════ -->
+<div id="screen-ben-report" class="screen" style="justify-content:center;padding:32px 20px;background:var(--bg)">
+  <div class="report-wrap">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+      <button class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Download PDF</button>
+    </div>
+    <div class="report-cover">
+      <div class="report-cover-label">Financial Legacy Report</div>
+      <div class="report-cover-name">Olumide Adeyemi</div>
+      <div style="font-size:14px;color:rgba(255,255,255,.7)">Released to you as a designated beneficiary</div>
+      <div class="report-cover-meta">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Vault last updated: Mar 18, 2025</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Released: Mar 20, 2026</span>
+      </div>
+    </div>
+    <div class="report-message">
+      <div class="message-from">Personal message from Olumide</div>
+      <div class="message-text">"If you're reading this, I hope you know how much you meant to me. The accounts listed here represent years of work. Please take your time, get help where you need it, and look after each other."</div>
+      <div class="message-sig">— Olumide Adeyemi</div>
+    </div>
+    <div class="report-section">
+      <div class="report-section-hdr"><div class="cat-icon bank" style="width:28px;height:28px;border-radius:7px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div><h3>Bank Accounts · 2 registered</h3></div>
+      <div class="report-asset-row">
+        <div><div class="asset-field-label">Institution</div><div class="asset-field-value">Guaranty Trust Bank (GTB)</div></div>
+        <div><div class="asset-field-label">Account type</div><div class="asset-field-value">Current Account</div></div>
+        <div><div class="asset-field-label">Account number</div><div class="asset-field-value">0134824821</div></div>
+        <div><div class="asset-field-label">Branch</div><div class="asset-field-value">Ikoyi Branch, Lagos</div></div>
+        <div style="grid-column:1/-1"><div class="asset-field-label">Instructions</div><div class="asset-field-value" style="color:var(--text-2);font-weight:400;font-size:13px">Contact the branch manager at Ikoyi. This account holds salary and should be the first account you access.</div></div>
+      </div>
+      <div class="report-asset-row">
+        <div><div class="asset-field-label">Institution</div><div class="asset-field-value">Zenith Bank</div></div>
+        <div><div class="asset-field-label">Account type</div><div class="asset-field-value">Savings Account</div></div>
+        <div><div class="asset-field-label">Account number</div><div class="asset-field-value">2031482207</div></div>
+        <div><div class="asset-field-label">Instructions</div><div class="asset-field-value" style="font-weight:400;color:var(--text-2);font-size:13px">No additional instructions provided.</div></div>
+      </div>
+    </div>
+    <div class="report-section">
+      <div class="report-section-hdr"><div class="cat-icon invest" style="width:28px;height:28px;border-radius:7px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/></svg></div><h3>Investment Platforms · 1 registered</h3></div>
+      <div class="report-asset-row">
+        <div><div class="asset-field-label">Platform</div><div class="asset-field-value">Bamboo</div></div>
+        <div><div class="asset-field-label">Account type</div><div class="asset-field-value">Stocks & ETFs</div></div>
+        <div><div class="asset-field-label">Account reference</div><div class="asset-field-value">BM-2024-089423</div></div>
+        <div style="grid-column:1/-1"><div class="asset-field-label">Instructions</div><div class="asset-field-value" style="font-weight:400;color:var(--text-2);font-size:13px">Contact Bamboo support at support@bamboo.africa with a death certificate and this reference number to initiate account succession.</div></div>
+      </div>
+    </div>
+    <div class="report-guidance">
+      <div class="guidance-title">What to do next — Bank Accounts</div>
+      <div class="guidance-list">
+        <div class="guidance-step">Visit the bank's nearest branch with a certified copy of the death certificate and a valid government-issued ID.</div>
+        <div class="guidance-step">Request to speak with the branch manager or customer service about a deceased customer's account.</div>
+        <div class="guidance-step">The bank will guide you through their account succession or estate claim process. This may take 2–6 weeks.</div>
+        <div class="guidance-step">Consider engaging an estate lawyer if you encounter difficulty — their assistance can significantly speed up the process.</div>
+      </div>
+    </div>
+    <div class="report-disclaimer">
+      <strong>Important notice:</strong> This report was compiled from information registered by Olumide Adeyemi in their Anchora vault. Anchora is a software information platform only. We do not guarantee the accuracy or completeness of this information, and we do not have the ability to transfer, freeze, or claim any financial asset on your behalf. If you encounter difficulty accessing any of these accounts, we recommend engaging a qualified estate lawyer in Nigeria.
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     ADMIN DASHBOARD
+════════════════════════════════════════ -->
+<div id="screen-admin" class="screen">
+  <aside class="sidebar" style="background:#1A1915;border-right-color:#2E2D29">
+    <div class="logo" style="border-bottom-color:#2E2D29"><div class="logo-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3L4 7V12C4 16.4 7.4 20.5 12 21C16.6 20.5 20 16.4 20 12V7L12 3Z" fill="white" opacity=".9"/></svg></div><span class="logo-text" style="color:#fff">Anchora</span></div>
+    <nav class="nav">
+      <div class="nav-label" style="color:#555">Admin</div>
+      <div class="nav-item active" style="background:rgba(43,92,230,.2);color:#93B4FF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</div>
+      <div class="nav-item" style="color:#888" onclick="show('admin-users')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Users</div>
+      <div class="nav-item" style="color:#888" onclick="show('admin-releases')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Releases</div>
+      <div class="nav-item" style="color:#888"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>Notifications</div>
+      <div class="nav-item" style="color:#888"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Audit Log</div>
+    </nav>
+    <div class="sidebar-footer" style="border-top-color:#2E2D29"><div class="user-card"><div class="avatar" style="background:#2E2D29;color:#888">AD</div><div class="user-info"><div class="user-name" style="color:#C8C6C2">Admin User</div><div class="user-email">admin@anchora.co</div></div></div></div>
+  </aside>
+  <main class="main">
+    <div class="page-header"><div><h1 class="page-title">Platform Overview</h1><p class="page-sub">Updated 2 minutes ago</p></div></div>
+    <div class="admin-stat-grid">
+      <div class="admin-stat"><div class="admin-stat-label">Total users</div><div class="admin-stat-value">1,247</div><div class="admin-stat-sub">+18 this week</div></div>
+      <div class="admin-stat"><div class="admin-stat-label">Active vaults</div><div class="admin-stat-value">1,103</div><div class="admin-stat-sub">88% of registered users</div></div>
+      <div class="admin-stat"><div class="admin-stat-label">Asset records</div><div class="admin-stat-value">4,821</div><div class="admin-stat-sub">3.9 avg per vault</div></div>
+      <div class="admin-stat"><div class="admin-stat-label">Active releases</div><div class="admin-stat-value" style="color:var(--amber)">3</div><div class="admin-stat-sub">2 at Stage 3</div></div>
+      <div class="admin-stat"><div class="admin-stat-label">Completed releases</div><div class="admin-stat-value" style="color:var(--green)">7</div><div class="admin-stat-sub">All time</div></div>
+      <div class="admin-stat"><div class="admin-stat-label">Paying users</div><div class="admin-stat-value">876</div><div class="admin-stat-sub">70% conversion rate</div></div>
+    </div>
+    <div class="section-hdr" style="margin-bottom:12px"><span class="section-title">Alerts requiring attention</span></div>
+    <div class="alert-row red"><div class="alert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><div class="alert-body"><strong>2 users at Stage 3</strong> — Release workflows initiated. Beneficiaries awaiting identity verification.</div><span class="alert-action" onclick="show('admin-releases')">View releases →</span></div>
+    <div class="alert-row amber"><div class="alert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div><div class="alert-body"><strong>1 release has an empty vault</strong> — Release triggered on a vault with zero registered assets.</div><span class="alert-action" onclick="show('admin-releases')">Review →</span></div>
+    <div class="alert-row amber"><div class="alert-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div><div class="alert-body"><strong>Pending dual-auth approval</strong> — Admin Adaobi requested manual release cancellation. Awaiting your approval.</div><span class="alert-action">Approve →</span></div>
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════
+     ADMIN — USERS
+════════════════════════════════════════ -->
+<div id="screen-admin-users" class="screen">
+  <aside class="sidebar" style="background:#1A1915;border-right-color:#2E2D29">
+    <div class="logo" style="border-bottom-color:#2E2D29"><div class="logo-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3L4 7V12C4 16.4 7.4 20.5 12 21C16.6 20.5 20 16.4 20 12V7L12 3Z" fill="white" opacity=".9"/></svg></div><span class="logo-text" style="color:#fff">Anchora</span></div>
+    <nav class="nav">
+      <div class="nav-label" style="color:#555">Admin</div>
+      <div class="nav-item" style="color:#888" onclick="show('admin')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</div>
+      <div class="nav-item active" style="background:rgba(43,92,230,.2);color:#93B4FF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Users</div>
+      <div class="nav-item" style="color:#888" onclick="show('admin-releases')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Releases</div>
+    </nav>
+    <div class="sidebar-footer" style="border-top-color:#2E2D29"><div class="user-card"><div class="avatar" style="background:#2E2D29;color:#888">AD</div><div class="user-info"><div class="user-name" style="color:#C8C6C2">Admin User</div></div></div></div>
+  </aside>
+  <main class="main">
+    <div class="page-header"><div><h1 class="page-title">Users</h1><p class="page-sub">1,247 total accounts</p></div><div class="header-actions"><input type="text" placeholder="Search by name or email..." style="padding:8px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);font-size:13.5px;font-family:'DM Sans',sans-serif;width:260px;outline:none"><button class="btn btn-ghost" style="font-size:13px">Filter</button></div></div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;box-shadow:var(--sh-sm)">
+      <table class="admin-table">
+        <thead><tr><th>User</th><th>Registered</th><th>Last login</th><th>Status</th><th>Inactivity</th><th>Assets</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr><td><div style="font-weight:500">Adaeze Okoye</div><div style="font-size:11.5px;color:var(--text-3)">adaeze@gmail.com</div></td><td style="color:var(--text-2)">Jan 12, 2025</td><td style="color:var(--text-2)">Today</td><td><span class="status-pill active">Active</span></td><td style="color:var(--text-2)">Stage 0</td><td style="color:var(--text-2)">5</td><td><button class="btn btn-ghost" style="font-size:12px;padding:5px 10px">View</button></td></tr>
+          <tr><td><div style="font-weight:500">Chukwuemeka Eze</div><div style="font-size:11.5px;color:var(--text-3)">emeka@yahoo.com</div></td><td style="color:var(--text-2)">Feb 3, 2025</td><td style="color:var(--text-2)">3 days ago</td><td><span class="status-pill active">Active</span></td><td style="color:var(--text-2)">Stage 0</td><td style="color:var(--text-2)">3</td><td><button class="btn btn-ghost" style="font-size:12px;padding:5px 10px">View</button></td></tr>
+          <tr><td><div style="font-weight:500">Ngozi Obi</div><div style="font-size:11.5px;color:var(--text-3)">ngozi@obi.com</div></td><td style="color:var(--text-2)">Mar 15, 2024</td><td style="color:var(--text-2)">6 months ago</td><td><span class="status-pill warning">Stage 1</span></td><td style="color:var(--amber);font-weight:500">6 months</td><td style="color:var(--text-2)">7</td><td><button class="btn btn-ghost" style="font-size:12px;padding:5px 10px">View</button></td></tr>
+          <tr><td><div style="font-weight:500">Bayo Adeleke</div><div style="font-size:11.5px;color:var(--text-3)">bayo@adeleke.ng</div></td><td style="color:var(--text-2)">Jun 8, 2024</td><td style="color:var(--text-2)">9 months ago</td><td><span class="status-pill warning">Stage 2</span></td><td style="color:var(--amber);font-weight:500">9 months</td><td style="color:var(--text-2)">2</td><td><button class="btn btn-ghost" style="font-size:12px;padding:5px 10px">View</button></td></tr>
+          <tr><td><div style="font-weight:500">Funmi Abiodun</div><div style="font-size:11.5px;color:var(--text-3)">funmi@abiodun.com</div></td><td style="color:var(--text-2)">Apr 2, 2024</td><td style="color:var(--text-2)">12 months ago</td><td><span class="status-pill release">Release</span></td><td style="color:var(--red);font-weight:500">12+ months</td><td style="color:var(--text-2)">4</td><td><button class="btn btn-ghost" style="font-size:12px;padding:5px 10px">View</button></td></tr>
+          <tr><td><div style="font-weight:500">Tunde Bakare</div><div style="font-size:11.5px;color:var(--text-3)">tunde@bakare.ng</div></td><td style="color:var(--text-2)">Sep 20, 2024</td><td style="color:var(--text-2)">2 weeks ago</td><td><span class="status-pill pending">Suspended</span></td><td style="color:var(--text-2)">Paused</td><td style="color:var(--text-2)">1</td><td><button class="btn btn-ghost" style="font-size:12px;padding:5px 10px">View</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>
+
+<!-- ════════════════════════════════════════
+     ADMIN — RELEASES
+════════════════════════════════════════ -->
+<div id="screen-admin-releases" class="screen">
+  <aside class="sidebar" style="background:#1A1915;border-right-color:#2E2D29">
+    <div class="logo" style="border-bottom-color:#2E2D29"><div class="logo-mark"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3L4 7V12C4 16.4 7.4 20.5 12 21C16.6 20.5 20 16.4 20 12V7L12 3Z" fill="white" opacity=".9"/></svg></div><span class="logo-text" style="color:#fff">Anchora</span></div>
+    <nav class="nav">
+      <div class="nav-label" style="color:#555">Admin</div>
+      <div class="nav-item" style="color:#888" onclick="show('admin')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Overview</div>
+      <div class="nav-item" style="color:#888" onclick="show('admin-users')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Users</div>
+      <div class="nav-item active" style="background:rgba(43,92,230,.2);color:#93B4FF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Releases</div>
+    </nav>
+    <div class="sidebar-footer" style="border-top-color:#2E2D29"><div class="user-card"><div class="avatar" style="background:#2E2D29;color:#888">AD</div><div class="user-info"><div class="user-name" style="color:#C8C6C2">Admin User</div></div></div></div>
+  </aside>
+  <main class="main">
+    <div class="page-header"><div><h1 class="page-title">Release Workflows</h1><p class="page-sub">3 active · 7 completed</p></div></div>
+    <div style="display:flex;gap:10px;margin-bottom:20px"><button class="btn btn-primary" style="font-size:13px">Active (3)</button><button class="btn btn-ghost" style="font-size:13px">Completed (7)</button></div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="background:var(--surface);border:1.5px solid #F5B0B0;border-radius:var(--r);padding:20px;box-shadow:var(--sh-sm)">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+          <div><div style="font-size:14px;font-weight:600">Funmi Abiodun</div><div style="font-size:12px;color:var(--text-3)">funmi@abiodun.com · Release initiated Mar 20, 2026</div></div>
+          <span class="status-pill release">Stage 3 — Active</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;font-size:12.5px">
+          <div><div style="color:var(--text-3);margin-bottom:3px">Asset records</div><div style="font-weight:500">4 records</div></div>
+          <div><div style="color:var(--text-3);margin-bottom:3px">Beneficiaries</div><div style="font-weight:500">2 designated</div></div>
+          <div><div style="color:var(--text-3);margin-bottom:3px">Days inactive</div><div style="font-weight:500;color:var(--red)">367 days</div></div>
+        </div>
+        <div style="border-top:1px solid var(--border);padding-top:14px">
+          <div style="font-size:12px;font-weight:600;color:var(--text-3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Beneficiary verification status</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;gap:10px;font-size:13px"><div class="ben-av" style="width:24px;height:24px;background:linear-gradient(135deg,#1D7A4A,#34D399);font-size:9px">AA</div><span>Amaka Abiodun</span><span class="badge amber" style="margin-left:auto">ID under review</span></div>
+            <div style="display:flex;align-items:center;gap:10px;font-size:13px"><div class="ben-av" style="width:24px;height:24px;background:linear-gradient(135deg,#7C3AED,#A78BFA);font-size:9px">KA</div><span>Kola Abiodun</span><span class="badge red" style="margin-left:auto">Not submitted</span></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)"><button class="btn btn-ghost" style="font-size:12.5px;padding:7px 14px">View user</button><button class="btn btn-danger" style="font-size:12.5px;padding:7px 14px;margin-left:auto">Cancel release (requires dual auth)</button></div>
+      </div>
+      <div style="background:var(--surface);border:1.5px solid #FCD37A;border-radius:var(--r);padding:20px;box-shadow:var(--sh-sm)">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px">
+          <div><div style="font-size:14px;font-weight:600">Emeka Nwosu</div><div style="font-size:12px;color:var(--text-3)">emeka.n@outlook.com · Release initiated Mar 15, 2026</div></div>
+          <span class="status-pill release">Stage 3 — Empty vault</span>
+        </div>
+        <div style="background:var(--amber-l);border:1px solid #FCD37A;border-radius:var(--r-sm);padding:12px;font-size:13px;color:var(--amber)"><strong>Empty vault.</strong> This user had zero asset records registered when the release triggered. Beneficiaries will receive a report noting no assets were registered.</div>
+        <div style="display:flex;gap:8px;margin-top:14px"><button class="btn btn-ghost" style="font-size:12.5px;padding:7px 14px">View user</button></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+</div>
+
+<script>
+function show(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('visible'));
+  const el = document.getElementById('screen-' + screenId);
+  if (el) el.classList.add('visible');
+  document.querySelectorAll('.proto-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.proto-btn').forEach(b => {
+    if (b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + screenId + "'")) {
+      b.classList.add('active');
+    }
+  });
+  window.scrollTo(0, 0);
+}
+show('dashboard');
+</script>
+</body>
+</html>
