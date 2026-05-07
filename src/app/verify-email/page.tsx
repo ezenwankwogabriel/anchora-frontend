@@ -1,7 +1,9 @@
-export default function VerifyEmailPage() {
-  return (
-    <div className="p-8">
-      <h1 className="font-heading text-2xl">Verify Email</h1>
-    </div>
-  );
+import { VerifyEmailClient } from "./client";
+
+interface Props {
+  searchParams: { email?: string };
+}
+
+export default function VerifyEmailPage({ searchParams }: Props) {
+  return <VerifyEmailClient email={searchParams.email} />;
 }
