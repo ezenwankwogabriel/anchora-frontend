@@ -27,7 +27,7 @@ function RecordRow({ record, onDelete }: RecordRowProps) {
         <p className="text-[13px] font-[500] text-text-primary">
           {record.institutionName}
         </p>
-        <p className="text-[11.5px] text-text-tertiary">{record.accountType}</p>
+        <p className="text-[11.5px] text-text-tertiary">{record.accountName}</p>
       </div>
 
       {confirming ? (

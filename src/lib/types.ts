@@ -34,10 +34,21 @@ export interface VaultRecord {
   id: string;
   category: AssetCategory;
   institutionName: string;
-  accountType: string;
+  accountName: string;
+  accountUrl?: string;
+  usernameOrEmail?: string;
   notes?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface VaultRecordInput {
+  category: AssetCategory;
+  institutionName: string;
+  accountName: string;
+  accountUrl?: string;
+  usernameOrEmail?: string;
+  notes?: string;
 }
 
 export interface VaultCompleteness {
