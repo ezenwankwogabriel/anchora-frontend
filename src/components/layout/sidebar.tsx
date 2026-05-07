@@ -11,6 +11,7 @@ import {
   Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/stores/authStore";
 
 const navItems = [
   { label: "Dashboard",      href: "/dashboard",     icon: LayoutDashboard },
@@ -44,6 +45,32 @@ function LogoMark() {
           opacity=".7"
         />
       </svg>
+    </div>
+  );
+}
+
+function UserCard() {
+  const user = useAuthStore((s) => s.user);
+  const initials = user
+    ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+    : "?";
+  const fullName = user ? `${user.firstName} ${user.lastName}` : "";
+
+  return (
+    <div className="px-5 pt-4 border-t border-border-color">
+      <div className="flex items-center gap-[10px] p-2 rounded-md cursor-pointer hover:bg-surface-2 transition-colors">
+        <div className="w-8 h-8 bg-gradient-to-br from-navy to-accent rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0">
+          {initials}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[13px] font-[550] truncate text-text-primary">
+            {fullName}
+          </p>
+          <p className="text-[11px] text-text-tertiary truncate">
+            {user?.email}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
@@ -105,22 +132,7 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* User card */}
-      <div className="px-5 pt-4 border-t border-border-color">
-        <div className="flex items-center gap-[10px] p-2 rounded-md cursor-pointer hover:bg-surface-2 transition-colors">
-          <div className="w-8 h-8 bg-gradient-to-br from-navy to-accent rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0">
-            OA
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[550] truncate text-text-primary">
-              Olumide Adeyemi
-            </p>
-            <p className="text-[11px] text-text-tertiary truncate">
-              olumide@gmail.com
-            </p>
-          </div>
-        </div>
-      </div>
+      <UserCard />
     </aside>
   );
 }

@@ -1,0 +1,96 @@
+"use client";
+
+import { useState } from "react";
+import { Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import type { VaultRecord, AssetCategory } from "@/lib/types";
+import { CategoryIcon, categoryLabels } from "./category-icon";
+import { Button } from "./button";
+import { cn } from "@/lib/utils";
+
+interface AssetCategoryRowProps {
+  category: AssetCategory;
+  records: VaultRecord[];
+  onDelete: (id: string) => void;
+}
+
+interface RecordRowProps {
+  record: VaultRecord;
+  onDelete: (id: string) => void;
+}
+
+function RecordRow({ record, onDelete }: RecordRowProps) {
+  const [confirming, setConfirming] = useState(false);
+
+  return (
+    <div className="flex items-center justify-between py-[10px] pl-10 pr-2 border-b border-border-color last:border-0">
+      <div>
+        <p className="text-[13px] font-[500] text-text-primary">
+          {record.institutionName}
+        </p>
+        <p className="text-[11.5px] text-text-tertiary">{record.accountType}</p>
+      </div>
+
+      {confirming ? (
+        <div className="flex items-center gap-2">
+          <span className="text-[12px] text-text-secondary">Delete?</span>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => onDelete(record.id)}
+          >
+            Yes
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setConfirming(false)}
+          >
+            No
+          </Button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setConfirming(true)}
+          className="p-1.5 rounded-md text-text-tertiary hover:text-red hover:bg-red-light transition-colors"
+          aria-label="Delete record"
+        >
+          <Trash2 size={14} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+export function AssetCategoryRow({ category, records, onDelete }: AssetCategoryRowProps) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="border-b border-border-color last:border-0">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center gap-3 py-3 px-2 hover:bg-surface-2 rounded-md transition-colors"
+      >
+        <CategoryIcon category={category} size={15} />
+        <span className="flex-1 text-left text-[13.5px] font-[500] text-text-primary">
+          {categoryLabels[category]}
+        </span>
+        <span className="text-[12px] text-text-tertiary mr-2">
+          {records.length} {records.length === 1 ? "record" : "records"}
+        </span>
+        <span className={cn("text-text-tertiary transition-transform", open && "rotate-0")}>
+          {open ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+        </span>
+      </button>
+
+      {open && records.length > 0 && (
+        <div>
+          {records.map((r) => (
+            <RecordRow key={r.id} record={r} onDelete={onDelete} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}

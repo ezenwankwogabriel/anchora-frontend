@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useAuthStore } from "@/stores/authStore";
-import type { User } from "./types";
+import { ServiceError, type User } from "./types";
 
 const http = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001",
@@ -41,3 +41,14 @@ http.interceptors.response.use(
 );
 
 export default http;
+
+// Shared error normaliser — import in every service instead of duplicating
+export function normalise(err: unknown): never {
+  if (axios.isAxiosError(err)) {
+    throw new ServiceError(
+      (err.response?.data as { message?: string })?.message ?? "Something went wrong",
+      err.response?.status ?? 500
+    );
+  }
+  throw err;
+}

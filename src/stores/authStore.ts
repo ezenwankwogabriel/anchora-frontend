@@ -9,10 +9,18 @@ interface AuthStore {
   clearAuth: () => void;
 }
 
+const user = {
+  id: "xxx-xxx",
+  firstName: "Gabriel",
+  lastName: "Ezenwankwo",
+  email: "dagabangel@gmail.com",
+  emailVerified: true,
+}
+
 export const useAuthStore = create<AuthStore>((set) => ({
-  user: null,
-  accessToken: null,
-  isAuthenticated: false,
+  user: user ?? null,
+  accessToken: user.id ?? null,
+  isAuthenticated: true, // false
   setAuth: (user, accessToken) =>
     set({ user, accessToken, isAuthenticated: true }),
   clearAuth: () =>

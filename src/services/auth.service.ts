@@ -1,18 +1,5 @@
-import axios from "axios";
-import http from "@/lib/axios";
-import { ServiceError } from "@/lib/types";
+import http, { normalise } from "@/lib/axios";
 import type { AuthResponse, MfaSetupResponse } from "@/lib/types";
-
-function normalise(err: unknown): never {
-  if (axios.isAxiosError(err)) {
-    throw new ServiceError(
-      (err.response?.data as { message?: string })?.message ??
-        "Something went wrong",
-      err.response?.status ?? 500
-    );
-  }
-  throw err;
-}
 
 export const AuthService = {
   register: async (data: {
