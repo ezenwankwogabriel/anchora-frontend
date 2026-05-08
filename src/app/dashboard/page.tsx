@@ -9,7 +9,6 @@ import { PanelCard } from "@/components/ui/panel-card";
 import { ChecklistCard, type ChecklistItem } from "@/components/ui/checklist-card";
 import { BeneficiaryRow } from "@/components/ui/beneficiary-row";
 import { AssetCategoryRow } from "@/components/ui/asset-category-row";
-import { InactivityBanner } from "@/components/ui/inactivity-banner";
 import { SkeletonCard, SkeletonRow } from "@/components/ui/skeleton-card";
 import { Button } from "@/components/ui/button";
 import { useDashboardData } from "@/hooks/useDashboardData";
@@ -62,7 +61,7 @@ function buildChecklist(
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
-  const { loading, records, completeness, beneficiaries, inactivity, errors, deleteRecord } =
+  const { loading, records, completeness, beneficiaries, errors, deleteRecord } =
     useDashboardData();
 
   const [checklistDismissed, setChecklistDismissed] = useState(false);
@@ -88,13 +87,9 @@ export default function DashboardPage() {
     (c) => (recordsByCategory[c]?.length ?? 0) > 0
   );
 
-  const inactivityVariant =
-    inactivity?.stage === 1 ? "warning" : "error";
-
-  const inactivityMessage =
-    inactivity?.stage === 1
-      ? "You haven't checked in recently. Please confirm you're active."
-      : "You have missed multiple check-ins. Your beneficiaries may be notified soon.";
+  const activeCount = beneficiaries?.filter(
+    (b) => b.status === "ACTIVE" || b.status === "ACCOUNT_CREATED"
+  ).length ?? 0;
 
   return (
     <AppLayout>
@@ -108,15 +103,6 @@ export default function DashboardPage() {
             Here&apos;s an overview of your financial legacy vault.
           </p>
         </div>
-
-        {/* Inactivity banner — only shown when stage > 0 */}
-        {inactivity && inactivity.stage > 0 && (
-          <InactivityBanner
-            variant={inactivityVariant}
-            message={inactivityMessage}
-            ctaLabel="Check in now"
-          />
-        )}
 
         {/* Health cards */}
         <div className="grid grid-cols-3 gap-4">
@@ -153,7 +139,7 @@ export default function DashboardPage() {
                   errors.beneficiaries
                     ? "Could not load"
                     : (beneficiaries?.length ?? 0) > 0
-                    ? `${beneficiaries!.filter((b) => b.status === "ACTIVE").length} active`
+                    ? `${activeCount} active`
                     : "None added yet"
                 }
                 status={
@@ -165,28 +151,20 @@ export default function DashboardPage() {
                 }
               />
               <HealthCard
-                label="Check-in status"
-                value={
-                  !inactivity
-                    ? "—"
-                    : inactivity.stage === 0
-                    ? "Active"
-                    : inactivity.stage === 1
-                    ? "Overdue"
-                    : "Critical"
-                }
+                label="Assets recorded"
+                value={errors.records ? "—" : (records?.length ?? 0)}
                 subtext={
-                  inactivity
-                    ? `Last: ${new Date(inactivity.lastCheckIn).toLocaleDateString()}`
-                    : undefined
+                  errors.records
+                    ? "Could not load"
+                    : categoriesWithRecords.length > 0
+                    ? `${categoriesWithRecords.length} ${categoriesWithRecords.length === 1 ? "category" : "categories"}`
+                    : "No assets yet"
                 }
                 status={
-                  !inactivity
+                  errors.records
                     ? "empty"
-                    : inactivity.stage === 0
+                    : (records?.length ?? 0) > 0
                     ? "good"
-                    : inactivity.stage === 1
-                    ? "warning"
                     : "critical"
                 }
               />

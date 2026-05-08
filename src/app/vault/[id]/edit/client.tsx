@@ -87,7 +87,7 @@ export function EditAssetClient({ id }: EditAssetClientProps) {
               Back to dashboard
             </Link>
             <h1 className="font-heading text-[26px] text-text-primary leading-tight">
-              {record.institutionName} — {record.accountName}
+              {record.accountName}{record.accountType ? ` — ${record.accountType}` : ""}
             </h1>
             <p className="text-[12.5px] text-text-tertiary mt-1">
               {categoryLabels[record.category]} · Last edited {updatedAt}
@@ -125,7 +125,7 @@ export function EditAssetClient({ id }: EditAssetClientProps) {
       <DeleteAssetModal
         open={deleteOpen}
         recordId={record.id}
-        recordName={`${record.institutionName} — ${record.accountName}`}
+        recordName={record.accountType ? `${record.accountName} — ${record.accountType}` : record.accountName}
         onSuccess={handleDeleteSuccess}
         onClose={() => setDeleteOpen(false)}
       />

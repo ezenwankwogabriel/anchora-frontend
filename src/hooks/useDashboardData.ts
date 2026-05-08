@@ -1,13 +1,7 @@
 import { useEffect, useReducer } from "react";
 import { VaultService } from "@/services/vault.service";
 import { BeneficiaryService } from "@/services/beneficiary.service";
-import { InactivityService } from "@/services/inactivity.service";
-import type {
-  VaultRecord,
-  VaultCompleteness,
-  Beneficiary,
-  InactivityStatus,
-} from "@/lib/types";
+import type { VaultRecord, VaultCompleteness, Beneficiary } from "@/lib/types";
 
 interface DashboardErrors {
   records: boolean;
@@ -20,7 +14,6 @@ interface State {
   records: VaultRecord[] | null;
   completeness: VaultCompleteness | null;
   beneficiaries: Beneficiary[] | null;
-  inactivity: InactivityStatus | null;
   errors: DashboardErrors;
 }
 
@@ -30,7 +23,6 @@ type Action =
       records: VaultRecord[] | null;
       completeness: VaultCompleteness | null;
       beneficiaries: Beneficiary[] | null;
-      inactivity: InactivityStatus | null;
       errors: DashboardErrors;
     }
   | { type: "DELETE_RECORD"; id: string };
@@ -40,7 +32,6 @@ const initialState: State = {
   records: null,
   completeness: null,
   beneficiaries: null,
-  inactivity: null,
   errors: { records: false, completeness: false, beneficiaries: false },
 };
 
@@ -52,7 +43,6 @@ function reducer(state: State, action: Action): State {
         records: action.records,
         completeness: action.completeness,
         beneficiaries: action.beneficiaries,
-        inactivity: action.inactivity,
         errors: action.errors,
       };
     case "DELETE_RECORD":
@@ -68,20 +58,18 @@ export function useDashboardData() {
 
   useEffect(() => {
     async function load() {
-      const [recordsRes, completenessRes, beneficiariesRes, inactivityRes] =
+      const [recordsRes, completenessRes, beneficiariesRes] =
         await Promise.allSettled([
           VaultService.getRecords(),
           VaultService.getCompleteness(),
           BeneficiaryService.getAll(),
-          InactivityService.getStatus(),
         ]);
 
       dispatch({
         type: "LOADED",
-        records:       recordsRes.status === "fulfilled"       ? (recordsRes.value ?? [])       : null,
-        completeness:  completenessRes.status === "fulfilled"  ? (completenessRes.value ?? null) : null,
-        beneficiaries: beneficiariesRes.status === "fulfilled" ? (beneficiariesRes.value ?? [])  : null,
-        inactivity:    inactivityRes.status === "fulfilled"    ? (inactivityRes.value ?? null)   : null,
+        records:       recordsRes.status === "fulfilled"      ? (recordsRes.value ?? [])       : null,
+        completeness:  completenessRes.status === "fulfilled" ? (completenessRes.value ?? null) : null,
+        beneficiaries: beneficiariesRes.status === "fulfilled"? (beneficiariesRes.value ?? [])  : null,
         errors: {
           records:       recordsRes.status === "rejected",
           completeness:  completenessRes.status === "rejected",

@@ -25,9 +25,11 @@ function RecordRow({ record, onDelete }: RecordRowProps) {
     <div className="flex items-center justify-between py-[10px] pl-10 pr-2 border-b border-border-color last:border-0">
       <div>
         <p className="text-[13px] font-[500] text-text-primary">
-          {record.institutionName}
+          {record.accountName}
         </p>
-        <p className="text-[11.5px] text-text-tertiary">{record.accountName}</p>
+        <p className="text-[11.5px] text-text-tertiary">
+          {record.accountType ?? record.nickname ?? ""}
+        </p>
       </div>
 
       {confirming ? (

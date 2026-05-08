@@ -54,16 +54,21 @@ export function VaultForm({
   onCancel,
   submitLabel,
 }: VaultFormProps) {
-  const config  = CATEGORY_CONFIG[category];
-  const schema  = getCategorySchema(category);
+  const config = CATEGORY_CONFIG[category];
+  const schema = getCategorySchema(category);
 
+  // Map from VaultRecord (API shape) back to VaultFormData (form shape).
+  // OTHER: nickname = asset label (primary), institutionName = institution (secondary).
+  // All others: accountName = institution (primary), nickname = user label.
   const defaultValues: VaultFormData = record
     ? {
-        institutionName: record.institutionName,
-        accountName:     record.accountName,
-        usernameOrEmail: record.usernameOrEmail ?? "",
+        institutionName: category === "OTHER" ? (record.nickname ?? "") : record.accountName,
+        accountType:     record.accountType ?? "",
+        nickname:        category === "OTHER" ? record.accountName : (record.nickname ?? ""),
+        holderName:      record.encryptedFields.holderName ?? "",
+        usernameOrEmail: record.encryptedFields.usernameOrEmail ?? "",
         accountUrl:      record.accountUrl ?? "",
-        notes:           record.notes ?? "",
+        notes:           record.encryptedFields.notes ?? "",
       }
     : config.defaultValues;
 
@@ -85,10 +90,12 @@ export function VaultForm({
       await onSubmit({
         category,
         institutionName: values.institutionName,
-        accountName:     values.accountName,
+        accountType:     values.accountType,
+        nickname:        values.nickname,
+        holderName:      values.holderName     || undefined,
         usernameOrEmail: values.usernameOrEmail || undefined,
-        accountUrl:      values.accountUrl || undefined,
-        notes:           values.notes || undefined,
+        accountUrl:      values.accountUrl      || undefined,
+        notes:           values.notes           || undefined,
       });
     } catch (err) {
       setError("root", {
@@ -98,7 +105,7 @@ export function VaultForm({
   };
 
   const renderTextField = (
-    field: "institutionName" | "usernameOrEmail" | "accountUrl",
+    field: "institutionName" | "nickname" | "holderName" | "usernameOrEmail" | "accountUrl",
     label: string,
     placeholder: string | undefined,
     required?: boolean
@@ -111,7 +118,7 @@ export function VaultForm({
   );
 
   const renderSelectField = (
-    field: "accountName" | "usernameOrEmail" | "accountUrl",
+    field: "accountType" | "accountUrl",
     label: string,
     options: readonly string[],
     required?: boolean
@@ -138,40 +145,43 @@ export function VaultForm({
           config.institutionName.required
         )}
 
-      {/* accountName — text or select */}
-      {config.accountName.type === "select"
-        ? renderSelectField(
-            "accountName",
-            config.accountName.label,
-            config.accountName.options!,
-            config.accountName.required
-          )
-        : config.accountName.type !== "hidden" && (
-            <FormSection>
-              <FieldLabel text={config.accountName.label} required={config.accountName.required} />
-              <Input placeholder={config.accountName.placeholder} {...register("accountName")} />
-              <FieldError message={errors.accountName?.message} />
-            </FormSection>
-          )}
+      {/* accountType — select or hidden */}
+      {config.accountType.type === "select" &&
+        renderSelectField(
+          "accountType",
+          config.accountType.label,
+          config.accountType.options!,
+          config.accountType.required
+        )}
 
-      {/* usernameOrEmail — text or select */}
-      {config.usernameOrEmail.type === "select"
-        ? renderSelectField(
-            "usernameOrEmail",
-            config.usernameOrEmail.label,
-            config.usernameOrEmail.options!,
-            config.usernameOrEmail.required
-          )
-        : config.usernameOrEmail.type !== "hidden" && (
-            renderTextField(
-              "usernameOrEmail",
-              config.usernameOrEmail.label,
-              config.usernameOrEmail.placeholder,
-              config.usernameOrEmail.required
-            )
-          )}
+      {/* nickname */}
+      {config.nickname.type !== "hidden" &&
+        renderTextField(
+          "nickname",
+          config.nickname.label,
+          config.nickname.placeholder,
+          config.nickname.required
+        )}
 
-      {/* accountUrl — text, url, or select */}
+      {/* holderName */}
+      {config.holderName.type !== "hidden" &&
+        renderTextField(
+          "holderName",
+          config.holderName.label,
+          config.holderName.placeholder,
+          config.holderName.required
+        )}
+
+      {/* usernameOrEmail */}
+      {config.usernameOrEmail.type !== "hidden" &&
+        renderTextField(
+          "usernameOrEmail",
+          config.usernameOrEmail.label,
+          config.usernameOrEmail.placeholder,
+          config.usernameOrEmail.required
+        )}
+
+      {/* accountUrl — select, url/text, or hidden */}
       {config.accountUrl.type === "select"
         ? renderSelectField(
             "accountUrl",
@@ -179,14 +189,13 @@ export function VaultForm({
             config.accountUrl.options!,
             config.accountUrl.required
           )
-        : config.accountUrl.type !== "hidden" && (
+        : config.accountUrl.type !== "hidden" &&
             renderTextField(
               "accountUrl",
               config.accountUrl.label,
               config.accountUrl.placeholder,
               config.accountUrl.required
-            )
-          )}
+            )}
 
       {/* Crypto warning */}
       {config.showCryptoWarning && (

@@ -1,0 +1,432 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ENUMS ───────────────────────────────────────
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  READ_ONLY
+}
+
+enum PendingActionStatus {
+  PENDING
+  CONFIRMED
+  EXPIRED
+  CANCELLED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum MFAMethod {
+  TOTP
+  SMS
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING_DELETION
+  DELETED
+}
+
+enum InactivityStage {
+  NONE
+  STAGE_1
+  STAGE_2
+  STAGE_3
+}
+
+enum AssetCategory {
+  BANK_ACCOUNT
+  INVESTMENT_PLATFORM
+  CRYPTO_WALLET
+  PENSION_PORTAL
+  INSURANCE_POLICY
+  FOREIGN_ACCOUNT
+  OTHER
+}
+
+enum Relationship {
+  SPOUSE
+  PARENT
+  CHILD
+  SIBLING
+  FRIEND
+  LAWYER
+  OTHER
+}
+
+enum BeneficiaryStatus {
+  INVITED
+  ACCOUNT_CREATED
+  ACTIVE
+  ACCOUNT_DELETED
+}
+
+enum ReleaseStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum VerificationStatus {
+  PENDING
+  SUBMITTED
+  APPROVED
+  REJECTED
+  RESUBMITTED
+  PERMANENTLY_REJECTED
+}
+
+enum NotificationType {
+  REGISTRATION
+  EMAIL_VERIFIED
+  NEW_LOGIN
+  ACCOUNT_LOCKED
+  PASSWORD_RESET
+  PASSWORD_RESET_CONFIRMED
+  INACTIVITY_STAGE_1
+  INACTIVITY_STAGE_2
+  INACTIVITY_STAGE_3
+  ACTIVITY_CONFIRMED
+  ANNUAL_REVIEW
+  BENEFICIARY_ACCOUNT_DELETED
+  ACCOUNT_DELETION_INITIATED
+  BENEFICIARY_INVITATION
+  RELEASE_INITIATED
+  VERIFICATION_APPROVED
+  VERIFICATION_REJECTED
+  RELEASE_CANCELLED
+}
+
+enum NotificationChannel {
+  EMAIL
+  SMS
+  IN_APP
+}
+
+enum ActorType {
+  USER
+  BENEFICIARY
+  ADMIN
+  SYSTEM
+}
+
+// ─── MODELS ──────────────────────────────────────
+
+model AdminUser {
+  id            String    @id @default(cuid())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  email         String    @unique
+  passwordHash  String
+  role          AdminRole @default(ADMIN)
+  lastLoginAt   DateTime?
+  isActive      Boolean   @default(true)
+  createdById   String?
+  createdBy     AdminUser?  @relation("AdminCreatedBy", fields: [createdById], references: [id])
+  createdAdmins AdminUser[] @relation("AdminCreatedBy")
+
+  initiatedActions PendingAction[] @relation("InitiatedActions")
+  confirmedActions PendingAction[] @relation("ConfirmedActions")
+
+  @@index([email])
+  @@index([role])
+  @@index([isActive])
+}
+
+model PendingAction {
+  id            String              @id @default(cuid())
+  createdAt     DateTime            @default(now())
+  actionToken   String              @unique
+  actionType    String
+  payload       Json
+  initiatedById String
+  initiatedBy   AdminUser           @relation("InitiatedActions", fields: [initiatedById], references: [id])
+  expiresAt     DateTime
+  confirmedById String?
+  confirmedBy   AdminUser?          @relation("ConfirmedActions", fields: [confirmedById], references: [id])
+  confirmedAt   DateTime?
+  status        PendingActionStatus @default(PENDING)
+
+  @@index([actionToken])
+  @@index([initiatedById])
+  @@index([confirmedById])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model User {
+  id              String          @id @default(cuid())
+  email           String          @unique
+  firstName       String
+  lastName        String
+  passwordHash    String
+  mfaSecret       String?
+  mfaMethod       MFAMethod?
+  phoneNumber     String?
+  role            UserRole        @default(USER)
+  status          AccountStatus   @default(ACTIVE)
+  emailVerifiedAt DateTime?
+  lastActivityAt  DateTime        @default(now())
+  inactivityStage InactivityStage @default(NONE)
+  stageEnteredAt   DateTime?
+  coolingOffUntil  DateTime?
+  releaseHaltedAt  DateTime?
+  deletedAt       DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  sessions            Session[]
+  mfaRecoveryCodes    MFARecoveryCode[]
+  vaultRecords        VaultRecord[]
+  beneficiaries       Beneficiary[]
+  inactivityEvents    InactivityEvent[]
+  releases            Release[]
+  notifications       Notification[]
+  beneficiaryAccounts BeneficiaryAccount[] @relation("BeneficiaryAccountOwner")
+  guardians           Guardian[]
+
+  @@index([email])
+  @@index([status])
+  @@index([inactivityStage])
+  @@index([lastActivityAt])
+}
+
+model MFARecoveryCode {
+  id        String    @id @default(cuid())
+  userId    String
+  codeHash  String
+  used      Boolean   @default(false)
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Session {
+  id               String   @id @default(cuid())
+  userId           String
+  refreshTokenHash String
+  ipAddress        String
+  userAgent        String
+  expiresAt        DateTime
+  createdAt        DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model VaultRecord {
+  id            String        @id @default(cuid())
+  userId        String
+  category      AssetCategory
+  accountName   String
+  accountType   String?
+  nickname      String?
+  accountUrl    String?
+  encryptedData String
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  user          User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  beneficiaries VaultRecordBeneficiary[]
+
+  @@index([userId])
+  @@index([userId, category])
+}
+
+model Beneficiary {
+  id           String            @id @default(cuid())
+  userId       String
+  name         String
+  email        String
+  phone        String?
+  relationship Relationship
+  isDefault    Boolean           @default(false)
+  inviteToken  String?
+  status       BeneficiaryStatus @default(INVITED)
+  invitedAt    DateTime          @default(now())
+  acceptedAt   DateTime?
+
+  user         User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vaultRecords VaultRecordBeneficiary[]
+  account      BeneficiaryAccount?
+  releases     BeneficiaryRelease[]
+
+  @@unique([userId, email])
+  @@index([userId])
+  @@index([email])
+  @@index([userId, isDefault])
+}
+
+model VaultRecordBeneficiary {
+  id            String   @id @default(cuid())
+  vaultRecordId String
+  beneficiaryId String
+  assignedAt    DateTime @default(now())
+
+  vaultRecord VaultRecord @relation(fields: [vaultRecordId], references: [id], onDelete: Cascade)
+  beneficiary Beneficiary @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
+
+  @@unique([vaultRecordId, beneficiaryId])
+  @@index([vaultRecordId])
+  @@index([beneficiaryId])
+}
+
+model BeneficiaryAccount {
+  id            String   @id @default(cuid())
+  beneficiaryId String   @unique
+  accountUserId String
+  linkedAt      DateTime @default(now())
+
+  beneficiary Beneficiary @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
+  accountUser User        @relation("BeneficiaryAccountOwner", fields: [accountUserId], references: [id])
+
+  @@index([accountUserId])
+}
+
+model InactivityEvent {
+  id          String          @id @default(cuid())
+  userId      String
+  stage       InactivityStage
+  triggeredAt DateTime        @default(now())
+  notifiedAt  DateTime?
+  cancelled   Boolean         @default(false)
+  cancelledAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, stage])
+}
+
+model Release {
+  id           String        @id @default(cuid())
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  userId       String
+  status       ReleaseStatus @default(PENDING)
+  triggeredAt  DateTime      @default(now())
+  completedAt  DateTime?
+  cancelledAt  DateTime?
+  cancelReason String?
+  emptyVault   Boolean       @default(false)
+
+  user          User                 @relation(fields: [userId], references: [id])
+  report        ReleaseReport?
+  beneficiaries BeneficiaryRelease[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+model BeneficiaryRelease {
+  id                    String             @id @default(cuid())
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  releaseId             String
+  beneficiaryId         String
+  verificationStatus    VerificationStatus @default(PENDING)
+  submittedAt           DateTime?
+  reviewedAt            DateTime?
+  rejectionReason       String?
+  resubmittedAt         DateTime?
+  reportAccessGrantedAt DateTime?
+  smileJobId            String?
+  idDocumentKey         String?
+  selfieKey             String?
+  reviewedByAdminId     String?
+
+  release     Release     @relation(fields: [releaseId], references: [id])
+  beneficiary Beneficiary @relation(fields: [beneficiaryId], references: [id])
+
+  @@index([releaseId])
+  @@index([beneficiaryId])
+  @@index([verificationStatus])
+}
+
+model ReleaseReport {
+  id            String   @id @default(cuid())
+  createdAt     DateTime @default(now())
+  releaseId     String   @unique
+  s3Key         String
+  generatedAt   DateTime @default(now())
+  fileSizeBytes Int?
+
+  release Release @relation(fields: [releaseId], references: [id])
+}
+
+model Notification {
+  id             String              @id @default(cuid())
+  userId         String
+  type           NotificationType
+  channel        NotificationChannel
+  deliveryStatus String              @default("sent")
+  sentAt         DateTime            @default(now())
+  deliveredAt    DateTime?
+  metadata       Json?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([sentAt])
+}
+
+// AuditLog deliberately has no FK relations.
+// Audit records must survive user deletion.
+// actorId and targetId are plain strings —
+model Guardian {
+  id                      String    @id @default(cuid())
+  userId                  String
+  firstName               String
+  email                   String
+  confirmationToken       String?
+  confirmationTokenSentAt DateTime?
+  confirmedAt             DateTime?
+  releaseId               String?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([confirmationToken])
+}
+
+// they record who did what even after the
+// referenced records no longer exist.
+model AuditLog {
+  id         String    @id @default(cuid())
+  actorId    String
+  actorType  ActorType
+  action     String
+  targetType String
+  targetId   String
+  ipAddress  String?
+  userAgent  String?
+  result     String
+  metadata   Json?
+  createdAt  DateTime  @default(now())
+
+  @@index([actorId])
+  @@index([targetId])
+  @@index([action])
+  @@index([createdAt])
+}

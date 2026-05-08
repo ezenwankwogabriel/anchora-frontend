@@ -1,10 +1,13 @@
 import http, { normalise } from "@/lib/axios";
-import type { InactivityStatus } from "@/lib/types";
 
 export const InactivityService = {
-  getStatus: async (): Promise<InactivityStatus> => {
+  checkIn: async (): Promise<{ message: string; coolingOffUntil: string | null }> => {
     try {
-      return (await http.get<InactivityStatus>("/inactivity/status")).data;
+      return (
+        await http.post<{ data: { message: string; coolingOffUntil: string | null } }>(
+          "/inactivity/check-in"
+        )
+      ).data.data;
     } catch (err) {
       normalise(err);
     }

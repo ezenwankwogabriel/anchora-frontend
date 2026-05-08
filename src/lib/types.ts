@@ -32,23 +32,39 @@ export type AssetCategory =
 
 export interface VaultRecord {
   id: string;
+  userId: string;
   category: AssetCategory;
-  institutionName: string;
-  accountName: string;
-  accountUrl?: string;
-  usernameOrEmail?: string;
-  notes?: string;
+  accountName: string;       // institution / platform name — shown in list views
+  accountType: string | null; // type descriptor (Savings, Stocks, Life, etc.)
+  nickname: string | null;   // user's personal label
+  accountUrl: string | null;
+  encryptedFields: {
+    holderName?: string;
+    usernameOrEmail?: string;
+    notes?: string;
+  };
+  beneficiary: {
+    id: string;
+    name: string;
+    email: string;
+    relationship: Relationship;
+  } | null;
   createdAt: string;
   updatedAt: string;
 }
 
+// VaultRecordInput uses frontend form field names.
+// The service layer maps these to backend API field names before API calls.
 export interface VaultRecordInput {
   category: AssetCategory;
   institutionName: string;
-  accountName: string;
-  accountUrl?: string;
+  accountType: string;
+  nickname: string;
+  holderName?: string;
   usernameOrEmail?: string;
+  accountUrl?: string;
   notes?: string;
+  beneficiaryId?: string;
 }
 
 export interface VaultCompleteness {
@@ -60,21 +76,57 @@ export interface VaultCompleteness {
 
 // ── Beneficiaries ─────────────────────────────────────────────────────────
 
+export type BeneficiaryStatus =
+  | "INVITED"
+  | "ACCOUNT_CREATED"
+  | "ACTIVE"
+  | "ACCOUNT_DELETED";
+
+export type Relationship =
+  | "SPOUSE"
+  | "PARENT"
+  | "CHILD"
+  | "SIBLING"
+  | "FRIEND"
+  | "LAWYER"
+  | "OTHER";
+
 export interface Beneficiary {
   id: string;
-  firstName: string;
-  lastName: string;
+  userId: string;
+  name: string;
   email: string;
-  relationship: string;
-  status: "ACTIVE" | "INVITED" | "PENDING";
+  phone: string | null;
+  relationship: Relationship;
+  isDefault: boolean;
+  inviteToken: string | null;
+  status: BeneficiaryStatus;
+  invitedAt: string;
+  acceptedAt: string | null;
+  vaultRecordCount: number;
 }
 
-// ── Inactivity ────────────────────────────────────────────────────────────
+export interface BeneficiaryDetail {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  relationship: Relationship;
+  isDefault: boolean;
+  inviteToken: string | null;
+  status: BeneficiaryStatus;
+  invitedAt: string;
+  acceptedAt: string | null;
+  vaultRecordIds: string[];
+}
 
-export interface InactivityStatus {
-  stage: 0 | 1 | 2 | 3;
-  lastCheckIn: string;
-  nextReminder: string;
+export interface BeneficiaryInput {
+  name: string;
+  email: string;
+  relationship: Relationship;
+  phone?: string;
+  isDefault?: boolean;
 }
 
 // ── Errors ────────────────────────────────────────────────────────────────
