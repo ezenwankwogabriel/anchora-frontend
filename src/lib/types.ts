@@ -129,6 +129,16 @@ export interface BeneficiaryInput {
   isDefault?: boolean;
 }
 
+// ── Release ───────────────────────────────────────────
+
+export interface ReleaseReport {
+  id: string;
+  status: string;
+  ownerFirstName: string;
+  reportUrl: string | null;
+  expiresAt: string | null;
+}
+
 // ── Errors ────────────────────────────────────────────────────────────────
 
 export class ServiceError extends Error {
