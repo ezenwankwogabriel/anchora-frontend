@@ -125,7 +125,6 @@ export interface BeneficiaryInput {
   name: string;
   email: string;
   relationship: Relationship;
-  phone?: string;
   isDefault?: boolean;
 }
 

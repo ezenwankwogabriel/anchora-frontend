@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Check } from "lucide-react";
+import { Loader2, Check, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { AddBeneficiaryDialog } from "@/components/ui/add-beneficiary-dialog";
 import { BeneficiaryService } from "@/services/beneficiary.service";
 import { RELATIONSHIP_LABELS } from "@/lib/schemas/beneficiary";
 import type { Beneficiary } from "@/lib/types";
@@ -24,6 +25,7 @@ export function BeneficiaryAssignmentStep({
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[] | null>(null);
   const [loading, setLoading]             = useState(true);
   const [saving, setSaving]               = useState(false);
+  const [addOpen, setAddOpen]             = useState(false);
 
   useEffect(() => {
     BeneficiaryService.getAll()
@@ -49,11 +51,25 @@ export function BeneficiaryAssignmentStep({
     }
   };
 
+  const handleBeneficiaryAdded = (b: Beneficiary) => {
+    setBeneficiaries((prev) => [...(prev ?? []), b]);
+    onChange([...selectedIds, b.id]);
+    setAddOpen(false);
+  };
+
   return (
     <div>
-      <h2 className="font-heading text-[22px] text-text-primary mb-1">
-        Who can access this?
-      </h2>
+      <div className="flex items-start justify-between mb-1">
+        <h2 className="font-heading text-[22px] text-text-primary">Who can access this?</h2>
+        <button
+          type="button"
+          onClick={() => setAddOpen(true)}
+          className="inline-flex items-center gap-1.5 text-[12.5px] text-accent hover:text-accent-hover transition-colors bg-transparent border-none cursor-pointer font-sans mt-1.5 flex-shrink-0"
+        >
+          <Plus size={13} />
+          New beneficiary
+        </button>
+      </div>
       <p className="text-[13.5px] text-text-secondary mb-6">
         Optionally assign beneficiaries who can see this record.
       </p>
@@ -64,9 +80,17 @@ export function BeneficiaryAssignmentStep({
         </div>
       ) : (beneficiaries?.length ?? 0) === 0 ? (
         <div className="bg-surface border border-border-color rounded-xl px-5 py-6 text-center mb-6">
-          <p className="text-[13px] text-text-tertiary">
-            No beneficiaries added yet. You can assign access later from the asset&apos;s edit page.
+          <p className="text-[13px] text-text-tertiary mb-3">
+            No beneficiaries added yet.
           </p>
+          <button
+            type="button"
+            onClick={() => setAddOpen(true)}
+            className="inline-flex items-center gap-1.5 text-[12.5px] text-accent hover:text-accent-hover transition-colors bg-transparent border-none cursor-pointer font-sans"
+          >
+            <Plus size={13} />
+            Add one now
+          </button>
         </div>
       ) : (
         <div className="space-y-2 mb-6">
@@ -132,6 +156,12 @@ export function BeneficiaryAssignmentStep({
           ← Back
         </Button>
       </div>
+
+      <AddBeneficiaryDialog
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onSuccess={handleBeneficiaryAdded}
+      />
     </div>
   );
 }

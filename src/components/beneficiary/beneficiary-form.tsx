@@ -25,7 +25,6 @@ interface BeneficiaryFormProps {
   beneficiary?: {
     name: string;
     email: string;
-    phone: string | null;
     relationship: Relationship;
     isDefault: boolean;
   };
@@ -52,14 +51,12 @@ export function BeneficiaryForm({ beneficiary, onSubmit, onCancel, submitLabel }
     ? {
         name:         beneficiary.name,
         email:        beneficiary.email,
-        phone:        beneficiary.phone ?? "",
         relationship: beneficiary.relationship,
         isDefault:    beneficiary.isDefault,
       }
     : {
         name:         "",
         email:        "",
-        phone:        "",
         relationship: "OTHER",
         isDefault:    false,
       };
@@ -81,7 +78,6 @@ export function BeneficiaryForm({ beneficiary, onSubmit, onCancel, submitLabel }
         name:         values.name,
         email:        values.email,
         relationship: values.relationship,
-        phone:        values.phone || undefined,
         isDefault:    values.isDefault,
       });
     } catch (err) {
@@ -103,12 +99,6 @@ export function BeneficiaryForm({ beneficiary, onSubmit, onCancel, submitLabel }
         <FieldLabel text="Email address" required />
         <Input type="email" placeholder="e.g. jane@example.com" {...register("email")} />
         <FieldError message={errors.email?.message} />
-      </FormSection>
-
-      <FormSection>
-        <FieldLabel text="Phone number" />
-        <Input type="tel" placeholder="e.g. +447911123456" {...register("phone")} />
-        <FieldError message={errors.phone?.message} />
       </FormSection>
 
       <FormSection>

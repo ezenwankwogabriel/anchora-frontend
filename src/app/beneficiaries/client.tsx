@@ -1,18 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Plus, Loader2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/app-layout";
 import { BeneficiaryCard } from "@/components/ui/beneficiary-card";
+import { AddBeneficiaryDialog } from "@/components/ui/add-beneficiary-dialog";
 import { Button } from "@/components/ui/button";
 import { BeneficiaryService } from "@/services/beneficiary.service";
+import { useToastStore } from "@/stores/toastStore";
 import type { Beneficiary } from "@/lib/types";
 
 export function BeneficiariesClient() {
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(false);
+  const [loading, setLoading]             = useState(true);
+  const [error, setError]                 = useState(false);
+  const [dialogOpen, setDialogOpen]       = useState(false);
+  const addToast = useToastStore((s) => s.add);
 
   useEffect(() => {
     BeneficiaryService.getAll()
@@ -20,6 +23,12 @@ export function BeneficiariesClient() {
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleAdded = (beneficiary: Beneficiary) => {
+    setBeneficiaries((prev) => [...(prev ?? []), beneficiary]);
+    setDialogOpen(false);
+    addToast("Beneficiary added.", "success");
+  };
 
   return (
     <AppLayout>
@@ -31,12 +40,10 @@ export function BeneficiariesClient() {
               People who will be notified and given access to your vault.
             </p>
           </div>
-          <Link href="/beneficiaries/add">
-            <Button size="sm">
-              <Plus size={13} />
-              Add beneficiary
-            </Button>
-          </Link>
+          <Button size="sm" onClick={() => setDialogOpen(true)}>
+            <Plus size={13} />
+            Add beneficiary
+          </Button>
         </div>
 
         {loading ? (
@@ -51,9 +58,7 @@ export function BeneficiariesClient() {
             <p className="text-[13px] text-text-tertiary mb-6">
               Add someone who should have access to your vault.
             </p>
-            <Link href="/beneficiaries/add">
-              <Button>Add your first beneficiary</Button>
-            </Link>
+            <Button onClick={() => setDialogOpen(true)}>Add your first beneficiary</Button>
           </div>
         ) : (
           <div className="space-y-3">
@@ -63,6 +68,12 @@ export function BeneficiariesClient() {
           </div>
         )}
       </div>
+
+      <AddBeneficiaryDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        onSuccess={handleAdded}
+      />
     </AppLayout>
   );
 }
