@@ -9,6 +9,7 @@ import { StepIndicator } from "@/components/ui/step-indicator";
 import { CategorySelector } from "@/components/ui/category-selector";
 import { CategoryIcon, categoryLabels } from "@/components/ui/category-icon";
 import { VaultForm } from "@/components/vault/vault-form";
+import { BeneficiaryAssignmentStep } from "@/components/vault/beneficiary-assignment-step";
 import { Button } from "@/components/ui/button";
 import { VaultService } from "@/services/vault.service";
 import { useToastStore } from "@/stores/toastStore";
@@ -19,6 +20,8 @@ const VALID_CATEGORIES = new Set<string>([
   "PENSION_PORTAL", "INSURANCE_POLICY", "FOREIGN_ACCOUNT", "OTHER",
 ]);
 
+const STEP_LABELS = ["Select type", "Enter details", "Assign access"] as const;
+
 interface AddAssetClientProps {
   initialCategory?: string;
 }
@@ -27,10 +30,11 @@ export function AddAssetClient({ initialCategory }: AddAssetClientProps) {
   const router   = useRouter();
   const addToast = useToastStore((s) => s.add);
 
-  const [step, setStep]         = useState<0 | 1>(0);
-  const [category, setCategory] = useState<AssetCategory | null>(null);
+  const [step, setStep]               = useState<0 | 1 | 2>(0);
+  const [category, setCategory]       = useState<AssetCategory | null>(null);
+  const [formData, setFormData]       = useState<VaultRecordInput | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  // Pre-select and auto-advance when arriving with ?category=...
   useEffect(() => {
     if (initialCategory && VALID_CATEGORIES.has(initialCategory)) {
       setCategory(initialCategory as AssetCategory);
@@ -42,10 +46,25 @@ export function AddAssetClient({ initialCategory }: AddAssetClientProps) {
     if (category) setStep(1);
   };
 
-  const handleBack = () => setStep(0);
+  const handleBack = () => {
+    if (step === 1) setStep(0);
+    else if (step === 2) setStep(1);
+  };
 
-  const handleSubmit = async (data: VaultRecordInput) => {
-    await VaultService.createRecord(data);
+  // Collect form data without creating the record yet
+  const handleFormCollect = async (data: VaultRecordInput) => {
+    setFormData(data);
+    setStep(2);
+  };
+
+  // Create record then assign chosen beneficiaries
+  const handleFinalSave = async (ids: string[]) => {
+    const record = await VaultService.createRecord(formData!);
+    if (ids.length > 0) {
+      await Promise.allSettled(
+        ids.map((id) => VaultService.assignBeneficiary(record.id, id))
+      );
+    }
     addToast("Asset saved to your vault.", "success");
     router.push("/dashboard");
   };
@@ -53,7 +72,7 @@ export function AddAssetClient({ initialCategory }: AddAssetClientProps) {
   return (
     <AppLayout>
       <div className="max-w-[600px] mx-auto">
-        {/* Back arrow */}
+        {/* Back navigation */}
         <div className="mb-6">
           {step === 0 ? (
             <Link
@@ -77,18 +96,23 @@ export function AddAssetClient({ initialCategory }: AddAssetClientProps) {
 
         {/* Step indicator */}
         <div className="mb-2">
-          <StepIndicator steps={2} current={step} />
+          <StepIndicator steps={3} current={step} />
         </div>
         <div className="flex justify-between mb-6">
-          <span className={`text-[11.5px] font-semibold ${step === 0 ? "text-accent" : "text-green"}`}>
-            Select type
-          </span>
-          <span className={`text-[11.5px] font-semibold ${step === 1 ? "text-accent" : "text-text-tertiary"}`}>
-            Enter details
-          </span>
+          {STEP_LABELS.map((label, i) => (
+            <span
+              key={label}
+              className={`text-[11.5px] font-semibold ${
+                i < step ? "text-green" : i === step ? "text-accent" : "text-text-tertiary"
+              }`}
+            >
+              {label}
+            </span>
+          ))}
         </div>
 
-        {step === 0 ? (
+        {/* Step 0 — category picker */}
+        {step === 0 && (
           <>
             <h1 className="font-heading text-[26px] text-text-primary mb-2">
               What type of asset?
@@ -100,37 +124,44 @@ export function AddAssetClient({ initialCategory }: AddAssetClientProps) {
             <CategorySelector value={category} onChange={setCategory} />
 
             <div className="mt-6">
-              <Button
-                fullWidth
-                disabled={!category}
-                onClick={handleContinue}
-              >
+              <Button fullWidth disabled={!category} onClick={handleContinue}>
                 Continue →
               </Button>
             </div>
           </>
-        ) : category ? (
-          <>
-            {/* Category badge */}
+        )}
+
+        {/* Step 1 — asset details (kept mounted through step 2 to preserve form state) */}
+        {category && step >= 1 && (
+          <div className={step !== 1 ? "hidden" : undefined}>
             <div className="flex items-center gap-3 mb-6 pb-5 border-b border-border-color">
               <CategoryIcon category={category} size={16} />
               <div>
                 <p className="text-[13px] font-semibold text-text-primary">
                   {categoryLabels[category]}
                 </p>
-                <p className="text-[11.5px] text-text-tertiary">
-                  Fill in the details below
-                </p>
+                <p className="text-[11.5px] text-text-tertiary">Fill in the details below</p>
               </div>
             </div>
 
             <VaultForm
               category={category}
-              onSubmit={handleSubmit}
+              onSubmit={handleFormCollect}
               onCancel={() => router.push("/dashboard")}
+              submitLabel="Continue →"
             />
-          </>
-        ) : null}
+          </div>
+        )}
+
+        {/* Step 2 — beneficiary assignment */}
+        {step === 2 && (
+          <BeneficiaryAssignmentStep
+            selectedIds={selectedIds}
+            onChange={setSelectedIds}
+            onBack={handleBack}
+            onSave={handleFinalSave}
+          />
+        )}
       </div>
     </AppLayout>
   );

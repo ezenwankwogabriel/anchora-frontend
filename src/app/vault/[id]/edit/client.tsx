@@ -7,6 +7,7 @@ import Link from "next/link";
 import { AppLayout } from "@/components/layout/app-layout";
 import { VaultForm } from "@/components/vault/vault-form";
 import { DeleteAssetModal } from "@/components/ui/delete-asset-modal";
+import { RecordBeneficiaries } from "@/components/vault/record-beneficiaries";
 import { Button } from "@/components/ui/button";
 import { VaultService } from "@/services/vault.service";
 import { useToastStore } from "@/stores/toastStore";
@@ -110,6 +111,8 @@ export function EditAssetClient({ id }: EditAssetClientProps) {
           onSubmit={handleSubmit}
           onCancel={() => router.push("/dashboard")}
         />
+
+        <RecordBeneficiaries recordId={record.id} />
 
         <div className="mt-2 text-center">
           <button
