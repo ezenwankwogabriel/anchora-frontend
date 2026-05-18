@@ -4,6 +4,7 @@ export interface User {
   lastName: string;
   email: string;
   emailVerified: boolean;
+  mfaEnabled: boolean;
 }
 
 export interface AuthResponse {

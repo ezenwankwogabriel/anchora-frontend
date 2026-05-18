@@ -15,6 +15,7 @@ const user = {
   lastName: "Ezenwankwo",
   email: "dagabangel@gmail.com",
   emailVerified: true,
+  mfaEnabled: false,
 }
 
 export const useAuthStore = create<AuthStore>((set) => ({

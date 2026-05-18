@@ -1,5 +1,5 @@
 import http, { normalise } from "@/lib/axios";
-import type { AuthResponse, MfaSetupResponse } from "@/lib/types";
+import type { AuthResponse, MfaSetupResponse, User } from "@/lib/types";
 
 export const AuthService = {
   register: async (data: {
@@ -68,6 +68,49 @@ export const AuthService = {
   }): Promise<void> => {
     try {
       await http.post("/auth/reset-password", data);
+    } catch (err) {
+      normalise(err);
+    }
+  },
+
+  getMe: async (): Promise<User> => {
+    try {
+      return (await http.get<User>("/auth/me")).data;
+    } catch (err) {
+      normalise(err);
+    }
+  },
+
+  changePassword: async (data: {
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<void> => {
+    try {
+      await http.post("/auth/change-password", data);
+    } catch (err) {
+      normalise(err);
+    }
+  },
+
+  enableMfa: async (code: string): Promise<void> => {
+    try {
+      await http.post("/auth/mfa/verify", { code });
+    } catch (err) {
+      normalise(err);
+    }
+  },
+
+  disableMfa: async (): Promise<void> => {
+    try {
+      await http.delete("/auth/mfa");
+    } catch (err) {
+      normalise(err);
+    }
+  },
+
+  deleteAccount: async (): Promise<void> => {
+    try {
+      await http.delete("/auth/account");
     } catch (err) {
       normalise(err);
     }
