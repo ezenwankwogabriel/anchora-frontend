@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { ChecklistCard, type ChecklistItem } from "@/components/ui/checklist-card";
 import { Button } from "@/components/ui/button";
+import { ProtectedRoute } from "@/components/layout/protected-route";
 import { VaultService } from "@/services/vault.service";
 import { BeneficiaryService } from "@/services/beneficiary.service";
 import { useAuthStore } from "@/stores/authStore";
@@ -79,6 +80,7 @@ export default function OnboardingPage() {
   };
 
   return (
+    <ProtectedRoute>
     <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-4 py-12">
       <div className="w-full max-w-[560px]">
         <div className="mb-8">
@@ -106,5 +108,6 @@ export default function OnboardingPage() {
         )}
       </div>
     </div>
+    </ProtectedRoute>
   );
 }

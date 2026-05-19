@@ -3,7 +3,7 @@ import { useAdminAuthStore } from "@/stores/adminAuthStore";
 import { ServiceError } from "./types";
 
 const adminHttp = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001",
+  baseURL: "/api",
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });

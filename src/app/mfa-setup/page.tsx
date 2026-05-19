@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2, Smartphone, Phone, Copy, Download, Check } from "lucide-react";
 import { AuthLayout } from "@/components/layout/auth-layout";
+import { ProtectedRoute } from "@/components/layout/protected-route";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CodeInput } from "@/components/ui/code-input";
@@ -348,19 +349,21 @@ export default function MfaSetupPage() {
   };
 
   return (
-    <AuthLayout
-      tagline={MFA_TAGLINE}
-      subtext="Multi-factor authentication ensures only you can access your vault. This is mandatory for all accounts."
-      trustItems={[]}
-      footerNote="Recovery codes are the only way to regain access if you lose your authenticator. Store them somewhere safe."
-    >
-      <StepIndicator steps={2} current={step} className="mb-6" />
+    <ProtectedRoute>
+      <AuthLayout
+        tagline={MFA_TAGLINE}
+        subtext="Multi-factor authentication ensures only you can access your vault. This is mandatory for all accounts."
+        trustItems={[]}
+        footerNote="Recovery codes are the only way to regain access if you lose your authenticator. Store them somewhere safe."
+      >
+        <StepIndicator steps={2} current={step} className="mb-6" />
 
-      {step === 0 ? (
-        <SetupStep onComplete={handleSetupComplete} />
-      ) : (
-        <RecoveryStep codes={recoveryCodes} />
-      )}
-    </AuthLayout>
+        {step === 0 ? (
+          <SetupStep onComplete={handleSetupComplete} />
+        ) : (
+          <RecoveryStep codes={recoveryCodes} />
+        )}
+      </AuthLayout>
+    </ProtectedRoute>
   );
 }
