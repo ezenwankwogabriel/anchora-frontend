@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { FormSection } from "@/components/ui/form-section";
 import { AdminService } from "@/services/admin.service";
 import { useAdminAuthStore } from "@/stores/adminAuthStore";
-import { ServiceError } from "@/lib/types";
 
 const zodResolver = _zodResolver as unknown as <T extends object>(
   schema: z.ZodType<T>
@@ -45,9 +44,9 @@ export default function AdminLoginPage() {
       const { admin, accessToken } = await AdminService.login(values);
       setAuth(admin, accessToken);
       router.replace("/admin/users");
-    } catch (err) {
+    } catch {
       setError("root", {
-        message: err instanceof ServiceError ? err.message : "Invalid credentials",
+        message: "Invalid email or password.",
       });
     }
   };
