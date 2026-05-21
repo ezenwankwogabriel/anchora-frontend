@@ -1,6 +1,7 @@
 import adminHttp, { normaliseAdmin } from "@/lib/admin-axios";
 import type {
   AdminAuthResponse,
+  AdminUser,
   AdminUserListItem,
   AdminUserDetail,
   AdminRelease,
@@ -18,7 +19,12 @@ export const AdminService = {
     password: string;
   }): Promise<AdminAuthResponse> => {
     try {
-      return (await adminHttp.post<AdminAuthResponse>("/admin/auth/login", data)).data;
+      const { data: body } = await adminHttp.post<{ token: string }>("/admin/auth/login", data);
+      const accessToken = body.token;
+      const { data: admin } = await adminHttp.get<AdminUser>("/admin/auth/me", {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      return { admin, accessToken };
     } catch (err) {
       normaliseAdmin(err);
     }
