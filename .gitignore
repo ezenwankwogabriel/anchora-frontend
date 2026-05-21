@@ -27,6 +27,11 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env.test
+
+# playwright
+/playwright-report/
+/test-results/
 
 # vercel
 .vercel
