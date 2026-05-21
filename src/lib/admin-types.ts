@@ -34,13 +34,13 @@ export interface AdminAuthResponse {
 
 export interface AdminUserListItem {
   id: string;
+  name: string;
   email: string;
-  firstName: string;
-  lastName: string;
-  status: AccountStatus;
+  inactivityStage: string;
+  lastActiveAt: string;
+  isSuspended: boolean;
   createdAt: string;
-  lastActivityAt: string;
-  vaultRecordCount: number;
+  vaultItemCount: number;
   beneficiaryCount: number;
 }
 
@@ -60,13 +60,15 @@ export interface AdminRelease {
   id: string;
   userId: string;
   userEmail: string;
-  userFirstName: string;
-  userLastName: string;
+  userName: string;
   status: ReleaseStatus;
   triggeredAt: string;
   completedAt: string | null;
   cancelledAt: string | null;
   beneficiaryCount: number;
+  approvedCount: number;
+  pendingCount: number;
+  rejectedCount: number;
 }
 
 export interface AdminReleaseBeneficiary {
@@ -122,8 +124,11 @@ export interface AdminAccount {
 // ── Paginated list ────────────────────────────────────────────────────────────
 
 export interface PaginatedList<T> {
-  items: T[];
-  total: number;
-  page: number;
-  limit: number;
+  data: T[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 }

@@ -8,16 +8,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { AdminService } from "@/services/admin.service";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { ServiceError } from "@/lib/types";
-import type { AdminUserDetail, AccountStatus, ReleaseStatus } from "@/lib/admin-types";
-
-function statusVariant(status: AccountStatus) {
-  switch (status) {
-    case "ACTIVE":           return "success" as const;
-    case "SUSPENDED":        return "error"   as const;
-    case "PENDING_DELETION": return "warning" as const;
-    case "DELETED":          return "error"   as const;
-  }
-}
+import type { AdminUserDetail, ReleaseStatus } from "@/lib/admin-types";
 
 function releaseVariant(status: ReleaseStatus) {
   switch (status) {
@@ -215,22 +206,22 @@ export default function AdminUserDetailPage() {
       <div className="flex items-start justify-between mb-6 gap-4">
         <div>
           <h1 className="font-heading text-[22px] text-text-primary">
-            {user.firstName} {user.lastName}
+            {user.name}
           </h1>
           <p className="text-[13.5px] text-text-secondary mt-0.5">{user.email}</p>
         </div>
         <div className="flex items-center gap-3">
           <StatusBadge
-            variant={statusVariant(user.status)}
-            label={user.status.replace("_", " ")}
+            variant={user.isSuspended ? "error" : "success"}
+            label={user.isSuspended ? "Suspended" : "Active"}
           />
-          {canAct && user.status === "ACTIVE" && (
+          {canAct && !user.isSuspended && (
             <Button variant="danger" onClick={() => setShowSuspend(true)}>
               <ShieldOff size={14} />
               Suspend
             </Button>
           )}
-          {canAct && user.status === "SUSPENDED" && (
+          {canAct && user.isSuspended && (
             <Button onClick={() => setShowReactivate(true)}>
               <ShieldCheck size={14} />
               Reactivate
@@ -250,13 +241,13 @@ export default function AdminUserDetailPage() {
         <div className="lg:col-span-2 bg-surface border border-border-color rounded-xl p-5">
           <h2 className="text-[14px] font-semibold text-text-primary mb-1">Account details</h2>
           <div className="mt-3">
-            <DetailRow label="Full name"       value={`${user.firstName} ${user.lastName}`} />
+            <DetailRow label="Full name"       value={user.name} />
             <DetailRow label="Email"           value={user.email} />
             <DetailRow label="Email verified"  value={user.emailVerifiedAt ? formatDate(user.emailVerifiedAt) : "Not verified"} />
             <DetailRow label="MFA"             value={user.mfaEnabled ? "Enabled" : "Disabled"} />
             <DetailRow label="Joined"          value={formatDate(user.createdAt)} />
-            <DetailRow label="Last activity"   value={formatDate(user.lastActivityAt)} />
-            <DetailRow label="Vault records"   value={user.vaultRecordCount} />
+            <DetailRow label="Last activity"   value={formatDate(user.lastActiveAt)} />
+            <DetailRow label="Vault records"   value={user.vaultItemCount} />
             <DetailRow label="Beneficiaries"   value={user.beneficiaryCount} />
           </div>
         </div>

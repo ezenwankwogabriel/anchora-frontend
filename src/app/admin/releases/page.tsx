@@ -56,7 +56,7 @@ export default function AdminReleasesPage() {
       page,
       limit: LIMIT,
     })
-      .then((res) => { setReleases(res.items); setTotal(res.total); })
+      .then((res) => { setReleases(res.data); setTotal(res.meta.total); })
       .catch((err) =>
         setError(err instanceof ServiceError ? err.message : "Failed to load releases.")
       )
@@ -134,7 +134,7 @@ export default function AdminReleasesPage() {
                 >
                   <td className="px-5 py-3.5">
                     <p className="text-[13.5px] font-[500] text-text-primary whitespace-nowrap">
-                      {r.userFirstName} {r.userLastName}
+                      {r.userName}
                     </p>
                     <p className="text-[12px] text-text-tertiary">{r.userEmail}</p>
                   </td>

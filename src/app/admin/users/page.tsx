@@ -7,26 +7,20 @@ import { AdminService } from "@/services/admin.service";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ServiceError } from "@/lib/types";
-import type { AdminUserListItem, AccountStatus } from "@/lib/admin-types";
+import type { AdminUserListItem } from "@/lib/admin-types";
 
 const STATUS_TABS: { label: string; value: string }[] = [
-  { label: "All",              value: ""                 },
-  { label: "Active",           value: "ACTIVE"           },
-  { label: "Suspended",        value: "SUSPENDED"        },
-  { label: "Pending Deletion", value: "PENDING_DELETION" },
+  { label: "All",       value: ""          },
+  { label: "Active",    value: "ACTIVE"    },
+  { label: "Suspended", value: "SUSPENDED" },
 ];
 
-function statusVariant(status: AccountStatus) {
-  switch (status) {
-    case "ACTIVE":           return "success" as const;
-    case "SUSPENDED":        return "error"   as const;
-    case "PENDING_DELETION": return "warning" as const;
-    case "DELETED":          return "error"   as const;
-  }
+function statusVariant(isSuspended: boolean) {
+  return isSuspended ? ("error" as const) : ("success" as const);
 }
 
-function statusLabel(status: AccountStatus) {
-  return status.replace("_", " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
+function statusLabel(isSuspended: boolean) {
+  return isSuspended ? "Suspended" : "Active";
 }
 
 function formatDate(iso: string) {
@@ -68,7 +62,7 @@ export default function AdminUsersPage() {
       page,
       limit: LIMIT,
     })
-      .then((res) => { setUsers(res.items); setTotal(res.total); })
+      .then((res) => { setUsers(res.data); setTotal(res.meta.total); })
       .catch((err) =>
         setError(err instanceof ServiceError ? err.message : "Failed to load users.")
       )
@@ -136,7 +130,7 @@ export default function AdminUsersPage() {
               Retry
             </button>
           </div>
-        ) : users.length === 0 ? (
+        ) : !users || users.length === 0 ? (
           <div className="py-10 text-center">
             <p className="text-[13px] text-text-tertiary">No users found.</p>
           </div>
@@ -161,20 +155,20 @@ export default function AdminUsersPage() {
                   className="border-b border-border-color last:border-0 hover:bg-surface-2 transition-colors"
                 >
                   <td className="px-5 py-3.5 text-[13.5px] font-[500] text-text-primary whitespace-nowrap">
-                    {u.firstName} {u.lastName}
+                    {u.name}
                   </td>
                   <td className="px-5 py-3.5 text-[13px] text-text-secondary">{u.email}</td>
                   <td className="px-5 py-3.5">
                     <StatusBadge
-                      variant={statusVariant(u.status)}
-                      label={statusLabel(u.status)}
+                      variant={statusVariant(u.isSuspended)}
+                      label={statusLabel(u.isSuspended)}
                     />
                   </td>
                   <td className="px-5 py-3.5 text-[13px] text-text-secondary whitespace-nowrap">
                     {formatDate(u.createdAt)}
                   </td>
                   <td className="px-5 py-3.5 text-[13px] text-text-secondary">
-                    {u.vaultRecordCount}
+                    {u.vaultItemCount}
                   </td>
                   <td className="px-5 py-3.5 text-right">
                     <Link

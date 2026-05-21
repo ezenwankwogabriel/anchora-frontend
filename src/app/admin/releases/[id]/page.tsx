@@ -166,7 +166,7 @@ export default function AdminReleaseDetailPage() {
       <div className="flex items-start justify-between mb-6 gap-4">
         <div>
           <h1 className="font-heading text-[22px] text-text-primary">
-            Release — {release.userFirstName} {release.userLastName}
+            Release — {release.userName}
           </h1>
           <p className="text-[13.5px] text-text-secondary mt-0.5">{release.userEmail}</p>
         </div>
