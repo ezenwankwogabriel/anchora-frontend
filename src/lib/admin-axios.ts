@@ -14,13 +14,20 @@ adminHttp.interceptors.request.use((config) => {
   return config;
 });
 
-// On 401: clear auth and redirect to /admin/login (no refresh for admin)
 adminHttp.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    // Unwrap the global ResponseTransformInterceptor envelope { data, meta: { timestamp } }
+    if (res.data && typeof res.data === "object" && "data" in res.data) {
+      res.data = res.data.data;
+    }
+    return res;
+  },
   (error) => {
     if (error.response?.status === 401) {
       useAdminAuthStore.getState().clearAuth();
-      if (typeof window !== "undefined") window.location.href = "/admin/login";
+      if (typeof window !== "undefined" && window.location.pathname !== "/admin/login") {
+        window.location.href = "/admin/login";
+      }
     }
     return Promise.reject(error);
   }

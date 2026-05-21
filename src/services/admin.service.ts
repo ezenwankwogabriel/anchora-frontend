@@ -19,8 +19,8 @@ export const AdminService = {
     password: string;
   }): Promise<AdminAuthResponse> => {
     try {
-      const { data: body } = await adminHttp.post<{ token: string }>("/admin/auth/login", data);
-      const accessToken = body.token;
+      const { data: loginBody } = await adminHttp.post<{ token: string }>("/admin/auth/login", data);
+      const accessToken = loginBody.token;
       const { data: admin } = await adminHttp.get<AdminUser>("/admin/auth/me", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
@@ -39,9 +39,7 @@ export const AdminService = {
     limit?: number;
   }): Promise<PaginatedList<AdminUserListItem>> => {
     try {
-      return (
-        await adminHttp.get<PaginatedList<AdminUserListItem>>("/admin/users", { params })
-      ).data;
+      return (await adminHttp.get<PaginatedList<AdminUserListItem>>("/admin/users", { params })).data;
     } catch (err) {
       normaliseAdmin(err);
     }
