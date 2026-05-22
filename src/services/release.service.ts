@@ -4,7 +4,7 @@ import type { ReleaseReport } from "@/lib/types";
 export const ReleaseService = {
   getReport: async (releaseId: string): Promise<ReleaseReport> => {
     try {
-      return (await http.get<ReleaseReport>(`/release/report/${releaseId}`)).data;
+      return (await http.get<ReleaseReport>(`/release/report/${releaseId}`)).data as ReleaseReport;
     } catch (err) {
       normalise(err);
     }

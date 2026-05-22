@@ -73,7 +73,7 @@ export default function ReleaseConfirmedPage() {
         The financial records below have been released to you.
       </p>
 
-      {report?.reportUrl ? (
+      {report && 'reportUrl' in report ? (
         <>
           <a href={report.reportUrl} target="_blank" rel="noreferrer" className="block">
             <Button fullWidth>

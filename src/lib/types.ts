@@ -131,13 +131,9 @@ export interface BeneficiaryInput {
 
 // ── Release ───────────────────────────────────────────
 
-export interface ReleaseReport {
-  id: string;
-  status: string;
-  ownerFirstName: string;
-  reportUrl: string | null;
-  expiresAt: string | null;
-}
+export type ReleaseReport =
+  | { reportUrl: string; ownerFirstName: string; expiresInSeconds: number; reportGeneratedAt: string; accessExpiresAt: string }
+  | { message: string; ownerFirstName: string };
 
 // ── Errors ────────────────────────────────────────────────────────────────
 
