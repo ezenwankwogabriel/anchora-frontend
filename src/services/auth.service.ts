@@ -1,5 +1,5 @@
 import http, { normalise } from "@/lib/axios";
-import type { AuthResponse, MfaSetupResponse, User } from "@/lib/types";
+import type { AuthResponse, MfaLoginResponse, MfaSetupResponse, User } from "@/lib/types";
 
 export const AuthService = {
   register: async (data: {
@@ -27,12 +27,15 @@ export const AuthService = {
   },
 
   verifyMfa: async (data: {
-    code?: string;
-    recoveryCode?: string;
-    session?: string;
-  }): Promise<AuthResponse> => {
+    code: string;
+    tempToken: string;
+  }): Promise<MfaLoginResponse> => {
     try {
-      return (await http.post<AuthResponse>("/auth/mfa/verify", data)).data;
+      return (
+        await http.post<MfaLoginResponse>("/auth/login/mfa", { code: data.code }, {
+          headers: { Authorization: `Bearer ${data.tempToken}` },
+        })
+      ).data;
     } catch (err) {
       normalise(err);
     }
@@ -73,9 +76,11 @@ export const AuthService = {
     }
   },
 
-  getMe: async (): Promise<User> => {
+  getMe: async (token?: string): Promise<User> => {
     try {
-      return (await http.get<User>("/auth/me")).data;
+      return (await http.get<User>("/auth/me", {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      })).data;
     } catch (err) {
       normalise(err);
     }

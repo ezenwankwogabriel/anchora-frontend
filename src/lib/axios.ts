@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useAuthStore } from "@/stores/authStore";
-import { ServiceError, type User } from "./types";
+import { ServiceError } from "./types";
 
 const http = axios.create({
   baseURL: "/api",
@@ -31,17 +31,24 @@ http.interceptors.response.use(
 
     if (error.response?.status === 401 && !original._retry) {
       original._retry = true;
-      try {
-        const { data } = await http.post<{ accessToken: string; user: User }>(
-          "/auth/refresh"
-        );
-        useAuthStore.getState().setAuth(data.user, data.accessToken);
-        original.headers.Authorization = `Bearer ${data.accessToken}`;
-        return http(original);
-      } catch {
-        useAuthStore.getState().clearAuth();
-        if (typeof window !== "undefined") window.location.href = "/login";
+      const { refreshToken, sessionId, user } = useAuthStore.getState();
+
+      if (refreshToken && sessionId && user) {
+        try {
+          const { data } = await http.post<{ accessToken: string; refreshToken: string; sessionId: string }>(
+            "/auth/refresh",
+            { refreshToken, sessionId },
+          );
+          useAuthStore.getState().setAuth(user, data.accessToken, data.refreshToken, data.sessionId);
+          original.headers.Authorization = `Bearer ${data.accessToken}`;
+          return http(original);
+        } catch {
+          // refresh failed — fall through to clearAuth
+        }
       }
+
+      useAuthStore.getState().clearAuth();
+      if (typeof window !== "undefined") window.location.href = "/login";
     }
 
     return Promise.reject(error);

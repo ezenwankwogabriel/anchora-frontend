@@ -7,11 +7,25 @@ export interface User {
   mfaEnabled: boolean;
 }
 
-export interface AuthResponse {
-  user: User;
+export type AuthResponse =
+  | {
+      requiresMfa: true;
+      tempToken: string;
+    }
+  | {
+      requiresMfa: false;
+      accessToken: string;
+      refreshToken: string;
+      sessionId: string;
+      mfaConfigured: boolean;
+      mfaGraceDaysRemaining: number;
+    };
+
+export interface MfaLoginResponse {
   accessToken: string;
-  mfaRequired?: boolean;
-  mfaSession?: string;
+  refreshToken: string;
+  sessionId: string;
+  mfaConfigured: boolean;
 }
 
 export interface MfaSetupResponse {
@@ -66,13 +80,6 @@ export interface VaultRecordInput {
   accountUrl?: string;
   notes?: string;
   beneficiaryId?: string;
-}
-
-export interface VaultCompleteness {
-  percentComplete: number;
-  categoriesCovered: number;
-  totalCategories: number;
-  lastUpdated: string;
 }
 
 // ── Beneficiaries ─────────────────────────────────────────────────────────

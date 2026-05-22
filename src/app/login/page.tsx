@@ -55,7 +55,7 @@ function FormError({ message }: { message?: string }) {
 function CredentialsStep({
   onMfaRequired,
 }: {
-  onMfaRequired: (session: string) => void;
+  onMfaRequired: (tempToken: string) => void;
 }) {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
@@ -70,10 +70,11 @@ function CredentialsStep({
   const onSubmit = async (data: CredentialsForm) => {
     try {
       const res = await AuthService.login(data);
-      if (res.mfaRequired && res.mfaSession) {
-        onMfaRequired(res.mfaSession);
+      if (res.requiresMfa) {
+        onMfaRequired(res.tempToken);
       } else {
-        setAuth(res.user, res.accessToken);
+        const user = await AuthService.getMe(res.accessToken);
+        setAuth(user, res.accessToken, res.refreshToken, res.sessionId);
         router.push("/dashboard");
       }
     } catch (err) {
@@ -143,7 +144,7 @@ function CredentialsStep({
 }
 
 // ── MFA step ───────────────────────────────────────────────────────────────
-function MfaStep({ session }: { session: string }) {
+function MfaStep({ tempToken }: { tempToken: string }) {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
   const [useRecovery, setUseRecovery] = useState(false);
@@ -151,11 +152,16 @@ function MfaStep({ session }: { session: string }) {
   const codeForm = useForm<MfaCodeForm>({ resolver: zodResolver(mfaCodeSchema) });
   const recoveryForm = useForm<RecoveryForm>({ resolver: zodResolver(recoverySchema) });
 
+  const completeLogin = async (code: string) => {
+    const res = await AuthService.verifyMfa({ code, tempToken });
+    const user = await AuthService.getMe(res.accessToken);
+    setAuth(user, res.accessToken, res.refreshToken, res.sessionId);
+    router.push("/dashboard");
+  };
+
   const submitCode = async (data: MfaCodeForm) => {
     try {
-      const res = await AuthService.verifyMfa({ code: data.code, session });
-      setAuth(res.user, res.accessToken);
-      router.push("/dashboard");
+      await completeLogin(data.code);
     } catch (err) {
       const msg = err instanceof ServiceError ? err.message : "Invalid code.";
       codeForm.setError("root", { message: msg });
@@ -164,12 +170,7 @@ function MfaStep({ session }: { session: string }) {
 
   const submitRecovery = async (data: RecoveryForm) => {
     try {
-      const res = await AuthService.verifyMfa({
-        recoveryCode: data.recoveryCode,
-        session,
-      });
-      setAuth(res.user, res.accessToken);
-      router.push("/dashboard");
+      await completeLogin(data.recoveryCode);
     } catch (err) {
       const msg = err instanceof ServiceError ? err.message : "Invalid recovery code.";
       recoveryForm.setError("root", { message: msg });
@@ -249,14 +250,14 @@ function MfaStep({ session }: { session: string }) {
 
 // ── Page ───────────────────────────────────────────────────────────────────
 export default function LoginPage() {
-  const [mfaSession, setMfaSession] = useState<string | null>(null);
+  const [tempToken, setTempToken] = useState<string | null>(null);
 
   return (
     <AuthLayout>
-      {mfaSession ? (
-        <MfaStep session={mfaSession} />
+      {tempToken ? (
+        <MfaStep tempToken={tempToken} />
       ) : (
-        <CredentialsStep onMfaRequired={setMfaSession} />
+        <CredentialsStep onMfaRequired={setTempToken} />
       )}
     </AuthLayout>
   );
