@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import Link from "next/link";
+import { Trash2, Pencil, ChevronDown, ChevronUp } from "lucide-react";
 import type { VaultRecord, AssetCategory } from "@/lib/types";
 import { CategoryIcon, categoryLabels } from "./category-icon";
 import { Button } from "./button";
@@ -51,14 +52,23 @@ function RecordRow({ record, onDelete }: RecordRowProps) {
           </Button>
         </div>
       ) : (
-        <button
-          type="button"
-          onClick={() => setConfirming(true)}
-          className="p-1.5 rounded-md text-text-tertiary hover:text-red hover:bg-red-light transition-colors"
-          aria-label="Delete record"
-        >
-          <Trash2 size={14} />
-        </button>
+        <div className="flex items-center gap-1">
+          <Link
+            href={`/vault/${record.id}/edit`}
+            className="p-1.5 rounded-md text-text-tertiary hover:text-accent hover:bg-accent-light transition-colors"
+            aria-label="Edit record"
+          >
+            <Pencil size={14} />
+          </Link>
+          <button
+            type="button"
+            onClick={() => setConfirming(true)}
+            className="p-1.5 rounded-md text-text-tertiary hover:text-red hover:bg-red-light transition-colors"
+            aria-label="Delete record"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
       )}
     </div>
   );

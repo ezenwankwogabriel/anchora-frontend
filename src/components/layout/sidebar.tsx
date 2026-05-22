@@ -13,7 +13,7 @@ import { useAuthStore } from "@/stores/authStore";
 
 const navItems = [
   { label: "Dashboard",      href: "/dashboard",     icon: LayoutDashboard },
-  { label: "Vault",          href: "/vault/add",     icon: Archive },
+  { label: "Vault",          href: "/vault",          icon: Archive },
   { label: "Beneficiaries",  href: "/beneficiaries", icon: Users },
   // { label: "Check-In",       href: "/checkin",       icon: ShieldCheck },
   { label: "Settings",       href: "/settings",      icon: Settings },
