@@ -148,6 +148,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AuthController_me"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/sessions": {
         parameters: {
             query?: never;
@@ -491,7 +507,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["AdminAuthController_getAdmins"];
         put?: never;
         post: operations["AdminAuthController_createAdmin"];
         delete?: never;
@@ -742,6 +758,17 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        AdminAccountDto: {
+            id: string;
+            email: string;
+            /** @enum {string} */
+            role: "SUPER_ADMIN" | "ADMIN" | "READ_ONLY";
+            isActive: boolean;
+            lastLoginAt: Record<string, never> | null;
+            /** Format: date-time */
+            createdAt: string;
+            createdById: Record<string, never> | null;
+        };
         CreateAdminDto: Record<string, never>;
         AdminUserListItemDto: {
             id: string;
@@ -766,36 +793,17 @@ export interface components {
             data: components["schemas"]["AdminUserListItemDto"][];
             meta: components["schemas"]["PaginatedMetaDto"];
         };
-        UserAssetsDto: {
-            total: number;
-            byCategory: {
-                [key: string]: number;
-            };
+        UserReleaseDto: {
+            id: string;
+            status: string;
+            /** Format: date-time */
+            triggeredAt: string;
         };
         UserBeneficiaryDto: {
             id: string;
             name: string;
             email: string;
             verificationStatus: Record<string, never> | null;
-        };
-        ActiveReleaseDto: {
-            id: string;
-            status: string;
-            /** Format: date-time */
-            triggeredAt: string;
-            beneficiaryCount: number;
-            approvedCount: number;
-            pendingCount: number;
-            rejectedCount: number;
-        };
-        UserAuditEventDto: {
-            id: string;
-            eventType: string;
-            metadata: {
-                [key: string]: unknown;
-            } | null;
-            /** Format: date-time */
-            createdAt: string;
         };
         AdminUserDetailDto: {
             id: string;
@@ -807,10 +815,12 @@ export interface components {
             isSuspended: boolean;
             /** Format: date-time */
             createdAt: string;
-            assets: components["schemas"]["UserAssetsDto"];
+            emailVerifiedAt: Record<string, never> | null;
+            mfaEnabled: boolean;
+            vaultItemCount: number;
+            beneficiaryCount: number;
+            releases: components["schemas"]["UserReleaseDto"][];
             beneficiaries: components["schemas"]["UserBeneficiaryDto"][];
-            activeRelease: components["schemas"]["ActiveReleaseDto"] | null;
-            recentAuditEvents: components["schemas"]["UserAuditEventDto"][];
         };
         SuspendUserDto: Record<string, never>;
         AdminReleaseDto: {
@@ -1065,6 +1075,23 @@ export interface operations {
                 "application/json": components["schemas"]["ResetPasswordDto"];
             };
         };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AuthController_me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {
@@ -1643,6 +1670,25 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    AdminAuthController_getAdmins: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAccountDto"][];
+                };
             };
         };
     };
