@@ -13,7 +13,7 @@ import { SkeletonCard, SkeletonRow } from "@/components/ui/skeleton-card";
 import { Button } from "@/components/ui/button";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useAuthStore } from "@/stores/authStore";
-import type { AssetCategory, VaultCompleteness, Beneficiary } from "@/lib/types";
+import type { AssetCategory, Beneficiary } from "@/lib/types";
 
 const DISMISSED_KEY = "onboardingDismissed";
 
@@ -28,14 +28,14 @@ const ALL_CATEGORIES: AssetCategory[] = [
 ];
 
 function buildChecklist(
-  completeness: VaultCompleteness | null,
+  hasRecords: boolean,
   beneficiaries: Beneficiary[] | null
 ): ChecklistItem[] {
   return [
     {
       id: "vault",
       label: "Add your first financial asset",
-      done: (completeness?.categoriesCovered ?? 0) > 0,
+      done: hasRecords,
       href: "/vault/add",
     },
     {
@@ -61,8 +61,11 @@ function buildChecklist(
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
-  const { loading, records, completeness, beneficiaries, errors, deleteRecord } =
+  const { loading, records, beneficiaries, errors, deleteRecord } =
     useDashboardData();
+
+  const totalRecords  = records?.length ?? 0;
+  const assignedCount = records?.filter((r) => r.beneficiary !== null).length ?? 0;
 
   const [checklistDismissed, setChecklistDismissed] = useState(false);
 
@@ -115,19 +118,23 @@ export default function DashboardPage() {
           ) : (
             <>
               <HealthCard
-                label="Vault completeness"
-                value={errors.completeness ? "—" : `${completeness?.percentComplete ?? 0}%`}
+                label="Assets with beneficiary"
+                value={errors.records ? "—" : `${assignedCount} / ${totalRecords}`}
                 subtext={
-                  errors.completeness
+                  errors.records
                     ? "Could not load"
-                    : `${completeness?.categoriesCovered ?? 0} of ${completeness?.totalCategories ?? 0} categories`
+                    : totalRecords === 0
+                    ? "No assets yet"
+                    : assignedCount === totalRecords
+                    ? "All assets covered"
+                    : `${totalRecords - assignedCount} still unassigned`
                 }
                 status={
-                  errors.completeness
+                  errors.records
                     ? "empty"
-                    : (completeness?.percentComplete ?? 0) >= 80
+                    : totalRecords > 0 && assignedCount === totalRecords
                     ? "good"
-                    : (completeness?.percentComplete ?? 0) >= 40
+                    : assignedCount > 0
                     ? "warning"
                     : "critical"
                 }
@@ -175,7 +182,7 @@ export default function DashboardPage() {
         {/* Onboarding checklist */}
         {!checklistDismissed && !loading && (
           <ChecklistCard
-            items={buildChecklist(completeness, beneficiaries)}
+            items={buildChecklist((records?.length ?? 0) > 0, beneficiaries)}
             onDismiss={dismissChecklist}
           />
         )}

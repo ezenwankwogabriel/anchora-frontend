@@ -1,5 +1,5 @@
 import http, { normalise } from "@/lib/axios";
-import type { VaultRecord, VaultRecordInput, VaultCompleteness, Beneficiary } from "@/lib/types";
+import type { VaultRecord, VaultRecordInput, Beneficiary } from "@/lib/types";
 
 // Maps frontend form fields to backend API field names.
 // institutionName → accountName (primary identifier shown in lists).
@@ -50,15 +50,7 @@ export const VaultService = {
     }
   },
 
-  getCompleteness: async (): Promise<VaultCompleteness> => {
-    try {
-      return (await http.get<VaultCompleteness>("/vault/completeness")).data;
-    } catch (err) {
-      normalise(err);
-    }
-  },
-
-  createRecord: async (data: VaultRecordInput): Promise<VaultRecord> => {
+createRecord: async (data: VaultRecordInput): Promise<VaultRecord> => {
     try {
       return (await http.post<VaultRecord>("/vault/records", toApiPayload(data))).data;
     } catch (err) {
