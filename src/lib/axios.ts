@@ -15,6 +15,14 @@ http.interceptors.request.use((config) => {
   return config;
 });
 
+// Strip the global { data, meta } response envelope
+http.interceptors.response.use((res) => {
+  if (res.data && typeof res.data === "object" && "data" in res.data && "meta" in res.data) {
+    res.data = res.data.data;
+  }
+  return res;
+});
+
 // On 401: attempt silent token refresh then retry once
 http.interceptors.response.use(
   (res) => res,
