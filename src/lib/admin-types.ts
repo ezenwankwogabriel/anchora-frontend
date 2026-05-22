@@ -47,11 +47,8 @@ export interface AdminUserListItem {
 export interface AdminUserDetail extends AdminUserListItem {
   emailVerifiedAt: string | null;
   mfaEnabled: boolean;
-  releases: {
-    id: string;
-    status: ReleaseStatus;
-    triggeredAt: string;
-  }[];
+  releases: { id: string; status: ReleaseStatus; triggeredAt: string }[];
+  beneficiaries: { id: string; name: string; email: string; verificationStatus: string | null }[];
 }
 
 // ── Releases ──────────────────────────────────────────────────────────────────
@@ -104,7 +101,7 @@ export interface AuditLogEntry {
 }
 
 export interface AuditLogPage {
-  entries: AuditLogEntry[];
+  data: AuditLogEntry[];
   nextCursor: string | null;
   hasMore: boolean;
 }

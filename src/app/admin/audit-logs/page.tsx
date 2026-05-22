@@ -66,7 +66,8 @@ export default function AdminAuditLogsPage() {
         to:      toDate    || undefined,
       })
         .then((res) => {
-          setEntries((prev) => isLoadMore ? [...prev, ...res.entries] : res.entries);
+          const { data } = res;
+          setEntries((prev) => isLoadMore ? [...prev, ...data] : data);
           setCursor(res.nextCursor);
           setHasMore(res.hasMore);
         })
@@ -111,6 +112,8 @@ export default function AdminAuditLogsPage() {
   if (!isAuthenticated) return null;
 
   const canExport = admin?.role === "SUPER_ADMIN";
+
+  console.log('entries', entries)
 
   return (
     <div>
@@ -216,7 +219,7 @@ export default function AdminAuditLogsPage() {
                       {formatDate(e.createdAt)}
                     </td>
                     <td className="px-4 py-3 text-[12.5px] text-text-secondary font-mono">
-                      {e.actorId.slice(0, 8)}…
+                      {e.actorId ? `${e.actorId.slice(0, 8)}${e.actorId.length > 8 ? '…' : ''}` : '—'}
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-[11.5px] font-[500] text-text-tertiary bg-surface-2 border border-border-color rounded px-2 py-0.5">
@@ -227,7 +230,7 @@ export default function AdminAuditLogsPage() {
                       {e.action}
                     </td>
                     <td className="px-4 py-3 text-[12.5px] text-text-secondary">
-                      {e.targetType}:{e.targetId.slice(0, 8)}…
+                      {e.targetType}:{e.targetId ? `${e.targetId.slice(0, 8)}${e.targetId.length > 8 ? '…' : ''}` : '—'}
                     </td>
                     <td className="px-4 py-3">{resultBadge(e.result)}</td>
                   </tr>
