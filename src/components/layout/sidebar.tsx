@@ -6,9 +6,7 @@ import {
   LayoutDashboard,
   Archive,
   Users,
-  ShieldCheck,
   Settings,
-  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
@@ -17,15 +15,10 @@ const navItems = [
   { label: "Dashboard",      href: "/dashboard",     icon: LayoutDashboard },
   { label: "Vault",          href: "/vault/add",     icon: Archive },
   { label: "Beneficiaries",  href: "/beneficiaries", icon: Users },
-  { label: "Check-In",       href: "/checkin",       icon: ShieldCheck },
+  // { label: "Check-In",       href: "/checkin",       icon: ShieldCheck },
   { label: "Settings",       href: "/settings",      icon: Settings },
 ];
 
-const adminItems = [
-  { label: "Admin",    href: "/admin",          icon: Shield },
-  { label: "Users",    href: "/admin/users",    icon: Users },
-  { label: "Releases", href: "/admin/releases", icon: Archive },
-];
 
 function LogoMark() {
   return (
@@ -112,24 +105,6 @@ export function Sidebar() {
           </Link>
         ))}
 
-        <p className="text-[10px] font-semibold tracking-[0.08em] uppercase text-text-tertiary px-2 pt-5 pb-[5px]">
-          Admin
-        </p>
-        {adminItems.map(({ label, href, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className={cn(
-              "flex items-center gap-[10px] px-3 py-2 rounded-md cursor-pointer text-[13.5px] font-[450] transition-all duration-150 mb-0.5",
-              isActive(href)
-                ? "bg-accent-light text-accent font-[550] [&_svg]:opacity-100"
-                : "text-text-secondary hover:bg-surface-2 hover:text-text-primary [&_svg]:opacity-70"
-            )}
-          >
-            <Icon size={17} className="flex-shrink-0" />
-            {label}
-          </Link>
-        ))}
       </nav>
 
       <UserCard />
