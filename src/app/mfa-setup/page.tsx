@@ -131,7 +131,7 @@ function SetupStep({
 
   const submitCode = async (data: CodeForm) => {
     try {
-      await AuthService.verifyMfa({ code: data.code });
+      await AuthService.enableMfa(data.code);
       onComplete(setupData?.recoveryCodes ?? []);
     } catch (err) {
       const msg = err instanceof ServiceError ? err.message : "Invalid code";

@@ -252,9 +252,11 @@ type MfaPhase =
   | { phase: "confirm_disable" };
 
 function MfaSection() {
-  const user     = useAuthStore((s) => s.user);
-  const setAuth  = useAuthStore((s) => s.setAuth);
-  const token    = useAuthStore((s) => s.accessToken);
+  const user         = useAuthStore((s) => s.user);
+  const setAuth      = useAuthStore((s) => s.setAuth);
+  const token        = useAuthStore((s) => s.accessToken);
+  const refreshToken = useAuthStore((s) => s.refreshToken);
+  const sessionId    = useAuthStore((s) => s.sessionId);
 
   const [state, setState]     = useState<MfaPhase>({ phase: "idle" });
   const [code, setCode]       = useState("");
@@ -283,7 +285,7 @@ function MfaSection() {
     setError(null);
     try {
       await AuthService.enableMfa(code.trim());
-      if (user && token) setAuth({ ...user, mfaEnabled: true }, token);
+      if (user && token) setAuth({ ...user, mfaEnabled: true }, token, refreshToken ?? "", sessionId ?? "");
       setState({ phase: "enabled" });
       setCode("");
     } catch (err) {
@@ -298,7 +300,7 @@ function MfaSection() {
     setError(null);
     try {
       await AuthService.disableMfa();
-      if (user && token) setAuth({ ...user, mfaEnabled: false }, token);
+      if (user && token) setAuth({ ...user, mfaEnabled: false }, token, refreshToken ?? "", sessionId ?? "");
       setState({ phase: "idle" });
     } catch (err) {
       setError(err instanceof ServiceError ? err.message : "Failed to disable MFA");

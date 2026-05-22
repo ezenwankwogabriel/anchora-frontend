@@ -80,8 +80,13 @@ function LoginForm({ releaseId }: { releaseId: string }) {
 
   const onSubmit = async (values: LoginFormData) => {
     try {
-      const { user, accessToken } = await AuthService.login(values);
-      setAuth(user, accessToken);
+      const res = await AuthService.login(values);
+      if (res.requiresMfa) {
+        setError("root", { message: "MFA is required. Please sign in from the main login page." });
+        return;
+      }
+      const user = await AuthService.getMe(res.accessToken);
+      setAuth(user, res.accessToken, res.refreshToken, res.sessionId);
       router.push(`/release/${releaseId}`);
     } catch (err) {
       setError("root", {
@@ -136,11 +141,11 @@ function RegisterForm({ releaseId }: { releaseId: string }) {
         password:  values.password,
       });
       // Auto-login after registration
-      const { user, accessToken } = await AuthService.login({
-        email:    values.email,
-        password: values.password,
-      });
-      setAuth(user, accessToken);
+      const res = await AuthService.login({ email: values.email, password: values.password });
+      if (!res.requiresMfa) {
+        const user = await AuthService.getMe(res.accessToken);
+        setAuth(user, res.accessToken, res.refreshToken, res.sessionId);
+      }
       router.push(`/release/${releaseId}`);
     } catch (err) {
       setError("root", {
