@@ -55,7 +55,7 @@ export const AdminService = {
 
   suspendUser: async (id: string, reason: string): Promise<void> => {
     try {
-      await adminHttp.post(`/admin/users/${id}/suspend`, { reason });
+      await adminHttp.patch(`/admin/users/${id}/suspend`, { reason });
     } catch (err) {
       normaliseAdmin(err);
     }
@@ -63,7 +63,7 @@ export const AdminService = {
 
   reactivateUser: async (id: string): Promise<void> => {
     try {
-      await adminHttp.post(`/admin/users/${id}/reactivate`);
+      await adminHttp.patch(`/admin/users/${id}/reactivate`);
     } catch (err) {
       normaliseAdmin(err);
     }
@@ -139,7 +139,7 @@ export const AdminService = {
 
   getAdmins: async (): Promise<AdminAccount[]> => {
     try {
-      return (await adminHttp.get<AdminAccount[]>("/admin/admins")).data;
+      return (await adminHttp.get<AdminAccount[]>("/admin/auth/admins")).data;
     } catch (err) {
       normaliseAdmin(err);
     }
@@ -150,7 +150,7 @@ export const AdminService = {
     role: "ADMIN" | "READ_ONLY";
   }): Promise<AdminAccount> => {
     try {
-      return (await adminHttp.post<AdminAccount>("/admin/admins", data)).data;
+      return (await adminHttp.post<AdminAccount>("/admin/auth/admins", data)).data;
     } catch (err) {
       normaliseAdmin(err);
     }
@@ -158,7 +158,7 @@ export const AdminService = {
 
   deactivateAdmin: async (id: string): Promise<void> => {
     try {
-      await adminHttp.delete(`/admin/admins/${id}`);
+      await adminHttp.patch(`/admin/auth/admins/${id}/deactivate`);
     } catch (err) {
       normaliseAdmin(err);
     }

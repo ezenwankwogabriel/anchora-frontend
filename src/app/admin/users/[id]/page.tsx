@@ -149,7 +149,7 @@ export default function AdminUserDetailPage() {
     setActionError(null);
     try {
       await AdminService.suspendUser(userId, reason);
-      setUser((u) => u ? { ...u, status: "SUSPENDED" } : u);
+      setUser((u) => u ? { ...u, isSuspended: true } : u);
       setShowSuspend(false);
     } catch (err) {
       setActionError(err instanceof ServiceError ? err.message : "Action failed.");
@@ -163,7 +163,7 @@ export default function AdminUserDetailPage() {
     setActionError(null);
     try {
       await AdminService.reactivateUser(userId);
-      setUser((u) => u ? { ...u, status: "ACTIVE" } : u);
+      setUser((u) => u ? { ...u, isSuspended: false } : u);
       setShowReactivate(false);
     } catch (err) {
       setActionError(err instanceof ServiceError ? err.message : "Action failed.");
