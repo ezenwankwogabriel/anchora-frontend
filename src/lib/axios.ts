@@ -23,22 +23,35 @@ http.interceptors.response.use((res) => {
   return res;
 });
 
+// Singleton so concurrent 401s share one in-flight refresh rather than each
+// firing their own — prevents session rotation race on the frontend.
+let refreshPromise: Promise<{ accessToken: string; refreshToken: string; sessionId: string }> | null = null;
+
 // On 401: attempt silent token refresh then retry once
 http.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config as typeof error.config & { _retry?: boolean };
+    const isRefreshEndpoint = (original.url ?? "").includes("/auth/refresh");
 
-    if (error.response?.status === 401 && !original._retry) {
+    // Don't intercept the refresh call itself — avoids infinite loops.
+    if (error.response?.status === 401 && !original._retry && !isRefreshEndpoint) {
       original._retry = true;
       const { refreshToken, sessionId, user } = useAuthStore.getState();
 
       if (refreshToken && sessionId && user) {
         try {
-          const { data } = await http.post<{ accessToken: string; refreshToken: string; sessionId: string }>(
-            "/auth/refresh",
-            { refreshToken, sessionId },
-          );
+          if (!refreshPromise) {
+            refreshPromise = http
+              .post<{ accessToken: string; refreshToken: string; sessionId: string }>(
+                "/auth/refresh",
+                { refreshToken, sessionId },
+              )
+              .then((r) => r.data)
+              .finally(() => { refreshPromise = null; });
+          }
+
+          const data = await refreshPromise;
           useAuthStore.getState().setAuth(user, data.accessToken, data.refreshToken, data.sessionId);
           original.headers.Authorization = `Bearer ${data.accessToken}`;
           return http(original);
