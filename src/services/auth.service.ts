@@ -89,9 +89,10 @@ export const AuthService = {
   changePassword: async (data: {
     currentPassword: string;
     newPassword: string;
+    mfaCode?: string;
   }): Promise<void> => {
     try {
-      await http.post("/auth/change-password", data);
+      await http.patch("/auth/me/password", data);
     } catch (err) {
       normalise(err);
     }
@@ -121,7 +122,12 @@ export const AuthService = {
     }
   },
 
-  updateMe: async (data: { reminderFrequencyDays: number }): Promise<User> => {
+  updateMe: async (data: {
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
+    reminderFrequencyDays?: number;
+  }): Promise<User> => {
     try {
       return (await http.patch<User>("/auth/me", data)).data;
     } catch (err) {

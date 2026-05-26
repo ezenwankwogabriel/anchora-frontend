@@ -112,13 +112,33 @@ function InlineSuccess({ message }: { message: string }) {
   );
 }
 
-// ── Password form ─────────────────────────────────────────────────────────────
+// ── Schemas ───────────────────────────────────────────────────────────────────
+
+const profileSchema = z.object({
+  firstName:   z.string().min(1, "Required").max(50),
+  lastName:    z.string().min(1, "Required").max(50),
+  phoneNumber: z
+    .string()
+    .regex(/^\+?[0-9\s\-()+]+$/, "Enter a valid phone number")
+    .min(7)
+    .max(20)
+    .or(z.literal("")),
+});
+
+type ProfileFormData = z.infer<typeof profileSchema>;
 
 const passwordSchema = z
   .object({
     currentPassword: z.string().min(1, "Required"),
-    newPassword:     z.string().min(8, "At least 8 characters"),
+    newPassword: z
+      .string()
+      .min(8, "At least 8 characters")
+      .regex(/[a-z]/, "Must contain a lowercase letter")
+      .regex(/[A-Z]/, "Must contain an uppercase letter")
+      .regex(/\d/, "Must contain a number")
+      .regex(/[@$!%*?&]/, "Must contain a special character (@$!%*?&)"),
     confirmPassword: z.string().min(1, "Required"),
+    mfaCode: z.string().optional(),
   })
   .refine((d) => d.newPassword === d.confirmPassword, {
     message: "Passwords don't match",
@@ -128,16 +148,57 @@ const passwordSchema = z
 type PasswordFormData = z.infer<typeof passwordSchema>;
 
 const zodResolver = _zodResolver as unknown as (
-  schema: typeof passwordSchema
+  schema: z.ZodTypeAny
 ) => Resolver<PasswordFormData>;
 
 // ── Profile tab ───────────────────────────────────────────────────────────────
 
 function ProfileTab() {
-  const user = useAuthStore((s) => s.user);
+  const user         = useAuthStore((s) => s.user);
+  const setAuth      = useAuthStore((s) => s.setAuth);
+  const accessToken  = useAuthStore((s) => s.accessToken);
+  const refreshToken = useAuthStore((s) => s.refreshToken);
+  const sessionId    = useAuthStore((s) => s.sessionId);
+
+  const profileResolver = _zodResolver as unknown as (schema: z.ZodTypeAny) => Resolver<ProfileFormData>;
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting, isDirty },
+  } = useForm<ProfileFormData>({
+    resolver: profileResolver(profileSchema),
+    defaultValues: {
+      firstName:   user?.firstName ?? "",
+      lastName:    user?.lastName  ?? "",
+      phoneNumber: user?.phoneNumber ?? "",
+    },
+  });
+
+  const [success, setSuccess] = useState(false);
+  const [error, setError]     = useState<string | null>(null);
+
   if (!user) return null;
 
   const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+
+  const onSubmit = async (values: ProfileFormData) => {
+    setError(null);
+    try {
+      const updated = await AuthService.updateMe({
+        firstName:   values.firstName,
+        lastName:    values.lastName,
+        phoneNumber: values.phoneNumber || undefined,
+      });
+      if (accessToken) {
+        setAuth(updated, accessToken, refreshToken ?? "", sessionId ?? "");
+      }
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 4000);
+    } catch (err) {
+      setError(err instanceof ServiceError ? err.message : "Failed to save — please try again");
+    }
+  };
 
   return (
     <Section title="Profile" description="Your personal information on Anchora.">
@@ -153,32 +214,43 @@ function ProfileTab() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-x-8 gap-y-5">
-        <div>
-          <p className="text-[11px] font-semibold text-text-tertiary uppercase tracking-[0.07em] mb-1">
-            First name
-          </p>
-          <p className="text-[13.5px] text-text-primary">{user.firstName}</p>
-        </div>
-        <div>
-          <p className="text-[11px] font-semibold text-text-tertiary uppercase tracking-[0.07em] mb-1">
-            Last name
-          </p>
-          <p className="text-[13.5px] text-text-primary">{user.lastName}</p>
-        </div>
-        <div className="col-span-2">
-          <p className="text-[11px] font-semibold text-text-tertiary uppercase tracking-[0.07em] mb-1">
-            Email
-          </p>
-          <div className="flex items-center gap-2">
-            <p className="text-[13.5px] text-text-primary">{user.email}</p>
-            <StatusBadge
-              variant={user.emailVerified ? "success" : "warning"}
-              label={user.emailVerified ? "Verified" : "Unverified"}
-            />
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-5 mb-5">
+          <div>
+            <FieldLabel text="First name" required />
+            <Input {...register("firstName")} />
+            <FieldError message={errors.firstName?.message} />
+          </div>
+          <div>
+            <FieldLabel text="Last name" required />
+            <Input {...register("lastName")} />
+            <FieldError message={errors.lastName?.message} />
+          </div>
+          <div className="col-span-2">
+            <FieldLabel text="Email" />
+            <div className="flex items-center gap-2">
+              <Input value={user.email} disabled className="flex-1 opacity-60 cursor-not-allowed" />
+              <StatusBadge
+                variant={user.emailVerified ? "success" : "warning"}
+                label={user.emailVerified ? "Verified" : "Unverified"}
+              />
+            </div>
+          </div>
+          <div className="col-span-2">
+            <FieldLabel text="Phone number" />
+            <Input placeholder="+44 7700 900000" {...register("phoneNumber")} />
+            <FieldError message={errors.phoneNumber?.message} />
           </div>
         </div>
-      </div>
+
+        {error && <InlineError message={error} />}
+        {success && <InlineSuccess message="Profile updated." />}
+
+        <Button type="submit" disabled={isSubmitting || !isDirty}>
+          {isSubmitting && <Loader2 size={15} className="animate-spin" />}
+          Save changes
+        </Button>
+      </form>
     </Section>
   );
 }
@@ -186,6 +258,8 @@ function ProfileTab() {
 // ── Change password ───────────────────────────────────────────────────────────
 
 function PasswordSection() {
+  const user     = useAuthStore((s) => s.user);
+  const mfaOn    = user?.mfaEnabled ?? false;
   const [success, setSuccess] = useState(false);
 
   const {
@@ -201,6 +275,7 @@ function PasswordSection() {
       await AuthService.changePassword({
         currentPassword: values.currentPassword,
         newPassword:     values.newPassword,
+        mfaCode:         values.mfaCode || undefined,
       });
       setSuccess(true);
       reset();
@@ -232,6 +307,19 @@ function PasswordSection() {
           <Input type="password" placeholder="••••••••" {...register("confirmPassword")} />
           <FieldError message={errors.confirmPassword?.message} />
         </FormSection>
+
+        {mfaOn && (
+          <FormSection>
+            <FieldLabel text="Authenticator code" required />
+            <Input
+              placeholder="000000"
+              maxLength={6}
+              className="max-w-[180px] text-center tracking-[0.3em] text-[18px]"
+              {...register("mfaCode")}
+            />
+            <FieldError message={errors.mfaCode?.message} />
+          </FormSection>
+        )}
 
         {errors.root?.message && <InlineError message={errors.root.message} />}
         {success && <InlineSuccess message="Password updated successfully." />}
