@@ -120,4 +120,12 @@ export const AuthService = {
       normalise(err);
     }
   },
+
+  updateMe: async (data: { reminderFrequencyDays: number }): Promise<User> => {
+    try {
+      return (await http.patch<User>("/auth/me", data)).data;
+    } catch (err) {
+      normalise(err);
+    }
+  },
 };

@@ -5,6 +5,7 @@ export interface User {
   email: string;
   emailVerified: boolean;
   mfaEnabled: boolean;
+  reminderFrequencyDays?: number;
 }
 
 export type AuthResponse =

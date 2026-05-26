@@ -12,14 +12,16 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormSection } from "@/components/ui/form-section";
 import { StatusBadge } from "@/components/ui/status-badge";
+import { InfoBanner } from "@/components/ui/info-banner";
 import { AuthService } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/authStore";
 import { ServiceError } from "@/lib/types";
 import type { MfaSetupResponse } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
-const TABS = ["Profile", "Security", "Account"] as const;
+const TABS = ["Profile", "Security", "Notifications", "Account"] as const;
 type Tab = (typeof TABS)[number];
 
 function TabNav({ active, onChange }: { active: Tab; onChange: (t: Tab) => void }) {
@@ -536,6 +538,91 @@ function DangerZone() {
   );
 }
 
+// ── Notifications ─────────────────────────────────────────────────────────────
+
+const FREQUENCY_OPTIONS: Array<{ value: number; label: string; recommended?: boolean }> = [
+  { value: 30,  label: "Every month" },
+  { value: 90,  label: "Every 3 months", recommended: true },
+  { value: 180, label: "Every 6 months" },
+  { value: 0,   label: "Never" },
+];
+
+function NotificationsSection() {
+  const user         = useAuthStore((s) => s.user);
+  const setAuth      = useAuthStore((s) => s.setAuth);
+  const accessToken  = useAuthStore((s) => s.accessToken);
+  const refreshToken = useAuthStore((s) => s.refreshToken);
+  const sessionId    = useAuthStore((s) => s.sessionId);
+
+  const [frequency, setFrequency] = useState<number>(user?.reminderFrequencyDays ?? 90);
+  const [saving, setSaving]       = useState(false);
+  const [saved, setSaved]         = useState(false);
+  const [error, setError]         = useState<string | null>(null);
+
+  const handleSelect = async (value: number) => {
+    const previous = frequency;
+    setFrequency(value);
+    setError(null);
+    setSaving(true);
+    try {
+      const updated = await AuthService.updateMe({ reminderFrequencyDays: value });
+      if (user && accessToken) {
+        setAuth(
+          { ...user, reminderFrequencyDays: updated.reminderFrequencyDays },
+          accessToken,
+          refreshToken ?? "",
+          sessionId ?? "",
+        );
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      setFrequency(previous);
+      setError(err instanceof ServiceError ? err.message : "Failed to save — please try again");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Section
+      title="Reminder notifications"
+      description="How often Anchora should remind you to confirm your vault is up to date."
+    >
+      <div className="flex flex-wrap gap-2 mb-4">
+        {FREQUENCY_OPTIONS.map(({ value, label, recommended }) => (
+          <button
+            key={value}
+            type="button"
+            disabled={saving}
+            onClick={() => handleSelect(value)}
+            className={cn(
+              "px-4 py-2 border-[1.5px] rounded-lg text-[13px] font-[500] transition-all disabled:opacity-60",
+              frequency === value
+                ? "border-accent bg-accent-light text-accent"
+                : "border-border-color text-text-secondary hover:border-accent hover:bg-surface-2"
+            )}
+          >
+            {label}
+            {recommended && (
+              <span className="ml-1.5 text-[11px] font-normal opacity-70">(Recommended)</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      {frequency === 0 && (
+        <InfoBanner variant="warning" className="mb-4">
+          You&apos;ll still be notified if your vault approaches the release threshold.
+        </InfoBanner>
+      )}
+
+      {error && <InlineError message={error} />}
+      {saved && <InlineSuccess message="Saved" />}
+    </Section>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function SettingsClient() {
@@ -560,6 +647,7 @@ export function SettingsClient() {
             <MfaSection />
           </>
         )}
+        {tab === "Notifications" && <NotificationsSection />}
         {tab === "Account" && <DangerZone />}
       </div>
     </AppLayout>
