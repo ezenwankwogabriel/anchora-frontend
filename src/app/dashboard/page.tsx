@@ -49,13 +49,7 @@ function buildChecklist(
       label: "Enable two-factor authentication",
       done: false,
       href: "/mfa-setup",
-    },
-    {
-      id: "checkin",
-      label: "Set up your check-in schedule",
-      done: false,
-      href: "/checkin",
-    },
+    }
   ];
 }
 

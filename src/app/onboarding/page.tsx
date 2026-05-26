@@ -36,12 +36,6 @@ function buildChecklist(
       done: mfaEnabled,
       href: "/mfa-setup",
     },
-    {
-      id: "checkin",
-      label: "Set up your check-in schedule",
-      done: false,
-      href: "/checkin",
-    },
   ];
 }
 
