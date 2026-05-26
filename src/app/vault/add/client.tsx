@@ -66,7 +66,7 @@ export function AddAssetClient({ initialCategory }: AddAssetClientProps) {
       );
     }
     addToast("Asset saved to your vault.", "success");
-    router.push("/dashboard");
+    router.push("/vault");
   };
 
   return (
@@ -76,11 +76,11 @@ export function AddAssetClient({ initialCategory }: AddAssetClientProps) {
         <div className="mb-6">
           {step === 0 ? (
             <Link
-              href="/dashboard"
+              href="/vault"
               className="inline-flex items-center gap-2 text-[13px] text-text-secondary hover:text-text-primary transition-colors"
             >
               <ArrowLeft size={15} />
-              Back to dashboard
+              Back to vault
             </Link>
           ) : (
             <button
@@ -147,7 +147,7 @@ export function AddAssetClient({ initialCategory }: AddAssetClientProps) {
             <VaultForm
               category={category}
               onSubmit={handleFormCollect}
-              onCancel={() => router.push("/dashboard")}
+              onCancel={() => router.push("/vault")}
               submitLabel="Continue →"
             />
           </div>

@@ -37,12 +37,12 @@ export function EditAssetClient({ id }: EditAssetClientProps) {
   const handleSubmit = async (data: VaultRecordInput) => {
     await VaultService.updateRecord(id, data);
     addToast("Asset updated.", "success");
-    router.push("/dashboard");
+    router.push("/vault");
   };
 
   const handleDeleteSuccess = () => {
     setDeleteOpen(false);
-    router.push("/dashboard");
+    router.push("/vault");
   };
 
   if (loading) {
@@ -62,8 +62,8 @@ export function EditAssetClient({ id }: EditAssetClientProps) {
           <p className="text-[13.5px] text-text-secondary mb-4">
             {error ?? "Asset not found."}
           </p>
-          <Link href="/dashboard">
-            <Button variant="secondary">Back to dashboard</Button>
+          <Link href="/vault">
+            <Button variant="secondary">Back to vault</Button>
           </Link>
         </div>
       </AppLayout>
@@ -81,11 +81,11 @@ export function EditAssetClient({ id }: EditAssetClientProps) {
         <div className="flex items-start justify-between mb-6">
           <div>
             <Link
-              href="/dashboard"
+              href="/vault"
               className="inline-flex items-center gap-2 text-[13px] text-text-secondary hover:text-text-primary transition-colors mb-3"
             >
               <ArrowLeft size={15} />
-              Back to dashboard
+              Back to vault
             </Link>
             <h1 className="font-heading text-[26px] text-text-primary leading-tight">
               {record.accountName}{record.accountType ? ` — ${record.accountType}` : ""}
@@ -109,7 +109,7 @@ export function EditAssetClient({ id }: EditAssetClientProps) {
           category={record.category}
           record={record}
           onSubmit={handleSubmit}
-          onCancel={() => router.push("/dashboard")}
+          onCancel={() => router.push("/vault")}
         />
 
         <RecordBeneficiaries recordId={record.id} />
