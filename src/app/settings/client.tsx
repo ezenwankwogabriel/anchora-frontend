@@ -5,7 +5,7 @@ import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver as _zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  Loader2, ShieldCheck, ShieldOff, Check, Copy, AlertTriangle,
+  Loader2, ShieldCheck, ShieldOff, Check, Copy, AlertTriangle, Pencil,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/app-layout";
 import { Input } from "@/components/ui/input";
@@ -165,7 +165,8 @@ function ProfileTab() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting, isDirty },
+    reset,
+    formState: { errors, isSubmitting },
   } = useForm<ProfileFormData>({
     resolver: profileResolver(profileSchema),
     defaultValues: {
@@ -175,12 +176,28 @@ function ProfileTab() {
     },
   });
 
+  const [editing, setEditing] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError]     = useState<string | null>(null);
 
   if (!user) return null;
 
   const initials = `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+
+  const startEdit = () => {
+    reset({
+      firstName:   user.firstName,
+      lastName:    user.lastName,
+      phoneNumber: user.phoneNumber ?? "",
+    });
+    setError(null);
+    setEditing(true);
+  };
+
+  const cancelEdit = () => {
+    setEditing(false);
+    setError(null);
+  };
 
   const onSubmit = async (values: ProfileFormData) => {
     setError(null);
@@ -193,6 +210,7 @@ function ProfileTab() {
       if (accessToken) {
         setAuth(updated, accessToken, refreshToken ?? "", sessionId ?? "");
       }
+      setEditing(false);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 4000);
     } catch (err) {
@@ -202,34 +220,47 @@ function ProfileTab() {
 
   return (
     <Section title="Profile" description="Your personal information on Anchora.">
-      <div className="flex items-center gap-4 pb-6 mb-6 border-b border-border-color">
-        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-navy to-accent flex items-center justify-center text-[18px] font-semibold text-white flex-shrink-0">
-          {initials}
+      <div className="flex items-center justify-between pb-6 mb-6 border-b border-border-color">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-navy to-accent flex items-center justify-center text-[18px] font-semibold text-white flex-shrink-0">
+            {initials}
+          </div>
+          <div>
+            <p className="text-[16px] font-[600] text-text-primary">
+              {user.firstName} {user.lastName}
+            </p>
+            <p className="text-[13px] text-text-tertiary">{user.email}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-[16px] font-[600] text-text-primary">
-            {user.firstName} {user.lastName}
-          </p>
-          <p className="text-[13px] text-text-tertiary">{user.email}</p>
-        </div>
+
+        {!editing && (
+          <button
+            type="button"
+            onClick={startEdit}
+            className="flex items-center gap-1.5 text-[12.5px] text-text-secondary hover:text-accent transition-colors"
+          >
+            <Pencil size={13} />
+            Edit
+          </button>
+        )}
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        <div className="grid grid-cols-2 gap-x-6 gap-y-5 mb-5">
+      {success && <InlineSuccess message="Profile updated." />}
+
+      {!editing ? (
+        <div className="grid grid-cols-2 gap-x-8 gap-y-5">
           <div>
-            <FieldLabel text="First name" required />
-            <Input {...register("firstName")} />
-            <FieldError message={errors.firstName?.message} />
+            <p className="text-[11px] font-semibold text-text-tertiary uppercase tracking-[0.07em] mb-1">First name</p>
+            <p className="text-[13.5px] text-text-primary">{user.firstName}</p>
           </div>
           <div>
-            <FieldLabel text="Last name" required />
-            <Input {...register("lastName")} />
-            <FieldError message={errors.lastName?.message} />
+            <p className="text-[11px] font-semibold text-text-tertiary uppercase tracking-[0.07em] mb-1">Last name</p>
+            <p className="text-[13.5px] text-text-primary">{user.lastName}</p>
           </div>
           <div className="col-span-2">
-            <FieldLabel text="Email" />
+            <p className="text-[11px] font-semibold text-text-tertiary uppercase tracking-[0.07em] mb-1">Email</p>
             <div className="flex items-center gap-2">
-              <Input value={user.email} disabled className="flex-1 opacity-60 cursor-not-allowed" />
+              <p className="text-[13.5px] text-text-primary">{user.email}</p>
               <StatusBadge
                 variant={user.emailVerified ? "success" : "warning"}
                 label={user.emailVerified ? "Verified" : "Unverified"}
@@ -237,20 +268,53 @@ function ProfileTab() {
             </div>
           </div>
           <div className="col-span-2">
-            <FieldLabel text="Phone number" />
-            <Input placeholder="+44 7700 900000" {...register("phoneNumber")} />
-            <FieldError message={errors.phoneNumber?.message} />
+            <p className="text-[11px] font-semibold text-text-tertiary uppercase tracking-[0.07em] mb-1">Phone number</p>
+            <p className="text-[13.5px] text-text-primary">{user.phoneNumber ?? "—"}</p>
           </div>
         </div>
+      ) : (
+        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-5 mb-5">
+            <div>
+              <FieldLabel text="First name" required />
+              <Input {...register("firstName")} />
+              <FieldError message={errors.firstName?.message} />
+            </div>
+            <div>
+              <FieldLabel text="Last name" required />
+              <Input {...register("lastName")} />
+              <FieldError message={errors.lastName?.message} />
+            </div>
+            <div className="col-span-2">
+              <FieldLabel text="Email" />
+              <div className="flex items-center gap-2">
+                <Input value={user.email} disabled className="flex-1 opacity-60 cursor-not-allowed" />
+                <StatusBadge
+                  variant={user.emailVerified ? "success" : "warning"}
+                  label={user.emailVerified ? "Verified" : "Unverified"}
+                />
+              </div>
+            </div>
+            <div className="col-span-2">
+              <FieldLabel text="Phone number" />
+              <Input placeholder="+44 7700 900000" {...register("phoneNumber")} />
+              <FieldError message={errors.phoneNumber?.message} />
+            </div>
+          </div>
 
-        {error && <InlineError message={error} />}
-        {success && <InlineSuccess message="Profile updated." />}
+          {error && <InlineError message={error} />}
 
-        <Button type="submit" disabled={isSubmitting || !isDirty}>
-          {isSubmitting && <Loader2 size={15} className="animate-spin" />}
-          Save changes
-        </Button>
-      </form>
+          <div className="flex gap-3">
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 size={15} className="animate-spin" />}
+              Save changes
+            </Button>
+            <Button type="button" variant="ghost" onClick={cancelEdit} disabled={isSubmitting}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      )}
     </Section>
   );
 }
