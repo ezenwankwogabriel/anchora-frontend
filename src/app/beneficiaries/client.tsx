@@ -7,22 +7,38 @@ import { BeneficiaryCard } from "@/components/ui/beneficiary-card";
 import { AddBeneficiaryDialog } from "@/components/ui/add-beneficiary-dialog";
 import { Button } from "@/components/ui/button";
 import { BeneficiaryService } from "@/services/beneficiary.service";
+import { GuardianService } from "@/services/guardian.service";
 import { useToastStore } from "@/stores/toastStore";
-import type { Beneficiary } from "@/lib/types";
+import type { Beneficiary, Guardian } from "@/lib/types";
 
 export function BeneficiariesClient() {
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[] | null>(null);
+  const [guardian, setGuardian]           = useState<Guardian | null>(null);
   const [loading, setLoading]             = useState(true);
   const [error, setError]                 = useState(false);
   const [dialogOpen, setDialogOpen]       = useState(false);
   const addToast = useToastStore((s) => s.add);
 
   useEffect(() => {
-    BeneficiaryService.getAll()
-      .then((data) => setBeneficiaries(data ?? []))
+    Promise.all([BeneficiaryService.getAll(), GuardianService.get()])
+      .then(([b, g]) => { setBeneficiaries(b ?? []); setGuardian(g ?? null); })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
+
+  const handleSetAsGuardian = async (beneficiary: Beneficiary) => {
+    try {
+      const saved = await GuardianService.upsert({
+        firstName:    beneficiary.name.split(" ")[0],
+        email:        beneficiary.email,
+        beneficiaryId: beneficiary.id,
+      });
+      setGuardian(saved);
+      addToast(`${beneficiary.name} set as guardian.`, "success");
+    } catch {
+      addToast("Failed to set guardian.", "error");
+    }
+  };
 
   const handleAdded = (beneficiary: Beneficiary) => {
     setBeneficiaries((prev) => [...(prev ?? []), beneficiary]);
@@ -63,7 +79,12 @@ export function BeneficiariesClient() {
         ) : (
           <div className="space-y-3">
             {beneficiaries!.map((b) => (
-              <BeneficiaryCard key={b.id} beneficiary={b} />
+              <BeneficiaryCard
+                key={b.id}
+                beneficiary={b}
+                isGuardian={guardian?.beneficiaryId === b.id}
+                onSetAsGuardian={handleSetAsGuardian}
+              />
             ))}
           </div>
         )}

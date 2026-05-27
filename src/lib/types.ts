@@ -138,6 +138,23 @@ export interface BeneficiaryInput {
   isDefault?: boolean;
 }
 
+// ── Guardian ──────────────────────────────────────────
+
+export interface Guardian {
+  id: string;
+  firstName: string;
+  email: string;
+  beneficiaryId: string | null;
+  confirmedAt: string | null;
+  createdAt: string;
+}
+
+export interface GuardianInput {
+  firstName: string;
+  email: string;
+  beneficiaryId?: string;
+}
+
 // ── Release ───────────────────────────────────────────
 
 export type ReleaseReport =

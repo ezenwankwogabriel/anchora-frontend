@@ -1,13 +1,16 @@
 import Link from "next/link";
+import { ShieldCheck } from "lucide-react";
 import type { Beneficiary } from "@/lib/types";
 import { StatusBadge } from "./status-badge";
 import { RELATIONSHIP_LABELS } from "@/lib/schemas/beneficiary";
 
 interface BeneficiaryCardProps {
   beneficiary: Beneficiary;
+  isGuardian?: boolean;
+  onSetAsGuardian?: (beneficiary: Beneficiary) => void;
 }
 
-export function BeneficiaryCard({ beneficiary }: BeneficiaryCardProps) {
+export function BeneficiaryCard({ beneficiary, isGuardian, onSetAsGuardian }: BeneficiaryCardProps) {
   const initials = beneficiary.name
     .split(" ")
     .filter(Boolean)
@@ -44,6 +47,12 @@ export function BeneficiaryCard({ beneficiary }: BeneficiaryCardProps) {
               Default
             </span>
           )}
+          {isGuardian && (
+            <span className="text-[10.5px] font-semibold text-green bg-green-light px-[7px] py-[2px] rounded-full flex items-center gap-1">
+              <ShieldCheck size={10} />
+              Guardian
+            </span>
+          )}
         </div>
         <p className="text-[12px] text-text-tertiary mb-2">
           {RELATIONSHIP_LABELS[beneficiary.relationship]}
@@ -53,12 +62,25 @@ export function BeneficiaryCard({ beneficiary }: BeneficiaryCardProps) {
         <StatusBadge variant={statusVariant} label={statusLabel} />
       </div>
 
-      <Link
-        href={`/beneficiaries/${beneficiary.id}/edit`}
-        className="text-[12.5px] text-text-secondary hover:text-text-primary transition-colors flex-shrink-0 mt-0.5"
-      >
-        Edit
-      </Link>
+      <div className="flex items-center gap-3 flex-shrink-0 mt-0.5">
+        {!isGuardian && onSetAsGuardian && (
+          <button
+            type="button"
+            onClick={() => onSetAsGuardian(beneficiary)}
+            className="text-[12px] text-text-tertiary hover:text-accent transition-colors flex items-center gap-1"
+            title="Set as guardian"
+          >
+            <ShieldCheck size={13} />
+            Set as guardian
+          </button>
+        )}
+        <Link
+          href={`/beneficiaries/${beneficiary.id}/edit`}
+          className="text-[12.5px] text-text-secondary hover:text-text-primary transition-colors"
+        >
+          Edit
+        </Link>
+      </div>
     </div>
   );
 }
