@@ -8,11 +8,21 @@ const http = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Inject access token on every request
-http.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().accessToken;
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
+// Seed the Authorization header from whatever token is already in storage.
+const initialToken = useAuthStore.getState().accessToken;
+if (initialToken) {
+  http.defaults.headers.common['Authorization'] = `Bearer ${initialToken}`;
+}
+
+// Keep the Authorization header in sync with the auth store.
+// Zustand's subscribe fires synchronously on every set() call, so this catches
+// login, token refresh, and logout immediately — no per-request store reads needed.
+useAuthStore.subscribe((state) => {
+  if (state.accessToken) {
+    http.defaults.headers.common['Authorization'] = `Bearer ${state.accessToken}`;
+  } else {
+    delete http.defaults.headers.common['Authorization'];
+  }
 });
 
 // Strip the global { data, meta } response envelope
