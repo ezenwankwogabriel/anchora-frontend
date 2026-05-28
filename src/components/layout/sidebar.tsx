@@ -2,14 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import {
   LayoutDashboard,
   Archive,
   Users,
   Settings,
+  LogOut,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
+import { AuthService } from "@/services/auth.service";
 
 const navItems = [
   { label: "Dashboard",      href: "/dashboard",     icon: LayoutDashboard },
@@ -44,14 +48,20 @@ function LogoMark() {
 
 function UserCard() {
   const user = useAuthStore((s) => s.user);
+  const [loggingOut, setLoggingOut] = useState(false);
   const initials = user
     ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
     : "?";
   const fullName = user ? `${user.firstName} ${user.lastName}` : "";
 
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    await AuthService.logout();
+  };
+
   return (
     <div className="px-5 pt-4 border-t border-border-color">
-      <div className="flex items-center gap-[10px] p-2 rounded-md cursor-pointer hover:bg-surface-2 transition-colors">
+      <div className="flex items-center gap-[10px] p-2 rounded-md">
         <div className="w-8 h-8 bg-gradient-to-br from-navy to-accent rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0">
           {initials}
         </div>
@@ -63,6 +73,16 @@ function UserCard() {
             {user?.email}
           </p>
         </div>
+        <button
+          onClick={handleLogout}
+          disabled={loggingOut}
+          className="text-text-tertiary hover:text-red transition-colors flex-shrink-0 p-1 rounded"
+          title="Log out"
+        >
+          {loggingOut
+            ? <Loader2 size={14} className="animate-spin" />
+            : <LogOut size={14} />}
+        </button>
       </div>
     </div>
   );

@@ -1,4 +1,5 @@
 import http, { normalise } from "@/lib/axios";
+import { useAuthStore } from "@/stores/authStore";
 import type { AuthResponse, MfaLoginResponse, MfaSetupResponse, User } from "@/lib/types";
 
 export const AuthService = {
@@ -133,5 +134,10 @@ export const AuthService = {
     } catch (err) {
       normalise(err);
     }
+  },
+  logout: async (): Promise<void> => {
+    try { await http.post('/auth/logout'); } catch { /* best-effort */ }
+    useAuthStore.getState().clearAuth();
+    window.location.href = '/login';
   },
 };
