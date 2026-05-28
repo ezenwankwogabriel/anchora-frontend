@@ -145,6 +145,8 @@ export interface Guardian {
   firstName: string;
   email: string;
   beneficiaryId: string | null;
+  acceptedAt: string | null;
+  declinedAt: string | null;
   confirmedAt: string | null;
   createdAt: string;
 }

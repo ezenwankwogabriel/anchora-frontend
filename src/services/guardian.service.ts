@@ -25,4 +25,20 @@ export const GuardianService = {
       normalise(err);
     }
   },
+
+  acceptInvite: async (token: string): Promise<{ message: string }> => {
+    try {
+      return (await http.post<{ message: string }>("/guardian/invite/accept", { token })).data;
+    } catch (err) {
+      normalise(err);
+    }
+  },
+
+  declineInvite: async (token: string): Promise<{ message: string }> => {
+    try {
+      return (await http.post<{ message: string }>("/guardian/invite/decline", { token })).data;
+    } catch (err) {
+      normalise(err);
+    }
+  },
 };

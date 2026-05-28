@@ -701,7 +701,20 @@ function GuardianSection() {
               {guardian.firstName[0].toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[13.5px] font-[600] text-text-primary">{guardian.firstName}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-[13.5px] font-[600] text-text-primary">{guardian.firstName}</p>
+                {guardian.acceptedAt ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[11px] font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
+                    Active
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
+                    Pending
+                  </span>
+                )}
+              </div>
               <p className="text-[12px] text-text-tertiary">{guardian.email}</p>
             </div>
             <div className="flex items-center gap-2">
