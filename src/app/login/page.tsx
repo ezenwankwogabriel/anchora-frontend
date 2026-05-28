@@ -80,7 +80,9 @@ function CredentialsStep({
     } catch (err) {
       if (err instanceof ServiceError) {
         const msg =
-          err.status === 423
+          err.status === 429
+            ? "Too many sign-in attempts. Please wait a moment and try again."
+            : err.status === 423
             ? "Your account has been temporarily locked after too many failed attempts. Try again in 15 minutes."
             : err.status === 403
             ? "Please verify your email before signing in."

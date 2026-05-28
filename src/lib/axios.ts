@@ -42,10 +42,10 @@ http.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config as typeof error.config & { _retry?: boolean };
-    const isRefreshEndpoint = (original.url ?? "").includes("/auth/refresh");
+    const ignoredEndpoints = ["/auth/refresh", "/auth/login"].includes(original.url ?? "");
 
-    // Don't intercept the refresh call itself — avoids infinite loops.
-    if (error.response?.status === 401 && !original._retry && !isRefreshEndpoint) {
+    // Don't intercept the refresh call/login itself — avoids infinite loops.
+    if (error.response?.status === 401 && !original._retry && !ignoredEndpoints) {
       original._retry = true;
       const { refreshToken, sessionId, user } = useAuthStore.getState();
 
