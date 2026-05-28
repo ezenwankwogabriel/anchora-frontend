@@ -2,16 +2,87 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Mail } from "lucide-react";
+import { Mail, CheckCircle, Loader2 } from "lucide-react";
 import { AuthCard } from "@/components/ui/auth-card";
 import { Button } from "@/components/ui/button";
 import { AuthService } from "@/services/auth.service";
 
 interface Props {
   email?: string;
+  token?: string;
 }
 
-export function VerifyEmailClient({ email }: Props) {
+export function VerifyEmailClient({ email, token }: Props) {
+  // ── Token flow (clicked link from email) ────────────────────────────
+  const [verifyState, setVerifyState] = useState<"verifying" | "success" | "error" | null>(
+    token ? "verifying" : null,
+  );
+
+  useEffect(() => {
+    if (!token) return;
+    AuthService.verifyEmail(token)
+      .then(() => setVerifyState("success"))
+      .catch(() => setVerifyState("error"));
+  }, [token]);
+
+  if (verifyState === "verifying") {
+    return (
+      <AuthCard>
+        <div className="text-center">
+          <Loader2 size={28} className="animate-spin text-accent mx-auto mb-4" />
+          <p className="text-[14px] text-text-secondary">Verifying your email&hellip;</p>
+        </div>
+      </AuthCard>
+    );
+  }
+
+  if (verifyState === "success") {
+    return (
+      <AuthCard>
+        <div className="text-center">
+          <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-5">
+            <CheckCircle size={22} className="text-green-600" />
+          </div>
+          <h1 className="font-heading text-[24px] text-text-primary mb-2">
+            Email verified
+          </h1>
+          <p className="text-[13.5px] text-text-secondary leading-relaxed mb-6">
+            Your email address has been confirmed. You can now sign in to your account.
+          </p>
+          <Button asChild fullWidth>
+            <Link href="/login">Continue to login</Link>
+          </Button>
+        </div>
+      </AuthCard>
+    );
+  }
+
+  if (verifyState === "error") {
+    return (
+      <AuthCard>
+        <div className="text-center">
+          <div className="w-12 h-12 bg-accent-light rounded-xl flex items-center justify-center mx-auto mb-5">
+            <Mail size={22} className="text-accent" />
+          </div>
+          <h1 className="font-heading text-[24px] text-text-primary mb-2">
+            Link expired
+          </h1>
+          <p className="text-[13.5px] text-text-secondary leading-relaxed mb-6">
+            This verification link has expired or has already been used. Request a new one below.
+          </p>
+          <Button asChild fullWidth variant="secondary">
+            <Link href="/verify-email">Request a new link</Link>
+          </Button>
+        </div>
+      </AuthCard>
+    );
+  }
+
+  // ── No-token flow (holding screen shown after registration) ─────────
+  return <HoldingScreen email={email} />;
+}
+
+function HoldingScreen({ email }: { email?: string }) {
   const [countdown, setCountdown] = useState(0);
   const [sent, setSent] = useState(false);
 

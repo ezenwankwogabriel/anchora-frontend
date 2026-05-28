@@ -58,6 +58,14 @@ export const AuthService = {
     }
   },
 
+  verifyEmail: async (token: string): Promise<{ message: string }> => {
+    try {
+      return (await http.get<{ message: string }>(`/auth/verify-email?token=${token}`)).data;
+    } catch (err) {
+      normalise(err);
+    }
+  },
+
   forgotPassword: async (email: string): Promise<void> => {
     try {
       await http.post("/auth/forgot-password", { email });
