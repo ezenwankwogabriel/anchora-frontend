@@ -31,6 +31,20 @@ This pulls the OpenAPI spec from `http://localhost:3001/api/v1/docs-json` (backe
 
 The manually maintained `src/lib/admin-types.ts` is the source of truth for types not yet covered by the spec. Prefer migrating to generated types over adding new entries there.
 
+## Guardian vs. Beneficiary — UI distinction
+
+**Guardian** (`src/app/settings/client.tsx` → Guardian tab, `src/services/guardian.service.ts`)
+- One per user; set and managed in Settings.
+- No Anchora account — acceptance is a single email-link click, no signup.
+- Status badge on the card: green "Active" (`acceptedAt` set) or amber "Pending" (awaiting response).
+- Public invite page at `src/app/guardian/invite/` — handles `?token=&action=accept|decline` from email.
+- If `?next=` is present after accepting, redirects there (used by STAGE_3 combined accept+confirm email).
+
+**Beneficiary** (`src/app/beneficiaries/`, `src/services/beneficiary.service.ts`)
+- Many per user; managed on the Beneficiaries page.
+- Must create or link an Anchora account to accept their invite.
+- Can be promoted to guardian via the "Set as guardian" action on their card (pre-fills the guardian form).
+
 ## API proxy
 
 All requests go through the Next.js rewrite proxy:
