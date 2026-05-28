@@ -138,6 +138,15 @@ export interface BeneficiaryInput {
   isDefault?: boolean;
 }
 
+export interface SharedVaultItem {
+  id:           string;
+  ownerName:    string;
+  relationship: Relationship;
+  status:       BeneficiaryStatus;
+  linkedAt:     string;
+  assetCount:   number;
+}
+
 // ── Guardian ──────────────────────────────────────────
 
 export interface Guardian {

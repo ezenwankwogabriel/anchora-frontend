@@ -1,5 +1,5 @@
 import http, { normalise } from "@/lib/axios";
-import type { Beneficiary, BeneficiaryDetail, BeneficiaryInput } from "@/lib/types";
+import type { Beneficiary, BeneficiaryDetail, BeneficiaryInput, SharedVaultItem } from "@/lib/types";
 
 export const BeneficiaryService = {
   getAll: async (): Promise<Beneficiary[]> => {
@@ -45,6 +45,14 @@ export const BeneficiaryService = {
   remove: async (id: string): Promise<void> => {
     try {
       await http.delete(`/beneficiaries/${id}`);
+    } catch (err) {
+      normalise(err);
+    }
+  },
+
+  getSharedWithMe: async (): Promise<SharedVaultItem[]> => {
+    try {
+      return (await http.get<SharedVaultItem[]>("/beneficiaries/shared-with-me")).data;
     } catch (err) {
       normalise(err);
     }
