@@ -111,39 +111,37 @@ export function BeneficiaryForm({ beneficiary, onSubmit, onCancel, submitLabel }
         <FieldError message={errors.relationship?.message} />
       </FormSection>
 
-      <FormSection divider>
-        <div className="flex items-center justify-between py-1">
-          <div>
-            <p className="text-[13px] font-[500] text-text-primary">Set as default</p>
-            <p className="text-[11.5px] text-text-tertiary">
-              Primary contact when your vault is accessed
-            </p>
-          </div>
-          <Controller
-            name="isDefault"
-            control={control}
-            render={({ field }) => (
-              <button
-                type="button"
-                role="switch"
-                aria-checked={!!field.value}
-                onClick={() => field.onChange(!field.value)}
-                className={cn(
-                  "relative w-10 h-6 rounded-full transition-colors duration-200 flex-shrink-0",
-                  field.value ? "bg-accent" : "bg-border-color"
-                )}
-              >
-                <span
-                  className={cn(
-                    "absolute top-[3px] w-[18px] h-[18px] bg-white rounded-full shadow-sm transition-transform duration-200",
-                    field.value ? "translate-x-[19px]" : "translate-x-[3px]"
-                  )}
-                />
-              </button>
-            )}
-          />
+      <div className="flex items-center justify-between py-3 px-0 mt-1 mb-1">
+        <div>
+          <p className="text-[13px] font-[500] text-text-primary">Primary contact</p>
+          <p className="text-[11.5px] text-text-tertiary">
+            Only one beneficiary can be set as primary
+          </p>
         </div>
-      </FormSection>
+        <Controller
+          name="isDefault"
+          control={control}
+          render={({ field }) => (
+            <button
+              type="button"
+              role="switch"
+              aria-checked={!!field.value}
+              onClick={() => field.onChange(!field.value)}
+              className={cn(
+                "relative w-10 h-6 rounded-full transition-colors duration-200 flex-shrink-0",
+                field.value ? "bg-accent" : "bg-border-color"
+              )}
+            >
+              <span
+                className={cn(
+                  "absolute top-[3px] w-[18px] h-[18px] bg-white rounded-full shadow-sm transition-transform duration-200",
+                  field.value ? "translate-x-[19px]" : "translate-x-[3px]"
+                )}
+              />
+            </button>
+          )}
+        />
+      </div>
 
       {errors.root && (
         <p className="text-[12.5px] text-red bg-red-light border border-[#F5B0B0] rounded-md px-3 py-2 mb-4">

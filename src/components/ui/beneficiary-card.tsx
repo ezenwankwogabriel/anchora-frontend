@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import type { Beneficiary } from "@/lib/types";
 import { StatusBadge } from "./status-badge";
@@ -7,10 +6,11 @@ import { RELATIONSHIP_LABELS } from "@/lib/schemas/beneficiary";
 interface BeneficiaryCardProps {
   beneficiary: Beneficiary;
   isGuardian?: boolean;
+  onEdit?: (beneficiary: Beneficiary) => void;
   onSetAsGuardian?: (beneficiary: Beneficiary) => void;
 }
 
-export function BeneficiaryCard({ beneficiary, isGuardian, onSetAsGuardian }: BeneficiaryCardProps) {
+export function BeneficiaryCard({ beneficiary, isGuardian, onEdit, onSetAsGuardian }: BeneficiaryCardProps) {
   const initials = beneficiary.name
     .split(" ")
     .filter(Boolean)
@@ -74,12 +74,15 @@ export function BeneficiaryCard({ beneficiary, isGuardian, onSetAsGuardian }: Be
             Set as guardian
           </button>
         )}
-        <Link
-          href={`/beneficiaries/${beneficiary.id}/edit`}
-          className="text-[12.5px] text-text-secondary hover:text-text-primary transition-colors"
-        >
-          Edit
-        </Link>
+        {onEdit && (
+          <button
+            type="button"
+            onClick={() => onEdit(beneficiary)}
+            className="text-[12.5px] text-text-secondary hover:text-text-primary transition-colors"
+          >
+            Edit
+          </button>
+        )}
       </div>
     </div>
   );

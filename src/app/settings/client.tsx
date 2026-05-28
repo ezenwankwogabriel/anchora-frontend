@@ -5,7 +5,7 @@ import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver as _zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
-  Loader2, ShieldCheck, ShieldOff, Check, Copy, AlertTriangle, Pencil, UserCheck, Trash2,
+  Loader2, ShieldCheck, ShieldOff, Check, Copy, AlertTriangle, Pencil,
 } from "lucide-react";
 import { AppLayout } from "@/components/layout/app-layout";
 import { Input } from "@/components/ui/input";
@@ -14,16 +14,14 @@ import { FormSection } from "@/components/ui/form-section";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { InfoBanner } from "@/components/ui/info-banner";
 import { AuthService } from "@/services/auth.service";
-import { GuardianService } from "@/services/guardian.service";
-import { BeneficiaryService } from "@/services/beneficiary.service";
 import { useAuthStore } from "@/stores/authStore";
 import { ServiceError } from "@/lib/types";
-import type { MfaSetupResponse, Guardian, Beneficiary } from "@/lib/types";
+import type { MfaSetupResponse } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
-const TABS = ["Profile", "Security", "Notifications", "Guardian", "Account"] as const;
+const TABS = ["Profile", "Security", "Notifications", "Account"] as const;
 type Tab = (typeof TABS)[number];
 
 function TabNav({ active, onChange }: { active: Tab; onChange: (t: Tab) => void }) {
@@ -605,216 +603,6 @@ function MfaSection() {
   );
 }
 
-// ── Guardian ──────────────────────────────────────────────────────────────────
-
-const guardianSchema = z.object({
-  firstName: z.string().min(1, "Required"),
-  email:     z.string().email("Enter a valid email"),
-});
-type GuardianFormData = z.infer<typeof guardianSchema>;
-const guardianResolver = _zodResolver as unknown as (schema: z.ZodTypeAny) => Resolver<GuardianFormData>;
-
-function GuardianSection() {
-  const [guardian, setGuardian]         = useState<Guardian | null | undefined>(undefined);
-  const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>([]);
-  const [editing, setEditing]           = useState(false);
-  const [removing, setRemoving]         = useState(false);
-  const [error, setError]               = useState<string | null>(null);
-  const [success, setSuccess]           = useState(false);
-  const [selectedBeneficiaryId, setSelectedBeneficiaryId] = useState<string>("");
-
-  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } =
-    useForm<GuardianFormData>({ resolver: guardianResolver(guardianSchema) });
-
-  useEffect(() => {
-    Promise.all([GuardianService.get(), BeneficiaryService.getAll()]).then(([g, b]) => {
-      setGuardian(g ?? null);
-      setBeneficiaries(b ?? []);
-    });
-  }, []);
-
-  const startEdit = () => {
-    reset({ firstName: guardian?.firstName ?? "", email: guardian?.email ?? "" });
-    setSelectedBeneficiaryId(guardian?.beneficiaryId ?? "");
-    setError(null);
-    setEditing(true);
-  };
-
-  const cancelEdit = () => { setEditing(false); setError(null); };
-
-  const handleBeneficiarySelect = (id: string) => {
-    const b = beneficiaries.find((b) => b.id === id);
-    setSelectedBeneficiaryId(id);
-    if (b) reset({ firstName: b.name.split(" ")[0], email: b.email });
-  };
-
-  const onSubmit = async (values: GuardianFormData) => {
-    setError(null);
-    try {
-      const saved = await GuardianService.upsert({
-        firstName:    values.firstName,
-        email:        values.email,
-        ...(selectedBeneficiaryId ? { beneficiaryId: selectedBeneficiaryId } : {}),
-      });
-      setGuardian(saved);
-      setEditing(false);
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 4000);
-    } catch (err) {
-      setError(err instanceof ServiceError ? err.message : "Failed to save — please try again");
-    }
-  };
-
-  const handleRemove = async () => {
-    setRemoving(true);
-    setError(null);
-    try {
-      await GuardianService.remove();
-      setGuardian(null);
-    } catch (err) {
-      setError(err instanceof ServiceError ? err.message : "Failed to remove guardian");
-    } finally {
-      setRemoving(false);
-    }
-  };
-
-  if (guardian === undefined) {
-    return (
-      <div className="flex justify-center py-12">
-        <Loader2 size={22} className="animate-spin text-text-tertiary" />
-      </div>
-    );
-  }
-
-  return (
-    <Section
-      title="Guardian"
-      description="A trusted person who will confirm your vault should be released when you're unreachable."
-    >
-      {success && <InlineSuccess message="Guardian saved." />}
-      <InlineError message={error} />
-
-      {!editing && guardian && (
-        <div className="mb-5">
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-background border border-border-color">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-navy to-accent flex items-center justify-center text-[12px] font-semibold text-white flex-shrink-0">
-              {guardian.firstName[0].toUpperCase()}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <p className="text-[13.5px] font-[600] text-text-primary">{guardian.firstName}</p>
-                {guardian.acceptedAt ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[11px] font-semibold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block" />
-                    Active
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-[11px] font-semibold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block" />
-                    Pending
-                  </span>
-                )}
-              </div>
-              <p className="text-[12px] text-text-tertiary">{guardian.email}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={startEdit}
-                className="text-[12px] text-text-secondary hover:text-accent transition-colors flex items-center gap-1"
-              >
-                <Pencil size={12} />
-                Edit
-              </button>
-              <button
-                type="button"
-                onClick={handleRemove}
-                disabled={removing}
-                className="text-[12px] text-red hover:text-red/80 transition-colors flex items-center gap-1"
-              >
-                {removing ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
-                Remove
-              </button>
-            </div>
-          </div>
-          {guardian.beneficiaryId && (
-            <p className="text-[11.5px] text-text-tertiary mt-2 ml-1">
-              Linked to a beneficiary in your account.
-            </p>
-          )}
-        </div>
-      )}
-
-      {!editing && !guardian && (
-        <div className="mb-5">
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-background border border-dashed border-border-color">
-            <div className="w-9 h-9 rounded-full bg-surface border border-border-color flex items-center justify-center flex-shrink-0">
-              <UserCheck size={16} className="text-text-tertiary" />
-            </div>
-            <div>
-              <p className="text-[13px] font-[500] text-text-secondary">No guardian set</p>
-              <p className="text-[12px] text-text-tertiary">
-                A guardian can halt a release if you confirm you&apos;re still active.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {!editing && (
-        <Button size="sm" onClick={startEdit}>
-          {guardian ? "Update guardian" : "Set a guardian"}
-        </Button>
-      )}
-
-      {editing && (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {beneficiaries.length > 0 && (
-            <div>
-              <FieldLabel text="Link to a beneficiary (optional)" />
-              <select
-                value={selectedBeneficiaryId}
-                onChange={(e) => handleBeneficiarySelect(e.target.value)}
-                className="w-full border border-border-color rounded-lg px-3 py-2 text-[13px] text-text-primary bg-surface focus:outline-none focus:ring-2 focus:ring-accent/30"
-              >
-                <option value="">— Enter manually —</option>
-                {beneficiaries.map((b) => (
-                  <option key={b.id} value={b.id}>{b.name} ({b.email})</option>
-                ))}
-              </select>
-              <p className="text-[11.5px] text-text-tertiary mt-1">
-                Selecting a beneficiary pre-fills the fields below.
-              </p>
-            </div>
-          )}
-
-          <div>
-            <FieldLabel text="First name" required />
-            <Input {...register("firstName")} placeholder="e.g. Jane" />
-            <FieldError message={errors.firstName?.message} />
-          </div>
-
-          <div>
-            <FieldLabel text="Email address" required />
-            <Input {...register("email")} type="email" placeholder="e.g. jane@example.com" />
-            <FieldError message={errors.email?.message} />
-          </div>
-
-          <div className="flex gap-3 pt-1">
-            <Button type="submit" size="sm" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 size={13} className="animate-spin" />}
-              Save guardian
-            </Button>
-            <Button type="button" variant="ghost" size="sm" onClick={cancelEdit}>
-              Cancel
-            </Button>
-          </div>
-        </form>
-      )}
-    </Section>
-  );
-}
-
 // ── Danger zone ───────────────────────────────────────────────────────────────
 
 function DangerZone() {
@@ -1012,7 +800,6 @@ export function SettingsClient() {
           </>
         )}
         {tab === "Notifications" && <NotificationsSection />}
-        {tab === "Guardian" && <GuardianSection />}
         {tab === "Account" && <DangerZone />}
       </div>
     </AppLayout>
