@@ -166,6 +166,7 @@ export default function VaultClient() {
           </PanelCard>
         )}
       </div>
+
     </AppLayout>
   );
 }

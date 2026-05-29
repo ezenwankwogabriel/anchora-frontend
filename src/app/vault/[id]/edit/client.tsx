@@ -110,19 +110,10 @@ export function EditAssetClient({ id }: EditAssetClientProps) {
           record={record}
           onSubmit={handleSubmit}
           onCancel={() => router.push("/vault")}
-        />
-
-        <RecordBeneficiaries recordId={record.id} />
-
-        <div className="mt-2 text-center">
-          <button
-            type="button"
-            onClick={() => setDeleteOpen(true)}
-            className="text-[12.5px] text-text-tertiary hover:text-red transition-colors bg-transparent border-none cursor-pointer font-sans"
-          >
-            Delete this asset
-          </button>
-        </div>
+          hideCancel
+        >
+          <RecordBeneficiaries recordId={record.id} />
+        </VaultForm>
       </div>
 
       <DeleteAssetModal

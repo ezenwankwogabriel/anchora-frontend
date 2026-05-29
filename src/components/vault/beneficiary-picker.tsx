@@ -2,87 +2,48 @@
 
 import { useEffect, useState } from "react";
 import { Plus, X, Loader2 } from "lucide-react";
-import { VaultService } from "@/services/vault.service";
 import { BeneficiaryService } from "@/services/beneficiary.service";
 import { AddBeneficiaryDialog } from "@/components/ui/add-beneficiary-dialog";
 import { RELATIONSHIP_LABELS } from "@/lib/schemas/beneficiary";
 import type { Beneficiary } from "@/lib/types";
 
-interface RecordBeneficiariesProps {
-  recordId: string;
+interface BeneficiaryPickerProps {
+  selectedIds: string[];
+  onChange: (ids: string[]) => void;
 }
 
-export function RecordBeneficiaries({ recordId }: RecordBeneficiariesProps) {
-  const [assigned, setAssigned]         = useState<Beneficiary[] | null>(null);
-  const [allBeneficiaries, setAll]      = useState<Beneficiary[] | null>(null);
-  const [loading, setLoading]           = useState(true);
-  const [showPicker, setShowPicker]     = useState(false);
-  const [addOpen, setAddOpen]           = useState(false);
-  const [adding, setAdding]             = useState<string | null>(null);
-  const [removing, setRemoving]         = useState<string | null>(null);
+function getInitials(name: string) {
+  return name.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]).join("").toUpperCase();
+}
+
+export function BeneficiaryPicker({ selectedIds, onChange }: BeneficiaryPickerProps) {
+  const [all, setAll]             = useState<Beneficiary[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [showPicker, setShowPicker] = useState(false);
+  const [addOpen, setAddOpen]     = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      VaultService.getRecordBeneficiaries(recordId),
-      BeneficiaryService.getAll(),
-    ])
-      .then(([a, all]) => {
-        setAssigned(a ?? []);
-        setAll(all ?? []);
-      })
-      .catch(() => {
-        setAssigned([]);
-        setAll([]);
-      })
+    BeneficiaryService.getAll()
+      .then((data) => setAll(data ?? []))
+      .catch(() => setAll([]))
       .finally(() => setLoading(false));
-  }, [recordId]);
+  }, []);
 
-  const assignedIds = new Set(assigned?.map((b) => b.id) ?? []);
-  const available   = (allBeneficiaries ?? []).filter((b) => !assignedIds.has(b.id));
+  const selected  = all.filter((b) => selectedIds.includes(b.id));
+  const available = all.filter((b) => !selectedIds.includes(b.id));
 
-  const handleAdd = async (beneficiaryId: string) => {
-    setAdding(beneficiaryId);
-    try {
-      await VaultService.assignBeneficiary(recordId, beneficiaryId);
-      const b = allBeneficiaries!.find((x) => x.id === beneficiaryId)!;
-      setAssigned((prev) => [...(prev ?? []), b]);
-      setShowPicker(false);
-    } finally {
-      setAdding(null);
-    }
+  const handleAdd = (id: string) => {
+    onChange([...selectedIds, id]);
+    setShowPicker(false);
   };
 
-  const handleBeneficiaryCreated = async (b: Beneficiary) => {
-    setAll((prev) => [...(prev ?? []), b]);
+  const handleRemove = (id: string) => onChange(selectedIds.filter((x) => x !== id));
+
+  const handleBeneficiaryAdded = (b: Beneficiary) => {
+    setAll((prev) => [...prev, b]);
+    onChange([...selectedIds, b.id]);
     setAddOpen(false);
-    setAdding(b.id);
-    try {
-      await VaultService.assignBeneficiary(recordId, b.id);
-      setAssigned((prev) => [...(prev ?? []), b]);
-      setShowPicker(false);
-    } finally {
-      setAdding(null);
-    }
   };
-
-  const handleRemove = async (beneficiaryId: string) => {
-    setRemoving(beneficiaryId);
-    try {
-      await VaultService.removeRecordBeneficiary(recordId, beneficiaryId);
-      setAssigned((prev) => (prev ?? []).filter((b) => b.id !== beneficiaryId));
-    } finally {
-      setRemoving(null);
-    }
-  };
-
-  const getInitials = (name: string) =>
-    name
-      .split(" ")
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((p) => p[0])
-      .join("")
-      .toUpperCase();
 
   return (
     <div className="mt-6 pt-5 border-t border-border-color">
@@ -94,23 +55,8 @@ export function RecordBeneficiaries({ recordId }: RecordBeneficiariesProps) {
         <Loader2 size={15} className="animate-spin text-text-tertiary" />
       ) : (
         <>
-          {(assigned?.length ?? 0) === 0 && !showPicker && (
-            <p className="text-[12.5px] text-text-tertiary mb-3">
-              No beneficiaries assigned.{" "}
-              {available.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setShowPicker(true)}
-                  className="text-accent hover:underline bg-transparent border-none cursor-pointer font-sans text-[12.5px]"
-                >
-                  Assign one
-                </button>
-              )}
-            </p>
-          )}
-
           <div className="flex flex-wrap gap-2">
-            {assigned?.map((b) => (
+            {selected.map((b) => (
               <div
                 key={b.id}
                 className="inline-flex items-center gap-2 pl-1 pr-2 py-1 bg-surface-2 border border-border-color rounded-full"
@@ -127,13 +73,10 @@ export function RecordBeneficiaries({ recordId }: RecordBeneficiariesProps) {
                 <button
                   type="button"
                   onClick={() => handleRemove(b.id)}
-                  disabled={removing === b.id}
                   className="ml-0.5 text-text-tertiary hover:text-red transition-colors bg-transparent border-none cursor-pointer p-0.5 rounded-full"
                   aria-label="Remove"
                 >
-                  {removing === b.id
-                    ? <Loader2 size={11} className="animate-spin" />
-                    : <X size={11} />}
+                  <X size={11} />
                 </button>
               </div>
             ))}
@@ -141,7 +84,7 @@ export function RecordBeneficiaries({ recordId }: RecordBeneficiariesProps) {
             {!showPicker && (
               <button
                 type="button"
-                onClick={() => setShowPicker(true)}
+                onClick={() => all.length === 0 ? setAddOpen(true) : setShowPicker(true)}
                 className="inline-flex items-center gap-1.5 pl-2 pr-3 py-1 border border-dashed border-border-color rounded-full text-[12px] text-accent hover:border-accent hover:bg-accent-light transition-colors bg-transparent cursor-pointer font-sans"
               >
                 <Plus size={12} />
@@ -176,14 +119,7 @@ export function RecordBeneficiaries({ recordId }: RecordBeneficiariesProps) {
               </div>
               {available.length === 0 ? (
                 <p className="text-[12.5px] text-text-tertiary px-4 py-4">
-                  All beneficiaries assigned.{" "}
-                  <button
-                    type="button"
-                    onClick={() => setAddOpen(true)}
-                    className="text-accent hover:underline bg-transparent border-none cursor-pointer font-sans text-[12.5px]"
-                  >
-                    Add a new one
-                  </button>
+                  All beneficiaries are already assigned.
                 </p>
               ) : (
                 available.map((b) => (
@@ -191,7 +127,6 @@ export function RecordBeneficiaries({ recordId }: RecordBeneficiariesProps) {
                     key={b.id}
                     type="button"
                     onClick={() => handleAdd(b.id)}
-                    disabled={!!adding}
                     className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-surface-2 transition-colors border-b border-border-color last:border-0 text-left"
                   >
                     <div className="w-7 h-7 rounded-full bg-gradient-to-br from-navy to-accent flex items-center justify-center text-[10px] font-semibold text-white flex-shrink-0">
@@ -201,7 +136,6 @@ export function RecordBeneficiaries({ recordId }: RecordBeneficiariesProps) {
                       <p className="text-[12.5px] font-[500] text-text-primary">{b.name}</p>
                       <p className="text-[11px] text-text-tertiary">{RELATIONSHIP_LABELS[b.relationship]}</p>
                     </div>
-                    {adding === b.id && <Loader2 size={13} className="animate-spin text-text-tertiary" />}
                   </button>
                 ))
               )}
@@ -213,7 +147,7 @@ export function RecordBeneficiaries({ recordId }: RecordBeneficiariesProps) {
       <AddBeneficiaryDialog
         open={addOpen}
         onClose={() => setAddOpen(false)}
-        onSuccess={handleBeneficiaryCreated}
+        onSuccess={handleBeneficiaryAdded}
       />
     </div>
   );

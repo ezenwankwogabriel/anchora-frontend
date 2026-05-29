@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import Link from "next/link";
-import { Trash2, Pencil, ChevronDown, ChevronUp } from "lucide-react";
 import type { VaultRecord, AssetCategory } from "@/lib/types";
 import { CategoryIcon, categoryLabels } from "./category-icon";
 import { Button } from "./button";
@@ -23,52 +23,38 @@ function RecordRow({ record, onDelete }: RecordRowProps) {
   const [confirming, setConfirming] = useState(false);
 
   return (
-    <div className="flex items-center justify-between py-[10px] pl-10 pr-2 border-b border-border-color last:border-0">
-      <div>
+    <div className="flex items-center py-[10px] pl-10 pr-2 border-b border-border-color last:border-0">
+      <Link
+        href={`/vault/${record.id}/edit`}
+        className="flex-1 min-w-0 pr-3 no-underline"
+      >
         <p className="text-[13px] font-[500] text-text-primary">
           {record.accountName}
         </p>
         <p className="text-[11.5px] text-text-tertiary">
           {record.accountType ?? record.nickname ?? ""}
         </p>
-      </div>
+      </Link>
 
       {confirming ? (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <span className="text-[12px] text-text-secondary">Delete?</span>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => onDelete(record.id)}
-          >
+          <Button variant="danger" size="sm" onClick={() => onDelete(record.id)}>
             Yes
           </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => setConfirming(false)}
-          >
+          <Button variant="secondary" size="sm" onClick={() => setConfirming(false)}>
             No
           </Button>
         </div>
       ) : (
-        <div className="flex items-center gap-1">
-          <Link
-            href={`/vault/${record.id}/edit`}
-            className="p-1.5 rounded-md text-text-tertiary hover:text-accent hover:bg-accent-light transition-colors"
-            aria-label="Edit record"
-          >
-            <Pencil size={14} />
-          </Link>
-          <button
-            type="button"
-            onClick={() => setConfirming(true)}
-            className="p-1.5 rounded-md text-text-tertiary hover:text-red hover:bg-red-light transition-colors"
-            aria-label="Delete record"
-          >
-            <Trash2 size={14} />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => setConfirming(true)}
+          className="flex-shrink-0 p-1.5 rounded-md text-text-tertiary hover:text-red hover:bg-red-light transition-colors"
+          aria-label="Delete record"
+        >
+          <Trash2 size={14} />
+        </button>
       )}
     </div>
   );

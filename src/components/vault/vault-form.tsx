@@ -32,6 +32,8 @@ interface VaultFormProps {
   onCancel: () => void;
   isSubmitting?: boolean;
   submitLabel?: string;
+  hideCancel?: boolean;
+  children?: React.ReactNode;
 }
 
 function FieldLabel({ text, required }: { text: string; required?: boolean }) {
@@ -53,6 +55,8 @@ export function VaultForm({
   onSubmit,
   onCancel,
   submitLabel,
+  hideCancel,
+  children,
 }: VaultFormProps) {
   const config = CATEGORY_CONFIG[category];
   const schema = getCategorySchema(category);
@@ -218,6 +222,8 @@ export function VaultForm({
         <FieldError message={errors.notes?.message} />
       </FormSection>
 
+      {children}
+
       {/* Root error */}
       {errors.root && (
         <p className="text-[12.5px] text-red bg-red-light border border-[#F5B0B0] rounded-md px-3 py-2 mb-4">
@@ -226,14 +232,16 @@ export function VaultForm({
       )}
 
       {/* Buttons */}
-      <div className="flex flex-col gap-2 mt-2">
+      <div className="flex flex-col gap-2 mt-8">
         <Button type="submit" fullWidth disabled={isSubmitting}>
           {isSubmitting && <Loader2 size={15} className="animate-spin" />}
           {submitLabel ?? (record ? "Save changes →" : "Save asset →")}
         </Button>
-        <Button type="button" variant="ghost" fullWidth onClick={onCancel}>
-          Cancel
-        </Button>
+        {!hideCancel && (
+          <Button type="button" variant="ghost" fullWidth onClick={onCancel}>
+            Cancel
+          </Button>
+        )}
       </div>
     </form>
   );
