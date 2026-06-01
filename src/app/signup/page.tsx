@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { PasswordStrength } from "@/components/ui/password-strength";
+import { SocialAuthButtons } from "@/components/ui/social-auth-buttons";
 import { AuthService } from "@/services/auth.service";
 import { ServiceError } from "@/lib/types";
 
@@ -86,6 +87,8 @@ export default function SignupPage() {
           Sign in instead
         </Link>
       </p>
+
+      <SocialAuthButtons />
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         {/* Name row */}

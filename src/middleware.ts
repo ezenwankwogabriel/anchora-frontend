@@ -9,6 +9,7 @@ const PUBLIC_ROUTES = [
   "/reset-password",
   "/verify-email",
   "/mfa-setup",
+  "/auth/callback",
 ];
 
 export function middleware(request: NextRequest) {

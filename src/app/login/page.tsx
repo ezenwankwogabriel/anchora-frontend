@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { CodeInput } from "@/components/ui/code-input";
+import { SocialAuthButtons } from "@/components/ui/social-auth-buttons";
 import { AuthService } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/authStore";
 import { ServiceError } from "@/lib/types";
@@ -59,6 +60,10 @@ function CredentialsStep({
 }) {
   const router = useRouter();
   const setAuth = useAuthStore((s) => s.setAuth);
+  const searchParams = new URLSearchParams(
+    typeof window !== "undefined" ? window.location.search : ""
+  );
+  const oauthError = searchParams.get("error") === "oauth_failed";
 
   const {
     register,
@@ -103,6 +108,14 @@ function CredentialsStep({
           Create one
         </Link>
       </p>
+
+      {oauthError && (
+        <p className="text-[12.5px] text-red bg-red-light border border-[#F5B0B0] rounded-md px-3 py-2 mb-4">
+          Sign-in with social account failed. Please try again or use email and password.
+        </p>
+      )}
+
+      <SocialAuthButtons />
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="mb-4">
