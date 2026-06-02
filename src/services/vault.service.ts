@@ -11,7 +11,10 @@ function toApiPayload(input: VaultRecordInput) {
     nickname:        input.nickname        || null,
     accountUrl:      input.accountUrl      || undefined,
     holderName:      input.holderName      || undefined,
+    accountNumber:   input.accountNumber   || undefined,
     usernameOrEmail: input.usernameOrEmail || undefined,
+    password:        input.password        || undefined,
+    cardPin:         input.cardPin         || undefined,
     notes:           input.notes           || undefined,
     ...(input.beneficiaryId ? { beneficiaryId: input.beneficiaryId } : {}),
   };

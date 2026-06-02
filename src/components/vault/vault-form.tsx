@@ -16,7 +16,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { FormSection } from "@/components/ui/form-section";
 import { CharacterCounter } from "@/components/ui/character-counter";
-import { InfoBanner } from "@/components/ui/info-banner";
 import { ServiceError } from "@/lib/types";
 import type { VaultRecord, VaultRecordInput, AssetCategory } from "@/lib/types";
 import {
@@ -70,7 +69,10 @@ export function VaultForm({
         accountType:     record.accountType ?? "",
         nickname:        category === "OTHER" ? record.accountName : (record.nickname ?? ""),
         holderName:      record.encryptedFields.holderName ?? "",
+        accountNumber:   record.encryptedFields.accountNumber ?? "",
         usernameOrEmail: record.encryptedFields.usernameOrEmail ?? "",
+        password:        record.encryptedFields.password ?? "",
+        cardPin:         record.encryptedFields.cardPin ?? "",
         accountUrl:      record.accountUrl ?? "",
         notes:           record.encryptedFields.notes ?? "",
       }
@@ -96,10 +98,13 @@ export function VaultForm({
         institutionName: values.institutionName,
         accountType:     values.accountType,
         nickname:        values.nickname,
-        holderName:      values.holderName     || undefined,
-        usernameOrEmail: values.usernameOrEmail || undefined,
-        accountUrl:      values.accountUrl      || undefined,
-        notes:           values.notes           || undefined,
+        holderName:      values.holderName      || undefined,
+        accountNumber:   values.accountNumber   || undefined,
+        usernameOrEmail: values.usernameOrEmail  || undefined,
+        password:        values.password         || undefined,
+        cardPin:         values.cardPin          || undefined,
+        accountUrl:      values.accountUrl       || undefined,
+        notes:           values.notes            || undefined,
       });
     } catch (err) {
       setError("root", {
@@ -109,14 +114,15 @@ export function VaultForm({
   };
 
   const renderTextField = (
-    field: "institutionName" | "nickname" | "holderName" | "usernameOrEmail" | "accountUrl",
+    field: "institutionName" | "nickname" | "holderName" | "accountNumber" | "usernameOrEmail" | "accountUrl" | "password" | "cardPin",
     label: string,
     placeholder: string | undefined,
-    required?: boolean
+    required?: boolean,
+    inputType?: "text" | "password"
   ) => (
     <FormSection>
       <FieldLabel text={label} required={required} />
-      <Input placeholder={placeholder} {...register(field)} />
+      <Input type={inputType} placeholder={placeholder} {...register(field)} />
       <FieldError message={errors[field]?.message} />
     </FormSection>
   );
@@ -176,6 +182,15 @@ export function VaultForm({
           config.holderName.required
         )}
 
+      {/* accountNumber */}
+      {config.accountNumber.type !== "hidden" &&
+        renderTextField(
+          "accountNumber",
+          config.accountNumber.label,
+          config.accountNumber.placeholder,
+          config.accountNumber.required
+        )}
+
       {/* usernameOrEmail */}
       {config.usernameOrEmail.type !== "hidden" &&
         renderTextField(
@@ -183,6 +198,26 @@ export function VaultForm({
           config.usernameOrEmail.label,
           config.usernameOrEmail.placeholder,
           config.usernameOrEmail.required
+        )}
+
+      {/* password */}
+      {config.password.type !== "hidden" &&
+        renderTextField(
+          "password",
+          config.password.label,
+          config.password.placeholder,
+          config.password.required,
+          "password"
+        )}
+
+      {/* cardPin */}
+      {config.cardPin.type !== "hidden" &&
+        renderTextField(
+          "cardPin",
+          config.cardPin.label,
+          config.cardPin.placeholder,
+          config.cardPin.required,
+          "password"
         )}
 
       {/* accountUrl — select, url/text, or hidden */}
@@ -200,15 +235,6 @@ export function VaultForm({
               config.accountUrl.placeholder,
               config.accountUrl.required
             )}
-
-      {/* Crypto warning */}
-      {config.showCryptoWarning && (
-        <InfoBanner variant="info" className="mb-5">
-          Do not store seed phrases or private keys in this vault. Record the
-          wallet location and provider only. Your beneficiary can seek
-          professional assistance to access the wallet.
-        </InfoBanner>
-      )}
 
       {/* Notes / instructions */}
       <FormSection divider>

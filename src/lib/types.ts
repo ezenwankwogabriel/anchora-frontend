@@ -57,7 +57,10 @@ export interface VaultRecord {
   accountUrl: string | null;
   encryptedFields: {
     holderName?: string;
+    accountNumber?: string;
     usernameOrEmail?: string;
+    password?: string;
+    cardPin?: string;
     notes?: string;
   };
   beneficiary: {
@@ -78,7 +81,10 @@ export interface VaultRecordInput {
   accountType: string;
   nickname: string;
   holderName?: string;
+  accountNumber?: string;
   usernameOrEmail?: string;
+  password?: string;
+  cardPin?: string;
   accountUrl?: string;
   notes?: string;
   beneficiaryId?: string;
