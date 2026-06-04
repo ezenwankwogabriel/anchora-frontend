@@ -11,6 +11,7 @@ const zodResolver = _zodResolver as unknown as (
 ) => Resolver<VaultFormData>;
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -118,11 +119,23 @@ export function VaultForm({
     label: string,
     placeholder: string | undefined,
     required?: boolean,
-    inputType?: "text" | "password"
   ) => (
     <FormSection>
       <FieldLabel text={label} required={required} />
-      <Input type={inputType} placeholder={placeholder} {...register(field)} />
+      <Input placeholder={placeholder} {...register(field)} />
+      <FieldError message={errors[field]?.message} />
+    </FormSection>
+  );
+
+  const renderPasswordField = (
+    field: "password" | "cardPin",
+    label: string,
+    placeholder: string | undefined,
+    required?: boolean,
+  ) => (
+    <FormSection>
+      <FieldLabel text={label} required={required} />
+      <PasswordInput placeholder={placeholder} {...register(field)} />
       <FieldError message={errors[field]?.message} />
     </FormSection>
   );
@@ -202,22 +215,20 @@ export function VaultForm({
 
       {/* password */}
       {config.password.type !== "hidden" &&
-        renderTextField(
+        renderPasswordField(
           "password",
           config.password.label,
           config.password.placeholder,
           config.password.required,
-          "password"
         )}
 
       {/* cardPin */}
       {config.cardPin.type !== "hidden" &&
-        renderTextField(
+        renderPasswordField(
           "cardPin",
           config.cardPin.label,
           config.cardPin.placeholder,
           config.cardPin.required,
-          "password"
         )}
 
       {/* accountUrl — select, url/text, or hidden */}
