@@ -11,6 +11,7 @@ const categoryExamples: Record<AssetCategory, string> = {
   PENSION_PORTAL:       "ARM, NLPC, Stanbic...",
   INSURANCE_POLICY:     "Life, health, auto, property...",
   FOREIGN_ACCOUNT:      "UK ISA, US brokerage, diaspora...",
+  SUBSCRIPTION:         "Netflix, Spotify, SaaS tools...",
   OTHER:                "Anything not listed above",
 };
 
@@ -21,6 +22,7 @@ const CATEGORIES: AssetCategory[] = [
   "PENSION_PORTAL",
   "INSURANCE_POLICY",
   "FOREIGN_ACCOUNT",
+  "SUBSCRIPTION",
   "OTHER",
 ];
 

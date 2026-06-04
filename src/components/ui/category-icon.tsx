@@ -5,6 +5,7 @@ import {
   Briefcase,
   Shield,
   Globe,
+  CreditCard,
   Archive,
 } from "lucide-react";
 import type { AssetCategory } from "@/lib/types";
@@ -17,6 +18,7 @@ const iconMap: Record<AssetCategory, React.ElementType> = {
   PENSION_PORTAL:       Briefcase,
   INSURANCE_POLICY:     Shield,
   FOREIGN_ACCOUNT:      Globe,
+  SUBSCRIPTION:         CreditCard,
   OTHER:                Archive,
 };
 
@@ -27,6 +29,7 @@ const colorMap: Record<AssetCategory, string> = {
   PENSION_PORTAL:       "bg-[#EBF1FD] text-navy",
   INSURANCE_POLICY:     "bg-[#F0EDFC] text-[#6B4EE6]",
   FOREIGN_ACCOUNT:      "bg-[#E8F8EF] text-green",
+  SUBSCRIPTION:         "bg-[#E8F4FD] text-[#2B7EC1]",
   OTHER:                "bg-surface-2 text-text-secondary",
 };
 
@@ -58,5 +61,6 @@ export const categoryLabels: Record<AssetCategory, string> = {
   PENSION_PORTAL:       "Pension Portal",
   INSURANCE_POLICY:     "Insurance Policy",
   FOREIGN_ACCOUNT:      "Foreign Account",
+  SUBSCRIPTION:         "Subscriptions",
   OTHER:                "Other",
 };

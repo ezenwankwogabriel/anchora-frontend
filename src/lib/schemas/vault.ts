@@ -103,6 +103,19 @@ export const categorySchemas = {
     notes:           max500,
   }),
 
+  SUBSCRIPTION: z.object({
+    institutionName: req("Service name is required"),
+    accountType:     enumField(["Monthly", "Annual", "Weekly"], "Select a billing cycle"),
+    nickname:        opt(),
+    holderName:      opt(),
+    accountNumber:   opt(),
+    usernameOrEmail: opt(),
+    password:        opt(),
+    cardPin:         opt(),
+    accountUrl:      opt(),
+    notes:           max500,
+  }),
+
   OTHER: z.object({
     institutionName: opt(),
     accountType:     opt(),
@@ -236,6 +249,21 @@ export const CATEGORY_CONFIG: Record<AssetCategory, CategoryConfig> = {
     notesLabel: "Instructions for your beneficiary",
     notesPlaceholder: "Include currency, account type, or any other details...",
     defaultValues: { institutionName: "", accountType: "Bank account", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", accountUrl: "United Kingdom", notes: "" },
+  },
+
+  SUBSCRIPTION: {
+    institutionName: { label: "Service name",        type: "text",     placeholder: "e.g. Netflix, Spotify, AWS", required: true },
+    accountType:     { label: "Billing cycle",        type: "select",   options: ["Monthly", "Annual", "Weekly"], required: true },
+    nickname:        { label: "Subscription label",   type: "text",     placeholder: "e.g. Family plan, Team account" },
+    holderName:      { label: "",                     type: "hidden" },
+    accountNumber:   { label: "",                     type: "hidden" },
+    usernameOrEmail: { label: "Billing email",        type: "text",     placeholder: "Email used for billing or login" },
+    password:        { label: "Account password",     type: "password", placeholder: "Your login password" },
+    cardPin:         { label: "",                     type: "hidden" },
+    accountUrl:      { label: "Cancellation URL",     type: "url",      placeholder: "https://..." },
+    notesLabel: "Cancellation instructions",
+    notesPlaceholder: "How to cancel — direct link, phone number, or step-by-step instructions...",
+    defaultValues: { institutionName: "", accountType: "Monthly", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", accountUrl: "", notes: "" },
   },
 
   OTHER: {
