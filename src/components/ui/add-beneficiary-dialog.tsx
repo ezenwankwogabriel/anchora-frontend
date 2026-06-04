@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Loader2 } from "lucide-react";
 import { BeneficiaryForm } from "@/components/beneficiary/beneficiary-form";
 import { BeneficiaryService } from "@/services/beneficiary.service";
@@ -46,7 +47,7 @@ export function AddBeneficiaryDialog({
     }
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onClose} />
 
@@ -59,7 +60,7 @@ export function AddBeneficiaryDialog({
             <p className="text-[13px] text-text-secondary mt-0.5">
               {isEdit
                 ? "Update their details or remove them from your vault."
-                : "They'll receive an email invitation to join Anchora."}
+                : "Add someone to give them access to this vault."}
             </p>
           </div>
           <button
@@ -96,6 +97,7 @@ export function AddBeneficiaryDialog({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

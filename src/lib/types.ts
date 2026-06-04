@@ -45,6 +45,7 @@ export type AssetCategory =
   | "PENSION_PORTAL"
   | "INSURANCE_POLICY"
   | "FOREIGN_ACCOUNT"
+  | "SUBSCRIPTION"
   | "OTHER";
 
 export interface VaultRecord {
@@ -142,6 +143,7 @@ export interface BeneficiaryInput {
   email: string;
   relationship: Relationship;
   isDefault?: boolean;
+  notes?: string;
 }
 
 export interface SharedVaultItem {

@@ -5,6 +5,7 @@ import { Plus, X, Loader2 } from "lucide-react";
 import { BeneficiaryService } from "@/services/beneficiary.service";
 import { AddBeneficiaryDialog } from "@/components/ui/add-beneficiary-dialog";
 import { RELATIONSHIP_LABELS } from "@/lib/schemas/beneficiary";
+import { useToastStore } from "@/stores/toastStore";
 import type { Beneficiary } from "@/lib/types";
 
 interface BeneficiaryPickerProps {
@@ -21,6 +22,7 @@ export function BeneficiaryPicker({ selectedIds, onChange }: BeneficiaryPickerPr
   const [loading, setLoading]     = useState(true);
   const [showPicker, setShowPicker] = useState(false);
   const [addOpen, setAddOpen]     = useState(false);
+  const addToast                  = useToastStore((s) => s.add);
 
   useEffect(() => {
     BeneficiaryService.getAll()
@@ -43,6 +45,9 @@ export function BeneficiaryPicker({ selectedIds, onChange }: BeneficiaryPickerPr
     setAll((prev) => [...prev, b]);
     onChange([...selectedIds, b.id]);
     setAddOpen(false);
+    if (b.status === "INVITED") {
+      setTimeout(() => addToast(`Invite sent to ${b.email}`, "success"), 0);
+    }
   };
 
   return (

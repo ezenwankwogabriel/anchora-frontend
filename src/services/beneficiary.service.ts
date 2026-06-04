@@ -26,6 +26,16 @@ export const BeneficiaryService = {
     }
   },
 
+  checkEmail: async (email: string): Promise<{ onPlatform: boolean }> => {
+    try {
+      return (await http.get<{ onPlatform: boolean }>("/beneficiaries/check-email", {
+        params: { email },
+      })).data;
+    } catch (err) {
+      normalise(err);
+    }
+  },
+
   update: async (id: string, data: Partial<BeneficiaryInput>): Promise<Beneficiary> => {
     try {
       return (await http.patch<Beneficiary>(`/beneficiaries/${id}`, data)).data;
