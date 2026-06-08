@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 interface TrustItem {
   text: string;
 }
@@ -49,10 +51,11 @@ export function AuthLayout({
       >
         {/* Logo */}
         <div>
-          <img
+          <Image
             src="/images/logo-full-transparent.png"
             alt="Anchora"
-            style={{ height: "80px", width: "auto" }}
+            width={80}
+            height={80}
           />
         </div>
 

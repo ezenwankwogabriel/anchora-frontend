@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -9,10 +10,11 @@ interface AuthCardProps {
 function LogoMark() {
   return (
     <div className="flex justify-center mb-5">
-      <img
+      <Image
         src="/images/logo-icon-blue.png"
         alt="Anchora"
-        style={{ height: "36px", width: "auto" }}
+        width={36}
+        height={36}
       />
     </div>
   );

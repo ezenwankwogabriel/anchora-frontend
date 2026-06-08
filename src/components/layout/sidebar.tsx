@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -26,11 +27,11 @@ const navItems = [
 
 function LogoMark() {
   return (
-    <img
+    <Image
       src="/images/logo-icon-blue.png"
       alt="Anchora"
       width={48}
-      height={34}
+      height={48}
       className="rounded-[9px] flex-shrink-0"
     />
   );

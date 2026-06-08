@@ -791,7 +791,7 @@ export function SettingsClient() {
         {tab === "Security" && (
           <>
             <PasswordSection />
-            {/* <MfaSection /> */}
+            {false && <MfaSection />}
           </>
         )}
         {tab === "Notifications" && <NotificationsSection />}

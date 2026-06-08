@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "Anchora — Release Report",
@@ -9,10 +10,11 @@ export default function ReleaseLayout({ children }: { children: React.ReactNode 
     <div className="min-h-screen bg-bg flex flex-col items-center py-12 px-4">
       {/* Logo */}
       <div className="mb-10">
-        <img
+        <Image
           src="/images/logo-icon-blue.png"
           alt="Anchora"
-          style={{ height: "40px", width: "auto" }}
+          width={40}
+          height={40}
         />
       </div>
 
