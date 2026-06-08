@@ -45,5 +45,5 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   // Skip Next.js internals, static files, and the API proxy
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|api/|images/).*)"],
 };

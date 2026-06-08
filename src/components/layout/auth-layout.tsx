@@ -48,25 +48,12 @@ export function AuthLayout({
         }}
       >
         {/* Logo */}
-        <div className="flex items-center gap-[10px]">
-          <div className="w-9 h-9 bg-[rgba(255,255,255,0.15)] rounded-[9px] flex items-center justify-center border border-[rgba(255,255,255,0.2)]">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M12 3L4 7V12C4 16.4 7.4 20.5 12 21C16.6 20.5 20 16.4 20 12V7L12 3Z"
-                fill="white"
-                opacity=".9"
-              />
-              <path
-                d="M9 12L11 14L15 10"
-                stroke="white"
-                strokeWidth="1.8"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                opacity=".6"
-              />
-            </svg>
-          </div>
-          <span className="font-heading text-[20px] text-white">Anchora</span>
+        <div>
+          <img
+            src="/images/logo-full-transparent.png"
+            alt="Anchora"
+            style={{ height: "80px", width: "auto" }}
+          />
         </div>
 
         {/* Hero */}

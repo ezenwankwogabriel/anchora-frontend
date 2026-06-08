@@ -1,18 +1,24 @@
 import type { Metadata } from "next";
-import { DM_Serif_Display, DM_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { ToastContainer } from "@/components/ui/toast";
 import "./globals.css";
 
-const dmSerifDisplay = DM_Serif_Display({
-  subsets: ["latin"],
-  weight: "400",
+const cabinetGrotesk = localFont({
+  src: [
+    { path: "../fonts/cabinet-grotesk/CabinetGrotesk-Regular.otf",   weight: "400", style: "normal" },
+    { path: "../fonts/cabinet-grotesk/CabinetGrotesk-Medium.otf",    weight: "500", style: "normal" },
+    { path: "../fonts/cabinet-grotesk/CabinetGrotesk-Bold.otf",      weight: "700", style: "normal" },
+    { path: "../fonts/cabinet-grotesk/CabinetGrotesk-Extrabold.otf", weight: "800", style: "normal" },
+  ],
   variable: "--font-heading",
   display: "swap",
 });
 
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
+const figtree = localFont({
+  src: [
+    { path: "../fonts/figtree/Figtree-VariableFont_wght.ttf",        style: "normal" },
+    { path: "../fonts/figtree/Figtree-Italic-VariableFont_wght.ttf", style: "italic" },
+  ],
   variable: "--font-sans",
   display: "swap",
 });
@@ -28,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${dmSerifDisplay.variable} ${dmSans.variable}`}>
+    <html lang="en" className={`${cabinetGrotesk.variable} ${figtree.variable}`}>
       <body className="antialiased font-sans bg-background text-foreground">
         {children}
         <ToastContainer />
