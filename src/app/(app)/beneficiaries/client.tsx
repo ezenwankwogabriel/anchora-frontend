@@ -5,6 +5,7 @@ import { Plus, Loader2, ShieldCheck, UserCheck } from "lucide-react";
 import { BeneficiaryCard } from "@/components/ui/beneficiary-card";
 import { AddBeneficiaryDialog } from "@/components/ui/add-beneficiary-dialog";
 import { GuardianDialog } from "@/components/ui/guardian-dialog";
+import { PanelCard } from "@/components/ui/panel-card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { BeneficiaryService } from "@/services/beneficiary.service";
@@ -99,32 +100,26 @@ export function BeneficiariesClient() {
   }
 
   return (
-    <div>
-      <div className="max-w-[700px] mx-auto">
-        <div className="mb-8">
+    <>
+      <div className="space-y-6">
+        <div className="mb-2">
           <h1 className="font-heading text-[28px] text-text-primary">Trusted Contacts</h1>
           <p className="text-[13.5px] text-text-secondary mt-1">
             Your guardian and beneficiaries — the people connected to your vault.
           </p>
         </div>
 
-        {/* Guardian */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="text-[15px] font-semibold text-text-primary">Guardian</h2>
-              <p className="text-[12.5px] text-text-tertiary">
-                A trusted person who confirms your vault release.
-              </p>
-            </div>
+        <PanelCard
+          title="Guardian"
+          action={
             <Button size="sm" variant={guardian ? "ghost" : "primary"} onClick={() => setGuardianDialogOpen(true)}>
               <ShieldCheck size={13} />
               {guardian ? "Edit guardian" : "Set a guardian"}
             </Button>
-          </div>
-
+          }
+        >
           {guardian ? (
-            <div className="bg-surface border border-border-color rounded-xl p-5 flex items-center gap-4">
+            <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-navy to-accent flex items-center justify-center text-[13px] font-semibold text-white flex-shrink-0">
                 {guardian.firstName[0].toUpperCase()}
               </div>
@@ -139,7 +134,7 @@ export function BeneficiariesClient() {
               </div>
             </div>
           ) : (
-            <div className="border border-dashed border-border-color rounded-xl p-5 flex items-center gap-4">
+            <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-surface-2 border border-border-color flex items-center justify-center flex-shrink-0">
                 <UserCheck size={18} className="text-text-tertiary" />
               </div>
@@ -151,25 +146,19 @@ export function BeneficiariesClient() {
               </div>
             </div>
           )}
-        </div>
+        </PanelCard>
 
-        {/* Beneficiaries */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <h2 className="text-[15px] font-semibold text-text-primary">Beneficiaries</h2>
-              <p className="text-[12.5px] text-text-tertiary">
-                People who will receive access to your vault.
-              </p>
-            </div>
+        <PanelCard
+          title="Beneficiaries"
+          action={
             <Button size="sm" onClick={openAdd}>
               <Plus size={13} />
               Add beneficiary
             </Button>
-          </div>
-
+          }
+        >
           {(beneficiaries?.length ?? 0) === 0 ? (
-            <div className="text-center py-10">
+            <div className="text-center py-6">
               <p className="text-[14px] text-text-secondary mb-1">No beneficiaries yet.</p>
               <p className="text-[13px] text-text-tertiary mb-5">
                 Add someone who should have access to your vault.
@@ -189,7 +178,7 @@ export function BeneficiariesClient() {
               ))}
             </div>
           )}
-        </div>
+        </PanelCard>
       </div>
 
       <GuardianDialog
@@ -208,6 +197,6 @@ export function BeneficiariesClient() {
         onDeleted={handleBeneficiaryDeleted}
         beneficiary={editTarget ?? undefined}
       />
-    </div>
+    </>
   );
 }
