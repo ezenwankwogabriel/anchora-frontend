@@ -7,7 +7,6 @@ import { z } from "zod";
 import {
   Loader2, ShieldCheck, ShieldOff, Check, Copy, AlertTriangle, Pencil,
 } from "lucide-react";
-import { AppLayout } from "@/components/layout/app-layout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormSection } from "@/components/ui/form-section";
@@ -781,8 +780,7 @@ export function SettingsClient() {
   const [tab, setTab] = useState<Tab>("Profile");
 
   return (
-    <AppLayout>
-      <div className="max-w-[680px] mx-auto">
+    <div className="max-w-[680px] mx-auto">
         <div className="mb-6">
           <h1 className="font-heading text-[28px] text-text-primary">Settings</h1>
           <p className="text-[13.5px] text-text-secondary mt-1">
@@ -801,7 +799,6 @@ export function SettingsClient() {
         )}
         {tab === "Notifications" && <NotificationsSection />}
         {tab === "Account" && <DangerZone />}
-      </div>
-    </AppLayout>
+    </div>
   );
 }

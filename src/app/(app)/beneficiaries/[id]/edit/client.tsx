@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { AppLayout } from "@/components/layout/app-layout";
 import { BeneficiaryForm } from "@/components/beneficiary/beneficiary-form";
 import { Button } from "@/components/ui/button";
 import { BeneficiaryService } from "@/services/beneficiary.service";
@@ -54,32 +53,27 @@ export function EditBeneficiaryClient({ id }: EditBeneficiaryClientProps) {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="flex justify-center items-center min-h-[300px]">
-          <Loader2 size={28} className="animate-spin text-text-tertiary" />
-        </div>
-      </AppLayout>
+      <div className="flex justify-center items-center min-h-[300px]">
+        <Loader2 size={28} className="animate-spin text-text-tertiary" />
+      </div>
     );
   }
 
   if (error || !beneficiary) {
     return (
-      <AppLayout>
-        <div className="max-w-[540px] mx-auto pt-8 text-center">
-          <p className="text-[13.5px] text-text-secondary mb-4">
-            {error ?? "Beneficiary not found."}
-          </p>
-          <Link href="/beneficiaries">
-            <Button variant="secondary">Back to beneficiaries</Button>
-          </Link>
-        </div>
-      </AppLayout>
+      <div className="max-w-[540px] mx-auto pt-8 text-center">
+        <p className="text-[13.5px] text-text-secondary mb-4">
+          {error ?? "Beneficiary not found."}
+        </p>
+        <Link href="/beneficiaries">
+          <Button variant="secondary">Back to beneficiaries</Button>
+        </Link>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="max-w-[540px] mx-auto">
+    <div className="max-w-[540px] mx-auto">
         <div className="mb-6">
           <Link
             href="/beneficiaries"
@@ -136,7 +130,6 @@ export function EditBeneficiaryClient({ id }: EditBeneficiaryClientProps) {
             </button>
           )}
         </div>
-      </div>
-    </AppLayout>
+    </div>
   );
 }

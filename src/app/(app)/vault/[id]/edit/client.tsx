@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Loader2, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { AppLayout } from "@/components/layout/app-layout";
 import { VaultForm } from "@/components/vault/vault-form";
 import { DeleteAssetModal } from "@/components/ui/delete-asset-modal";
 import { RecordBeneficiaries } from "@/components/vault/record-beneficiaries";
@@ -19,13 +18,13 @@ interface EditAssetClientProps {
 }
 
 export function EditAssetClient({ id }: EditAssetClientProps) {
-  const router   = useRouter();
+  const router = useRouter();
   const addToast = useToastStore((s) => s.add);
 
-  const [record, setRecord]           = useState<VaultRecord | null>(null);
-  const [loading, setLoading]         = useState(true);
-  const [error, setError]             = useState<string | null>(null);
-  const [deleteOpen, setDeleteOpen]   = useState(false);
+  const [record, setRecord] = useState<VaultRecord | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   useEffect(() => {
     VaultService.getRecord(id)
@@ -47,26 +46,22 @@ export function EditAssetClient({ id }: EditAssetClientProps) {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="flex justify-center items-center min-h-[300px]">
-          <Loader2 size={28} className="animate-spin text-text-tertiary" />
-        </div>
-      </AppLayout>
+      <div className="flex justify-center items-center min-h-[300px]">
+        <Loader2 size={28} className="animate-spin text-text-tertiary" />
+      </div>
     );
   }
 
   if (error || !record) {
     return (
-      <AppLayout>
-        <div className="max-w-[600px] mx-auto pt-8 text-center">
-          <p className="text-[13.5px] text-text-secondary mb-4">
-            {error ?? "Asset not found."}
-          </p>
-          <Link href="/vault">
-            <Button variant="secondary">Back to vault</Button>
-          </Link>
-        </div>
-      </AppLayout>
+      <div className="max-w-[600px] mx-auto pt-8 text-center">
+        <p className="text-[13.5px] text-text-secondary mb-4">
+          {error ?? "Asset not found."}
+        </p>
+        <Link href="/vault">
+          <Button variant="secondary">Back to vault</Button>
+        </Link>
+      </div>
     );
   }
 
@@ -75,7 +70,7 @@ export function EditAssetClient({ id }: EditAssetClientProps) {
   });
 
   return (
-    <AppLayout>
+    <div>
       <div className="max-w-[600px] mx-auto">
         {/* Header row */}
         <div className="flex items-start justify-between mb-6">
@@ -123,6 +118,6 @@ export function EditAssetClient({ id }: EditAssetClientProps) {
         onSuccess={handleDeleteSuccess}
         onClose={() => setDeleteOpen(false)}
       />
-    </AppLayout>
+    </div>
   );
 }

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { AppLayout } from "@/components/layout/app-layout";
 import { HealthCard } from "@/components/ui/health-card";
 import { PanelCard } from "@/components/ui/panel-card";
 import { ChecklistCard, type ChecklistItem } from "@/components/ui/checklist-card";
@@ -89,8 +88,7 @@ export default function DashboardPage() {
   ).length ?? 0;
 
   return (
-    <AppLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div>
           <h1 className="font-heading text-[28px] text-text-primary">
@@ -256,6 +254,5 @@ export default function DashboardPage() {
           </PanelCard>
         </div>
       </div>
-    </AppLayout>
   );
 }

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { AppLayout } from "@/components/layout/app-layout";
 import { PanelCard } from "@/components/ui/panel-card";
 import { AssetCategoryRow } from "@/components/ui/asset-category-row";
 import { SkeletonRow } from "@/components/ui/skeleton-card";
@@ -98,8 +97,7 @@ export default function VaultClient() {
   );
 
   return (
-    <AppLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="font-heading text-[28px] text-text-primary">Your assets</h1>
@@ -165,8 +163,6 @@ export default function VaultClient() {
             )}
           </PanelCard>
         )}
-      </div>
-
-    </AppLayout>
+    </div>
   );
 }

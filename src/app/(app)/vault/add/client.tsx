@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { AppLayout } from "@/components/layout/app-layout";
 import { StepIndicator } from "@/components/ui/step-indicator";
 import { CategorySelector } from "@/components/ui/category-selector";
 import { CategoryIcon, categoryLabels } from "@/components/ui/category-icon";
@@ -61,8 +60,7 @@ export function AddAssetClient({ initialCategory }: AddAssetClientProps) {
   };
 
   return (
-    <AppLayout>
-      <div className="max-w-[600px] mx-auto">
+    <div className="max-w-[600px] mx-auto">
         {/* Back navigation */}
         <div className="mb-6">
           {step === 0 ? (
@@ -145,7 +143,6 @@ export function AddAssetClient({ initialCategory }: AddAssetClientProps) {
             </VaultForm>
           </div>
         )}
-      </div>
-    </AppLayout>
+    </div>
   );
 }

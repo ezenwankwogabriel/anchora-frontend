@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Plus, Loader2, ShieldCheck, UserCheck } from "lucide-react";
-import { AppLayout } from "@/components/layout/app-layout";
 import { BeneficiaryCard } from "@/components/ui/beneficiary-card";
 import { AddBeneficiaryDialog } from "@/components/ui/add-beneficiary-dialog";
 import { GuardianDialog } from "@/components/ui/guardian-dialog";
@@ -15,12 +14,12 @@ import type { Beneficiary, Guardian } from "@/lib/types";
 
 export function BeneficiariesClient() {
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[] | null>(null);
-  const [guardian, setGuardian]           = useState<Guardian | null>(null);
-  const [loading, setLoading]             = useState(true);
-  const [error, setError]                 = useState(false);
-  const [guardianDialogOpen, setGuardianDialogOpen]     = useState(false);
+  const [guardian, setGuardian] = useState<Guardian | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [guardianDialogOpen, setGuardianDialogOpen] = useState(false);
   const [beneficiaryDialogOpen, setBeneficiaryDialogOpen] = useState(false);
-  const [editTarget, setEditTarget]                     = useState<Beneficiary | null>(null);
+  const [editTarget, setEditTarget] = useState<Beneficiary | null>(null);
   const addToast = useToastStore((s) => s.add);
 
   useEffect(() => {
@@ -74,8 +73,8 @@ export function BeneficiariesClient() {
   const handleSetAsGuardian = async (beneficiary: Beneficiary) => {
     try {
       const saved = await GuardianService.upsert({
-        firstName:     beneficiary.name.split(" ")[0],
-        email:         beneficiary.email,
+        firstName: beneficiary.name.split(" ")[0],
+        email: beneficiary.email,
         beneficiaryId: beneficiary.id,
       });
       setGuardian(saved);
@@ -87,24 +86,20 @@ export function BeneficiariesClient() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="flex justify-center items-center py-16">
-          <Loader2 size={24} className="animate-spin text-text-tertiary" />
-        </div>
-      </AppLayout>
+      <div className="flex justify-center items-center py-16">
+        <Loader2 size={24} className="animate-spin text-text-tertiary" />
+      </div>
     );
   }
 
   if (error) {
     return (
-      <AppLayout>
-        <p className="text-[13px] text-red text-center py-8">Failed to load contacts.</p>
-      </AppLayout>
+      <p className="text-[13px] text-red text-center py-8">Failed to load contacts.</p>
     );
   }
 
   return (
-    <AppLayout>
+    <div>
       <div className="max-w-[700px] mx-auto">
         <div className="mb-8">
           <h1 className="font-heading text-[28px] text-text-primary">Trusted Contacts</h1>
@@ -213,6 +208,6 @@ export function BeneficiariesClient() {
         onDeleted={handleBeneficiaryDeleted}
         beneficiary={editTarget ?? undefined}
       />
-    </AppLayout>
+    </div>
   );
 }
