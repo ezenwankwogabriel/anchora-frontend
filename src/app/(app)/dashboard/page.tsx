@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, FilePlus, FileEdit, UserPlus } from "lucide-react";
 import { HealthCard } from "@/components/ui/health-card";
 import { PanelCard } from "@/components/ui/panel-card";
 import { ChecklistCard, type ChecklistItem } from "@/components/ui/checklist-card";
@@ -12,9 +12,74 @@ import { SkeletonCard, SkeletonRow } from "@/components/ui/skeleton-card";
 import { Button } from "@/components/ui/button";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useAuthStore } from "@/stores/authStore";
-import type { AssetCategory, Beneficiary } from "@/lib/types";
+import type { AssetCategory, Beneficiary, VaultRecord } from "@/lib/types";
 
 const DISMISSED_KEY = "onboardingDismissed";
+
+function timeAgo(iso: string): string {
+  const diff   = Date.now() - new Date(iso).getTime();
+  const mins   = Math.floor(diff / 60_000);
+  const hours  = Math.floor(diff / 3_600_000);
+  const days   = Math.floor(diff / 86_400_000);
+  const weeks  = Math.floor(days / 7);
+  const months = Math.floor(days / 30);
+  if (mins  < 2)  return "just now";
+  if (hours < 1)  return `${mins}m ago`;
+  if (days  < 1)  return `${hours}h ago`;
+  if (weeks < 1)  return `${days}d ago`;
+  if (months < 1) return `${weeks}w ago`;
+  return `${months}mo ago`;
+}
+
+type ActivityItem = {
+  id: string;
+  type: "vault_added" | "vault_updated" | "beneficiary_added";
+  label: string;
+  timestamp: string;
+};
+
+const ACTIVITY_ICONS: Record<ActivityItem["type"], React.ReactNode> = {
+  vault_added:       <FilePlus  size={13} className="text-accent" />,
+  vault_updated:     <FileEdit  size={13} className="text-text-secondary" />,
+  beneficiary_added: <UserPlus  size={13} className="text-green" />,
+};
+
+const ACTIVITY_LABELS: Record<ActivityItem["type"], string> = {
+  vault_added:       "Added Asset",
+  vault_updated:     "Updated Asset",
+  beneficiary_added: "Added beneficiary",
+};
+
+function deriveActivity(
+  records: VaultRecord[] | null,
+  beneficiaries: Beneficiary[] | null,
+): ActivityItem[] {
+  const items: ActivityItem[] = [];
+
+  for (const r of records ?? []) {
+    const wasUpdated =
+      new Date(r.updatedAt).getTime() - new Date(r.createdAt).getTime() > 60_000;
+    items.push({
+      id: r.id,
+      type: wasUpdated ? "vault_updated" : "vault_added",
+      label: r.accountType ? `${r.accountName} — ${r.accountType}` : r.accountName,
+      timestamp: wasUpdated ? r.updatedAt : r.createdAt,
+    });
+  }
+
+  for (const b of beneficiaries ?? []) {
+    items.push({
+      id: b.id,
+      type: "beneficiary_added",
+      label: b.name,
+      timestamp: b.invitedAt,
+    });
+  }
+
+  return items
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    .slice(0, 5);
+}
 
 const ALL_CATEGORIES: AssetCategory[] = [
   "BANK_ACCOUNT",
@@ -43,12 +108,12 @@ function buildChecklist(
       done: (beneficiaries?.length ?? 0) > 0,
       href: "/beneficiaries",
     },
-    {
-      id: "mfa",
-      label: "Enable two-factor authentication",
-      done: false,
-      href: "/mfa-setup",
-    }
+    // {
+    //   id: "mfa",
+    //   label: "Enable two-factor authentication",
+    //   done: false,
+    //   href: "/mfa-setup",
+    // }
   ];
 }
 
@@ -87,6 +152,8 @@ export default function DashboardPage() {
     (b) => b.status === "ACTIVE" || b.status === "ACCOUNT_CREATED"
   ).length ?? 0;
 
+  const recentActivity = deriveActivity(records, beneficiaries);
+
   return (
     <div className="space-y-6">
         {/* Header */}
@@ -100,7 +167,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Health cards */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-6">
           {loading ? (
             <>
               <SkeletonCard />
@@ -111,6 +178,7 @@ export default function DashboardPage() {
             <>
               <HealthCard
                 label="Assets with beneficiary"
+                borderAccent="green"
                 value={errors.records ? "—" : `${assignedCount} / ${totalRecords}`}
                 subtext={
                   errors.records
@@ -133,6 +201,7 @@ export default function DashboardPage() {
               />
               <HealthCard
                 label="Beneficiaries"
+                borderAccent="accent"
                 value={errors.beneficiaries ? "—" : (beneficiaries?.length ?? 0)}
                 subtext={
                   errors.beneficiaries
@@ -151,6 +220,7 @@ export default function DashboardPage() {
               />
               <HealthCard
                 label="Assets recorded"
+                borderAccent="navy"
                 value={errors.records ? "—" : (records?.length ?? 0)}
                 subtext={
                   errors.records
@@ -180,7 +250,7 @@ export default function DashboardPage() {
         )}
 
         {/* Assets + Beneficiaries */}
-        <div className="grid grid-cols-[1fr_320px] gap-4 items-start">
+        <div className="grid grid-cols-[1fr_320px] gap-6 items-start">
           {/* Asset accordion */}
           <PanelCard
             title="Your assets"
@@ -220,38 +290,74 @@ export default function DashboardPage() {
             )}
           </PanelCard>
 
-          {/* Beneficiaries panel */}
-          <PanelCard
-            title="Beneficiaries"
-            action={
-              <Link href="/beneficiaries">
-                <Button size="sm" variant="secondary">
-                  <Plus size={13} />
-                  Add
-                </Button>
-              </Link>
-            }
-          >
-            {loading ? (
-              <div className="space-y-1">
-                <SkeletonRow />
-                <SkeletonRow />
-              </div>
-            ) : errors.beneficiaries ? (
-              <p className="text-[12.5px] text-red py-2">Failed to load.</p>
-            ) : (beneficiaries?.length ?? 0) === 0 ? (
-              <div className="py-4 text-center">
-                <p className="text-[13px] text-text-tertiary mb-3">No beneficiaries yet.</p>
+          {/* Right column */}
+          <div className="space-y-4">
+            <PanelCard
+              title="Beneficiaries"
+              action={
                 <Link href="/beneficiaries">
-                  <Button size="sm">Add beneficiary</Button>
+                  <Button size="sm" variant="secondary">
+                    <Plus size={13} />
+                    Add
+                  </Button>
                 </Link>
-              </div>
-            ) : (
-              beneficiaries!.map((b) => (
-                <BeneficiaryRow key={b.id} beneficiary={b} />
-              ))
-            )}
-          </PanelCard>
+              }
+            >
+              {loading ? (
+                <div className="space-y-1">
+                  <SkeletonRow />
+                  <SkeletonRow />
+                </div>
+              ) : errors.beneficiaries ? (
+                <p className="text-[12.5px] text-red py-2">Failed to load.</p>
+              ) : (beneficiaries?.length ?? 0) === 0 ? (
+                <div className="py-4 text-center">
+                  <p className="text-[13px] text-text-tertiary mb-3">No beneficiaries yet.</p>
+                  <Link href="/beneficiaries">
+                    <Button size="sm">Add beneficiary</Button>
+                  </Link>
+                </div>
+              ) : (
+                beneficiaries!.map((b) => (
+                  <BeneficiaryRow key={b.id} beneficiary={b} />
+                ))
+              )}
+            </PanelCard>
+
+            <PanelCard title="Recent activity">
+              {loading ? (
+                <div className="space-y-1">
+                  <SkeletonRow />
+                  <SkeletonRow />
+                  <SkeletonRow />
+                </div>
+              ) : recentActivity.length === 0 ? (
+                <p className="text-[12.5px] text-text-tertiary py-3 text-center">
+                  No activity yet.
+                </p>
+              ) : (
+                <div>
+                  {recentActivity.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center gap-3 py-2.5 border-b border-border-color last:border-0"
+                    >
+                      <div className="w-6 h-6 rounded-full bg-surface-2 border border-border-color flex items-center justify-center flex-shrink-0">
+                        {ACTIVITY_ICONS[item.type]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11.5px] text-text-tertiary">{ACTIVITY_LABELS[item.type]}</p>
+                        <p className="text-[12.5px] font-[500] text-text-primary truncate">{item.label}</p>
+                      </div>
+                      <span className="text-[11px] text-text-tertiary flex-shrink-0">
+                        {timeAgo(item.timestamp)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </PanelCard>
+          </div>
         </div>
       </div>
   );

@@ -30,12 +30,12 @@ function buildChecklist(
       done: hasBeneficiary,
       href: "/beneficiaries",
     },
-    {
-      id: "mfa",
-      label: "Enable two-factor authentication",
-      done: mfaEnabled,
-      href: "/mfa-setup",
-    },
+    // {
+    //   id: "mfa",
+    //   label: "Enable two-factor authentication",
+    //   done: mfaEnabled,
+    //   href: "/mfa-setup",
+    // },
   ];
 }
 

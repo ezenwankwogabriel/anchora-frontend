@@ -106,7 +106,7 @@ export function Sidebar() {
             className={cn(
               "flex items-center gap-[10px] px-3 py-2 rounded-md cursor-pointer text-[13.5px] font-[450] transition-all duration-150 mb-0.5",
               isActive(href)
-                ? "bg-accent-light text-accent font-[550] [&_svg]:opacity-100"
+                ? "bg-accent-light text-accent font-[600] [&_svg]:opacity-100"
                 : "text-text-secondary hover:bg-surface-2 hover:text-text-primary [&_svg]:opacity-70"
             )}
           >

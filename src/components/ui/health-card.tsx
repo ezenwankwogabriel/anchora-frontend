@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 
 type HealthStatus = "good" | "warning" | "critical" | "empty";
+type BorderAccent = "green" | "accent" | "navy";
 
 interface HealthCardProps {
   label: string;
@@ -8,6 +9,7 @@ interface HealthCardProps {
   subtext?: string;
   status?: HealthStatus;
   icon?: React.ReactNode;
+  borderAccent?: BorderAccent;
   className?: string;
 }
 
@@ -18,9 +20,19 @@ const statusStyles: Record<HealthStatus, string> = {
   empty:    "text-text-tertiary",
 };
 
-export function HealthCard({ label, value, subtext, status = "empty", icon, className }: HealthCardProps) {
+const accentBorderClass: Record<BorderAccent, string> = {
+  green:  "border-l-[3px] border-l-green",
+  accent: "border-l-[3px] border-l-accent",
+  navy:   "border-l-[3px] border-l-navy",
+};
+
+export function HealthCard({ label, value, subtext, status = "empty", icon, borderAccent, className }: HealthCardProps) {
   return (
-    <div className={cn("bg-surface border border-border-color rounded-xl p-5 flex flex-col gap-1", className)}>
+    <div className={cn(
+      "bg-surface border border-border-color rounded-xl p-5 flex flex-col gap-1 shadow-sm",
+      borderAccent && accentBorderClass[borderAccent],
+      className
+    )}>
       <div className="flex items-center justify-between mb-1">
         <p className="text-[11.5px] font-semibold uppercase tracking-[0.07em] text-text-tertiary">
           {label}

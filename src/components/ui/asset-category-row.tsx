@@ -68,7 +68,7 @@ export function AssetCategoryRow({ category, records, onDelete }: AssetCategoryR
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center gap-3 py-3 px-2 hover:bg-surface-2 rounded-md transition-colors"
+        className="w-full flex items-center gap-3 py-3.5 px-2 hover:bg-surface-2 rounded-md transition-colors"
       >
         <CategoryIcon category={category} size={15} />
         <span className="flex-1 text-left text-[13.5px] font-[500] text-text-primary">

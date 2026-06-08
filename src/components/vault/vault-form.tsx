@@ -69,13 +69,13 @@ export function VaultForm({
         institutionName: category === "OTHER" ? (record.nickname ?? "") : record.accountName,
         accountType:     record.accountType ?? "",
         nickname:        category === "OTHER" ? record.accountName : (record.nickname ?? ""),
-        holderName:      record.encryptedFields.holderName ?? "",
-        accountNumber:   record.encryptedFields.accountNumber ?? "",
-        usernameOrEmail: record.encryptedFields.usernameOrEmail ?? "",
-        password:        record.encryptedFields.password ?? "",
-        cardPin:         record.encryptedFields.cardPin ?? "",
+        holderName:      record.encryptedFields?.holderName ?? "",
+        accountNumber:   record.encryptedFields?.accountNumber ?? "",
+        usernameOrEmail: record.encryptedFields?.usernameOrEmail ?? "",
+        password:        record.encryptedFields?.password ?? "",
+        cardPin:         record.encryptedFields?.cardPin ?? "",
         accountUrl:      record.accountUrl ?? "",
-        notes:           record.encryptedFields.notes ?? "",
+        notes:           record.encryptedFields?.notes ?? "",
       }
     : config.defaultValues;
 

@@ -10,7 +10,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     <ProtectedRoute>
       <div className="flex min-h-screen bg-bg">
         <Sidebar />
-        <main className="flex-1 py-8 px-9 overflow-y-auto max-w-[1060px]">
+        <main className="flex-1 p-8 overflow-y-auto max-w-[1060px]">
           {children}
         </main>
       </div>
