@@ -15,7 +15,7 @@ const DISMISSED_KEY = "onboardingDismissed";
 function buildChecklist(
   hasVaultRecord: boolean,
   hasBeneficiary: boolean,
-  mfaEnabled: boolean
+  // mfaEnabled: boolean
 ): ChecklistItem[] {
   return [
     {
@@ -35,7 +35,7 @@ function buildChecklist(
     //   label: "Enable two-factor authentication",
     //   done: mfaEnabled,
     //   href: "/mfa-setup",
-    // },
+    // }
   ];
 }
 
@@ -62,7 +62,7 @@ export default function OnboardingPage() {
         beneficiaries.status === "fulfilled" &&
         (beneficiaries.value?.length ?? 0) > 0;
 
-      setItems(buildChecklist(hasVaultRecord, hasBeneficiary, false));
+      setItems(buildChecklist(hasVaultRecord, hasBeneficiary));
     }
 
     load();
@@ -75,33 +75,33 @@ export default function OnboardingPage() {
 
   return (
     <ProtectedRoute>
-    <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-4 py-12">
-      <div className="w-full max-w-[560px]">
-        <div className="mb-8">
-          <h1 className="font-heading text-[28px] text-text-primary mb-2">
-            Welcome{user ? `, ${user.firstName}` : ""}
-          </h1>
-          <p className="text-[14px] text-text-secondary">
-            Complete these steps to get the most out of Anchora.
-          </p>
-        </div>
-
-        {items === null ? (
-          <div className="flex justify-center py-16">
-            <Loader2 size={28} className="animate-spin text-text-tertiary" />
+      <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-4 py-12">
+        <div className="w-full max-w-[560px]">
+          <div className="mb-8">
+            <h1 className="font-heading text-[28px] text-text-primary mb-2">
+              Welcome{user ? `, ${user.firstName}` : ""}
+            </h1>
+            <p className="text-[14px] text-text-secondary">
+              Complete these steps to get the most out of Anchora.
+            </p>
           </div>
-        ) : (
-          <>
-            <ChecklistCard items={items} onDismiss={dismiss} className="mb-6" />
-            <div className="text-center">
-              <Button variant="ghost" onClick={dismiss}>
-                Skip for now
-              </Button>
+
+          {items === null ? (
+            <div className="flex justify-center py-16">
+              <Loader2 size={28} className="animate-spin text-text-tertiary" />
             </div>
-          </>
-        )}
+          ) : (
+            <>
+              <ChecklistCard items={items} onDismiss={dismiss} className="mb-6" />
+              <div className="text-center">
+                <Button variant="ghost" onClick={dismiss}>
+                  Skip for now
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
-    </div>
     </ProtectedRoute>
   );
 }
