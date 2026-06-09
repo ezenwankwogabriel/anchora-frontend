@@ -250,7 +250,7 @@ export default function DashboardPage() {
         )}
 
         {/* Assets + Beneficiaries */}
-        <div className="grid grid-cols-[1fr_320px] gap-6 items-start">
+        <div className="grid grid-cols-[1fr_320px] gap-6 items-stretch">
           {/* Asset accordion */}
           <PanelCard
             title="Your assets"
@@ -290,74 +290,73 @@ export default function DashboardPage() {
             )}
           </PanelCard>
 
-          {/* Right column */}
-          <div className="space-y-4">
-            <PanelCard
-              title="Beneficiaries"
-              action={
+          {/* Beneficiaries */}
+          <PanelCard
+            title="Beneficiaries"
+            action={
+              <Link href="/beneficiaries">
+                <Button size="sm" variant="secondary">
+                  <Plus size={13} />
+                  Add
+                </Button>
+              </Link>
+            }
+          >
+            {loading ? (
+              <div className="space-y-1">
+                <SkeletonRow />
+                <SkeletonRow />
+              </div>
+            ) : errors.beneficiaries ? (
+              <p className="text-[12.5px] text-red py-2">Failed to load.</p>
+            ) : (beneficiaries?.length ?? 0) === 0 ? (
+              <div className="py-6 text-center">
+                <p className="text-[13px] text-text-tertiary mb-3">No beneficiaries yet.</p>
                 <Link href="/beneficiaries">
-                  <Button size="sm" variant="secondary">
-                    <Plus size={13} />
-                    Add
-                  </Button>
+                  <Button size="sm">Add beneficiary</Button>
                 </Link>
-              }
-            >
-              {loading ? (
-                <div className="space-y-1">
-                  <SkeletonRow />
-                  <SkeletonRow />
-                </div>
-              ) : errors.beneficiaries ? (
-                <p className="text-[12.5px] text-red py-2">Failed to load.</p>
-              ) : (beneficiaries?.length ?? 0) === 0 ? (
-                <div className="py-4 text-center">
-                  <p className="text-[13px] text-text-tertiary mb-3">No beneficiaries yet.</p>
-                  <Link href="/beneficiaries">
-                    <Button size="sm">Add beneficiary</Button>
-                  </Link>
-                </div>
-              ) : (
-                beneficiaries!.map((b) => (
-                  <BeneficiaryRow key={b.id} beneficiary={b} />
-                ))
-              )}
-            </PanelCard>
+              </div>
+            ) : (
+              beneficiaries!.map((b) => (
+                <BeneficiaryRow key={b.id} beneficiary={b} />
+              ))
+            )}
+          </PanelCard>
 
-            <PanelCard title="Recent activity">
-              {loading ? (
-                <div className="space-y-1">
-                  <SkeletonRow />
-                  <SkeletonRow />
-                  <SkeletonRow />
-                </div>
-              ) : recentActivity.length === 0 ? (
-                <p className="text-[12.5px] text-text-tertiary py-3 text-center">
-                  No activity yet.
-                </p>
-              ) : (
-                <div>
-                  {recentActivity.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center gap-3 py-2.5 border-b border-border-color last:border-0"
-                    >
-                      <div className="w-6 h-6 rounded-full bg-surface-2 border border-border-color flex items-center justify-center flex-shrink-0">
-                        {ACTIVITY_ICONS[item.type]}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[11.5px] text-text-tertiary">{ACTIVITY_LABELS[item.type]}</p>
-                        <p className="text-[12.5px] font-[500] text-text-primary truncate">{item.label}</p>
-                      </div>
-                      <span className="text-[11px] text-text-tertiary flex-shrink-0">
-                        {timeAgo(item.timestamp)}
-                      </span>
+          {/* Recent activity — below Your assets */}
+          <PanelCard title="Recent activity">
+            {loading ? (
+              <div className="space-y-1">
+                <SkeletonRow />
+                <SkeletonRow />
+                <SkeletonRow />
+              </div>
+            ) : recentActivity.length === 0 ? (
+              <p className="text-[12.5px] text-text-tertiary py-3 text-center">
+                No activity yet.
+              </p>
+            ) : (
+              <div>
+                {recentActivity.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center gap-3 py-2.5 border-b border-border-color last:border-0"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-surface-2 border border-border-color flex items-center justify-center flex-shrink-0">
+                      {ACTIVITY_ICONS[item.type]}
                     </div>
-                  ))}
-                </div>
-              )}
-            </PanelCard>
-          </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11.5px] text-text-tertiary">{ACTIVITY_LABELS[item.type]}</p>
+                      <p className="text-[12.5px] font-[500] text-text-primary truncate">{item.label}</p>
+                    </div>
+                    <span className="text-[11px] text-text-tertiary flex-shrink-0">
+                      {timeAgo(item.timestamp)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </PanelCard>
         </div>
       </div>
   );

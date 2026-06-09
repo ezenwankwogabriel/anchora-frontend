@@ -46,7 +46,7 @@ export function AuthLayout({
         className="w-[420px] flex-shrink-0 flex flex-col justify-between p-12"
         style={{
           background:
-            "linear-gradient(160deg,#0F2060 0%,#1E3A8A 50%,#1A3A8F 100%)",
+            "linear-gradient(160deg,#0D1526 0%,#141B34 60%,#1A2140 100%)",
         }}
       >
         {/* Logo */}
