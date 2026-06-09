@@ -76,7 +76,7 @@ export default function ForgotPasswordPage() {
             exists.
           </p>
 
-          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <form onSubmit={handleSubmit(onSubmit)} method="post" noValidate>
             <div className="mb-5">
               <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
                 Email address

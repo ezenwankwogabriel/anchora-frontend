@@ -73,7 +73,7 @@ function CreateAdminModal({
       <div className="relative z-10 bg-surface rounded-2xl border border-border-color shadow-md w-full max-w-[420px] p-6">
         <h2 className="font-heading text-[19px] text-text-primary mb-5">Create admin account</h2>
 
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} method="post" noValidate>
           <FormSection>
             <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
               Email *

@@ -96,7 +96,7 @@ function LoginForm({ releaseId }: { releaseId: string }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+    <form onSubmit={handleSubmit(onSubmit)} method="post" noValidate>
       <FormSection>
         <FieldLabel text="Email" required />
         <Input type="email" placeholder="you@example.com" {...register("email")} />
@@ -155,7 +155,7 @@ function RegisterForm({ releaseId }: { releaseId: string }) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+    <form onSubmit={handleSubmit(onSubmit)} method="post" noValidate>
       <div className="grid grid-cols-2 gap-3">
         <FormSection className="mb-0">
           <FieldLabel text="First name" required />

@@ -154,7 +154,7 @@ export default function ReleaseVerifyPage() {
         Upload a government-issued ID to confirm your identity before accessing the release report.
       </p>
 
-      <form onSubmit={handleSubmit} noValidate>
+      <form onSubmit={handleSubmit} method="post" noValidate>
         <FormSection>
           <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
             Full name *

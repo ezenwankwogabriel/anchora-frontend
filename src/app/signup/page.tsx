@@ -90,7 +90,7 @@ export default function SignupPage() {
 
       <SocialAuthButtons />
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} method="post" noValidate>
         {/* Name row */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>

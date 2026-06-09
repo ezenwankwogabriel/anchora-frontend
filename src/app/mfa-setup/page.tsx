@@ -200,7 +200,7 @@ function SetupStep({
             </div>
           )}
 
-          <form onSubmit={codeForm.handleSubmit(submitCode)} noValidate>
+          <form onSubmit={codeForm.handleSubmit(submitCode)} method="post" noValidate>
             <div className="mb-5">
               <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
                 Enter the 6-digit code from your app to confirm setup
@@ -235,7 +235,7 @@ function SetupStep({
 
       {/* SMS setup */}
       {method === "sms" && (
-        <form onSubmit={phoneForm.handleSubmit(submitPhone)} noValidate>
+        <form onSubmit={phoneForm.handleSubmit(submitPhone)} method="post" noValidate>
           <div className="mb-5">
             <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
               Phone number

@@ -117,7 +117,7 @@ function CredentialsStep({
 
       <SocialAuthButtons />
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} method="post" noValidate>
         <div className="mb-4">
           <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
             Email address
@@ -204,7 +204,7 @@ function MfaStep({ tempToken }: { tempToken: string }) {
       </p>
 
       {!useRecovery ? (
-        <form onSubmit={codeForm.handleSubmit(submitCode)} noValidate>
+        <form onSubmit={codeForm.handleSubmit(submitCode)} method="post" noValidate>
           <div className="mb-5">
             <CodeInput
               placeholder="000000"
@@ -225,7 +225,7 @@ function MfaStep({ tempToken }: { tempToken: string }) {
           </Button>
         </form>
       ) : (
-        <form onSubmit={recoveryForm.handleSubmit(submitRecovery)} noValidate>
+        <form onSubmit={recoveryForm.handleSubmit(submitRecovery)} method="post" noValidate>
           <div className="mb-5">
             <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
               Recovery code

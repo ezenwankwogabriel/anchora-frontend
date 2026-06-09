@@ -66,7 +66,7 @@ export default function AdminLoginPage() {
             Access the internal dashboard.
           </p>
 
-          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+          <form onSubmit={handleSubmit(onSubmit)} method="post" noValidate>
             <FormSection>
               <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
                 Email *

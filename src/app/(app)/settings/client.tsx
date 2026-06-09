@@ -269,7 +269,7 @@ function ProfileTab() {
           </div>
         </div>
       ) : (
-        <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} method="post" noValidate>
           <div className="grid grid-cols-2 gap-x-6 gap-y-5 mb-5">
             <div>
               <FieldLabel text="First name" required />
@@ -349,7 +349,7 @@ function PasswordSection() {
 
   return (
     <Section title="Change password" description="Choose a strong password you don't use elsewhere.">
-      <form onSubmit={handleSubmit(onSubmit)} noValidate className="max-w-[420px]">
+      <form onSubmit={handleSubmit(onSubmit)} method="post" noValidate className="max-w-[420px]">
         <FormSection>
           <FieldLabel text="Current password" required />
           <Input type="password" placeholder="••••••••" {...register("currentPassword")} />
