@@ -10,7 +10,7 @@ import { VaultService } from "@/services/vault.service";
 import { BeneficiaryService } from "@/services/beneficiary.service";
 import { useAuthStore } from "@/stores/authStore";
 
-const DISMISSED_KEY = "onboardingDismissed";
+const DISMISSED_KEY = "onboardingDismissed1";
 
 function buildChecklist(
   hasVaultRecord: boolean,
