@@ -25,7 +25,8 @@ function OAuthCallback() {
     AuthService.getMe(accessToken)
       .then((user) => {
         setAuth(user, accessToken, refreshToken, sessionId);
-        router.replace("/dashboard");
+        const dest = localStorage.getItem("onboardingCompleted") ? "/dashboard" : "/onboarding";
+        router.replace(dest);
       })
       .catch(() => {
         router.replace("/login?error=oauth_failed");

@@ -80,7 +80,8 @@ function CredentialsStep({
       } else {
         const user = await AuthService.getMe(res.accessToken);
         setAuth(user, res.accessToken, res.refreshToken, res.sessionId);
-        router.push("/dashboard");
+        const dest = localStorage.getItem("onboardingCompleted") ? "/dashboard" : "/onboarding";
+        router.push(dest);
       }
     } catch (err) {
       if (err instanceof ServiceError) {
@@ -171,7 +172,8 @@ function MfaStep({ tempToken }: { tempToken: string }) {
     const res = await AuthService.verifyMfa({ code, tempToken });
     const user = await AuthService.getMe(res.accessToken);
     setAuth(user, res.accessToken, res.refreshToken, res.sessionId);
-    router.push("/dashboard");
+    const dest = localStorage.getItem("onboardingCompleted") ? "/dashboard" : "/onboarding";
+    router.push(dest);
   };
 
   const submitCode = async (data: MfaCodeForm) => {
