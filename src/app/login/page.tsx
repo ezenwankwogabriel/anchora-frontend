@@ -80,7 +80,7 @@ function CredentialsStep({
       } else {
         const user = await AuthService.getMe(res.accessToken);
         setAuth(user, res.accessToken, res.refreshToken, res.sessionId);
-        const dest = localStorage.getItem("onboardingCompleted") ? "/dashboard" : "/onboarding";
+        const dest = user.onboardingCompletedAt ? "/dashboard" : "/onboarding";
         router.push(dest);
       }
     } catch (err) {
@@ -172,7 +172,7 @@ function MfaStep({ tempToken }: { tempToken: string }) {
     const res = await AuthService.verifyMfa({ code, tempToken });
     const user = await AuthService.getMe(res.accessToken);
     setAuth(user, res.accessToken, res.refreshToken, res.sessionId);
-    const dest = localStorage.getItem("onboardingCompleted") ? "/dashboard" : "/onboarding";
+    const dest = user.onboardingCompletedAt ? "/dashboard" : "/onboarding";
     router.push(dest);
   };
 

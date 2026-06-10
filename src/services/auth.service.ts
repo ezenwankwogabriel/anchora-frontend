@@ -143,6 +143,14 @@ export const AuthService = {
       normalise(err);
     }
   },
+  completeOnboarding: async (): Promise<void> => {
+    try {
+      await http.post("/auth/me/complete-onboarding");
+    } catch (err) {
+      normalise(err);
+    }
+  },
+
   logout: async (): Promise<void> => {
     try { await http.post('/auth/logout'); } catch { /* best-effort */ }
     useAuthStore.getState().clearAuth();

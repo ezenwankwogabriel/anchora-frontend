@@ -8,14 +8,13 @@ import { ProtectedRoute } from "@/components/layout/protected-route";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BeneficiaryService } from "@/services/beneficiary.service";
+import { AuthService } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/authStore";
 import type { Relationship } from "@/lib/types";
 import { RELATIONSHIPS, RELATIONSHIP_LABELS } from "@/lib/schemas/beneficiary";
 
-const ONBOARDING_KEY = "onboardingCompleted";
-
-function finish(router: ReturnType<typeof useRouter>) {
-  localStorage.setItem(ONBOARDING_KEY, "true");
+async function finish(router: ReturnType<typeof useRouter>) {
+  await AuthService.completeOnboarding();
   router.push("/dashboard");
 }
 
@@ -43,7 +42,7 @@ export default function OnboardingPage() {
         relationship: relationship as Relationship,
         isDefault: true,
       });
-      finish(router);
+      await finish(router);
     } catch {
       setApiError(
         "Something went wrong. You can skip and add a beneficiary from your dashboard."

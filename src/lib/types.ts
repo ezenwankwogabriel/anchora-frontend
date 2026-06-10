@@ -7,6 +7,7 @@ export interface User {
   emailVerified: boolean;
   mfaEnabled: boolean;
   reminderFrequencyDays?: number;
+  onboardingCompletedAt: string | null;
 }
 
 export type AuthResponse =
