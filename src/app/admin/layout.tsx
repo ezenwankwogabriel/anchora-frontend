@@ -2,14 +2,17 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { Users, FileText, ClipboardList, Shield, LogOut } from "lucide-react";
+import { Users, FileText, ClipboardList, Shield, FlaskConical, LogOut } from "lucide-react";
 import { useAdminAuthStore } from "@/stores/adminAuthStore";
+
+const DEV_TOOLS_ENABLED = process.env.NEXT_PUBLIC_DEV_TOOLS === "true";
 
 const NAV_ITEMS = [
   { href: "/admin/users",      label: "Users",          icon: Users },
   { href: "/admin/releases",   label: "Releases",       icon: FileText },
   { href: "/admin/audit-logs", label: "Audit Logs",     icon: ClipboardList },
-  { href: "/admin/admins",     label: "Admin Accounts", icon: Shield, superAdminOnly: true },
+  { href: "/admin/admins",     label: "Admin Accounts", icon: Shield,       superAdminOnly: true },
+  { href: "/admin/dev-tools",  label: "Dev Tools",      icon: FlaskConical, devOnly: true },
 ];
 
 function AdminSidebar() {
@@ -24,7 +27,9 @@ function AdminSidebar() {
   };
 
   const visibleNav = NAV_ITEMS.filter(
-    (item) => !item.superAdminOnly || admin?.role === "SUPER_ADMIN"
+    (item) =>
+      (!item.superAdminOnly || admin?.role === "SUPER_ADMIN") &&
+      (!item.devOnly || DEV_TOOLS_ENABLED)
   );
 
   return (

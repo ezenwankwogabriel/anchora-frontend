@@ -9,6 +9,7 @@ import type {
   AuditLogPage,
   AdminAccount,
   PaginatedList,
+  DevUserState,
 } from "@/lib/admin-types";
 
 export const AdminService = {
@@ -159,6 +160,59 @@ export const AdminService = {
   deactivateAdmin: async (id: string): Promise<void> => {
     try {
       await adminHttp.patch(`/admin/auth/admins/${id}/deactivate`);
+    } catch (err) {
+      normaliseAdmin(err);
+    }
+  },
+
+  // ── Dev Tools ───────────────────────────────────────────────────────────────
+
+  devGetUserState: async (q: string): Promise<DevUserState> => {
+    try {
+      return (
+        await adminHttp.get<DevUserState>("/admin/dev/users/state", {
+          params: { q },
+        })
+      ).data;
+    } catch (err) {
+      normaliseAdmin(err);
+    }
+  },
+
+  devSetStage: async (
+    userId: string,
+    stage: string,
+    backdateDays?: number,
+  ): Promise<DevUserState> => {
+    try {
+      return (
+        await adminHttp.post<DevUserState>(
+          `/admin/dev/users/${userId}/set-stage`,
+          { stage, ...(backdateDays !== undefined ? { backdateDays } : {}) },
+        )
+      ).data;
+    } catch (err) {
+      normaliseAdmin(err);
+    }
+  },
+
+  devRunInactivityCheck: async (userId: string): Promise<DevUserState> => {
+    try {
+      return (
+        await adminHttp.post<DevUserState>(
+          `/admin/dev/users/${userId}/run-inactivity-check`,
+        )
+      ).data;
+    } catch (err) {
+      normaliseAdmin(err);
+    }
+  },
+
+  devResetUser: async (userId: string): Promise<DevUserState> => {
+    try {
+      return (
+        await adminHttp.post<DevUserState>(`/admin/dev/users/${userId}/reset`)
+      ).data;
     } catch (err) {
       normaliseAdmin(err);
     }

@@ -129,3 +129,21 @@ export interface PaginatedList<T> {
     totalPages: number;
   };
 }
+
+// ── Dev Tools ─────────────────────────────────────────────────────────────────
+
+export type InactivityStage = "NONE" | "STAGE_1" | "STAGE_2" | "STAGE_3";
+
+export interface DevUserState {
+  userId: string;
+  email: string;
+  inactivityStage: InactivityStage;
+  stageEnteredAt: string | null;
+  coolingOffUntil: string | null;
+  lastActivityAt: string;
+  activeRelease: {
+    id: string;
+    status: ReleaseStatus;
+    triggeredAt: string;
+  } | null;
+}
