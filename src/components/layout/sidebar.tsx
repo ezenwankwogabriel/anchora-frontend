@@ -7,7 +7,6 @@ import { useState } from "react";
 import {
   LayoutDashboard,
   Archive,
-  Users,
   Shield,
   Settings,
   LogOut,
@@ -20,7 +19,6 @@ import { AuthService } from "@/services/auth.service";
 const navItems = [
   { label: "Dashboard",        href: "/dashboard",     icon: LayoutDashboard },
   { label: "Vault",            href: "/vault",          icon: Archive },
-  { label: "Trusted Contacts", href: "/beneficiaries",  icon: Users },
   { label: "Executor",         href: "/executor",       icon: Shield },
   // { label: "Check-In",       href: "/checkin",       icon: ShieldCheck },
   { label: "Settings",         href: "/settings",       icon: Settings },

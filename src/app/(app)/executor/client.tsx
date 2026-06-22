@@ -113,14 +113,14 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-heading text-2xl text-text-primary">Designate your executor</h1>
-        <p className="text-[13.5px] text-text-secondary mt-2 max-w-xl">
+        <h1 className="font-heading text-[28px] text-text-primary">Designate your executor</h1>
+        <p className="text-[13.5px] text-text-secondary mt-1">
           Your executor is the person who will receive your estate report and manage the recovery
           process if your vault becomes inactive. Choose someone you trust completely.
         </p>
       </div>
 
-      <div className="flex items-start gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl p-4 max-w-lg">
+      <div className="flex items-start gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl p-4">
         <Info size={16} className="text-blue-500 flex-shrink-0 mt-[1px]" />
         <p className="text-[13px] text-blue-800">
           Your executor does not need to do anything right now. They will only be contacted if a
@@ -129,7 +129,7 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        <div className="bg-surface border border-border-color rounded-xl shadow-sm p-6 max-w-lg">
+        <div className="bg-surface border border-border-color rounded-xl shadow-sm p-6">
           <FormSection>
             <FieldLabel text="Full name" required />
             <Input placeholder="e.g. Adaeze Okafor" {...register("name")} />
@@ -215,13 +215,13 @@ function ExecutorCard({ executor, onRemoved }: ExecutorCardProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-heading text-2xl text-text-primary">Your executor</h1>
-        <p className="text-[13.5px] text-text-secondary mt-2">
+        <h1 className="font-heading text-[28px] text-text-primary">Your executor</h1>
+        <p className="text-[13.5px] text-text-secondary mt-1">
           This person will receive your estate report if a release is triggered.
         </p>
       </div>
 
-      <div className="bg-surface border border-border-color rounded-xl shadow-sm p-6 max-w-lg">
+      <div className="bg-surface border border-border-color rounded-xl shadow-sm p-6">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-12 h-12 rounded-full bg-navy/10 flex items-center justify-center flex-shrink-0">
             <span className="text-navy font-semibold text-lg">{getInitials(executor.name)}</span>

@@ -99,7 +99,7 @@ export interface VaultRecordInput {
   recoveryNotes?: string;
 }
 
-// ── Beneficiaries ─────────────────────────────────────────────────────────
+// ── Beneficiaries (shared vault only) ────────────────────────────────────────
 
 export type BeneficiaryStatus =
   | "INVITED"
@@ -115,44 +115,6 @@ export type Relationship =
   | "FRIEND"
   | "LAWYER"
   | "OTHER";
-
-export interface Beneficiary {
-  id: string;
-  userId: string;
-  name: string;
-  email: string;
-  phone: string | null;
-  relationship: Relationship;
-  isDefault: boolean;
-  inviteToken: string | null;
-  status: BeneficiaryStatus;
-  invitedAt: string;
-  acceptedAt: string | null;
-  vaultRecordCount: number;
-}
-
-export interface BeneficiaryDetail {
-  id: string;
-  userId: string;
-  name: string;
-  email: string;
-  phone: string | null;
-  relationship: Relationship;
-  isDefault: boolean;
-  inviteToken: string | null;
-  status: BeneficiaryStatus;
-  invitedAt: string;
-  acceptedAt: string | null;
-  vaultRecordIds: string[];
-}
-
-export interface BeneficiaryInput {
-  name: string;
-  email: string;
-  relationship: Relationship;
-  isDefault?: boolean;
-  notes?: string;
-}
 
 export interface SharedVaultItem {
   id:           string;
@@ -214,6 +176,25 @@ export type ReleaseReport =
   | { message: string; ownerFirstName: string };
 
 // ── Errors ────────────────────────────────────────────────────────────────
+
+// ── Plan ──────────────────────────────────────────────────────────────────────
+
+export interface PlanLimits {
+  maxVaultRecords: number;
+  canDownloadReport: boolean;
+  canConfigureInactivityWindow: boolean;
+  executorReceivesReport: boolean;
+  inactivityStageLimit: number;
+}
+
+export interface PlanData {
+  plan: "FREE" | "PRO";
+  planActivatedAt: string | null;
+  planExpiresAt: string | null;
+  limits: PlanLimits;
+}
+
+// ── Errors ────────────────────────────────────────────────────────────────────
 
 export class ServiceError extends Error {
   status: number;

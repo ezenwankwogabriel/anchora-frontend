@@ -7,11 +7,9 @@ import { Loader2 } from "lucide-react";
 import { ProtectedRoute } from "@/components/layout/protected-route";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BeneficiaryService } from "@/services/beneficiary.service";
+import { ExecutorService } from "@/services/executor.service";
 import { AuthService } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/authStore";
-import type { Relationship } from "@/lib/types";
-import { RELATIONSHIPS, RELATIONSHIP_LABELS } from "@/lib/schemas/beneficiary";
 
 async function finish(router: ReturnType<typeof useRouter>) {
   await AuthService.completeOnboarding();
@@ -25,27 +23,21 @@ export default function OnboardingPage() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [relationship, setRelationship] = useState<Relationship | "">("");
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
   const skip = () => finish(router);
 
-  const submitBeneficiary = async () => {
-    if (!name.trim() || !email.trim() || !relationship) return;
+  const submitExecutor = async () => {
+    if (!name.trim() || !email.trim()) return;
     setSubmitting(true);
     setApiError(null);
     try {
-      await BeneficiaryService.create({
-        name: name.trim(),
-        email: email.trim(),
-        relationship: relationship as Relationship,
-        isDefault: true,
-      });
+      await ExecutorService.create({ name: name.trim(), email: email.trim() });
       await finish(router);
     } catch {
       setApiError(
-        "Something went wrong. You can skip and add a beneficiary from your dashboard."
+        "Something went wrong. You can skip and designate an executor from your dashboard."
       );
       setSubmitting(false);
     }
@@ -102,17 +94,15 @@ export default function OnboardingPage() {
               <ScreenExpectations onBack={() => setStep(1)} onNext={() => setStep(3)} />
             )}
             {step === 3 && (
-              <ScreenBeneficiary
+              <ScreenExecutor
                 name={name}
                 email={email}
-                relationship={relationship}
                 submitting={submitting}
                 apiError={apiError}
                 onNameChange={setName}
                 onEmailChange={setEmail}
-                onRelationshipChange={setRelationship}
                 onBack={() => setStep(2)}
-                onSubmit={submitBeneficiary}
+                onSubmit={submitExecutor}
                 onSkip={skip}
               />
             )}
@@ -168,7 +158,7 @@ const HOW_STEPS = [
   {
     icon: <UsersIcon />,
     title: "Designate",
-    desc: "Choose who receives access when it matters most. You stay in full control until then.",
+    desc: "Choose a trusted executor who will manage your estate on behalf of your loved ones.",
   },
   {
     icon: <ShieldIcon />,
@@ -264,45 +254,42 @@ function ScreenExpectations({
   );
 }
 
-// ── Screen 3: First beneficiary ────────────────────────────────────────────
+// ── Screen 3: Designate executor ──────────────────────────────────────────
 
-function ScreenBeneficiary({
+function ScreenExecutor({
   name,
   email,
-  relationship,
   submitting,
   apiError,
   onNameChange,
   onEmailChange,
-  onRelationshipChange,
   onBack,
   onSubmit,
   onSkip,
 }: {
   name: string;
   email: string;
-  relationship: Relationship | "";
   submitting: boolean;
   apiError: string | null;
   onNameChange: (v: string) => void;
   onEmailChange: (v: string) => void;
-  onRelationshipChange: (v: Relationship) => void;
   onBack: () => void;
   onSubmit: () => void;
   onSkip: () => void;
 }) {
-  const valid = name.trim().length > 0 && email.trim().length > 0 && relationship !== "";
+  const valid = name.trim().length > 0 && email.trim().length > 0;
 
   return (
     <div>
       <p className="text-[13px] text-text-tertiary uppercase tracking-wider font-semibold mb-3">
-        First step
+        Final step
       </p>
       <h2 className="font-heading text-[28px] sm:text-[32px] leading-[1.2] text-text-primary mb-2">
-        Who should receive access?
+        Who should manage your estate?
       </h2>
       <p className="text-[14px] text-text-secondary mb-8">
-        Add your primary beneficiary now. You can add more later.
+        Designate a trusted executor — a lawyer, family member, or close friend — who will
+        receive your estate report and coordinate distribution on your behalf.
       </p>
 
       <div className="flex flex-col gap-4 mb-5">
@@ -329,28 +316,6 @@ function ScreenBeneficiary({
             onChange={(e) => onEmailChange(e.target.value)}
           />
         </div>
-
-        <div>
-          <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
-            Relationship
-          </label>
-          <div className="flex flex-wrap gap-2">
-            {RELATIONSHIPS.map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => onRelationshipChange(r)}
-                className={`px-3 py-1.5 rounded-lg text-[13px] font-medium border transition-colors cursor-pointer ${
-                  relationship === r
-                    ? "bg-accent text-white border-accent"
-                    : "bg-surface text-text-secondary border-border-color hover:border-accent/50 hover:text-text-primary"
-                }`}
-              >
-                {RELATIONSHIP_LABELS[r]}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
 
       {apiError && (
@@ -365,7 +330,7 @@ function ScreenBeneficiary({
         </Button>
         <Button onClick={onSubmit} disabled={!valid || submitting}>
           {submitting && <Loader2 size={15} className="animate-spin" />}
-          Add beneficiary →
+          Designate executor →
         </Button>
       </div>
 

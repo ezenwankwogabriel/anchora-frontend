@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import { VaultForm } from "@/components/vault/vault-form";
-import { RecordBeneficiaries } from "@/components/vault/record-beneficiaries";
 import { CategoryIcon, categoryLabels } from "@/components/ui/category-icon";
 import { Button } from "@/components/ui/button";
 import { VaultService } from "@/services/vault.service";
@@ -104,8 +103,6 @@ export function VaultAssetPanel({ open, onClose, onSaved, onDeleted, record }: V
                 onSubmit={handleUpdate}
                 onCancel={handleClose}
               />
-
-              <RecordBeneficiaries recordId={record.id} />
 
               {/* Delete */}
               <div className="mt-6 pt-5 border-t border-border-color">

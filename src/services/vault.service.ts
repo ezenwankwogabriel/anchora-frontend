@@ -1,5 +1,5 @@
 import http, { normalise } from "@/lib/axios";
-import type { VaultRecord, VaultRecordInput, Beneficiary } from "@/lib/types";
+import type { VaultRecord, VaultRecordInput } from "@/lib/types";
 
 // Maps frontend form fields to backend API field names.
 // institutionName → accountName (primary identifier shown in lists).
@@ -81,27 +81,4 @@ createRecord: async (data: VaultRecordInput): Promise<VaultRecord> => {
     }
   },
 
-  getRecordBeneficiaries: async (recordId: string): Promise<Beneficiary[]> => {
-    try {
-      return (await http.get<Beneficiary[]>(`/vault/records/${recordId}/beneficiaries`)).data;
-    } catch (err) {
-      normalise(err);
-    }
-  },
-
-  assignBeneficiary: async (recordId: string, beneficiaryId: string): Promise<void> => {
-    try {
-      await http.post(`/vault/records/${recordId}/beneficiaries`, { beneficiaryId });
-    } catch (err) {
-      normalise(err);
-    }
-  },
-
-  removeRecordBeneficiary: async (recordId: string, beneficiaryId: string): Promise<void> => {
-    try {
-      await http.delete(`/vault/records/${recordId}/beneficiaries/${beneficiaryId}`);
-    } catch (err) {
-      normalise(err);
-    }
-  },
 };

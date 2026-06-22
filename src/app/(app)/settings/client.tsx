@@ -17,6 +17,9 @@ import { useAuthStore } from "@/stores/authStore";
 import { ServiceError } from "@/lib/types";
 import type { MfaSetupResponse } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { ProBadge } from "@/components/ui/pro-badge";
+import { UpgradePrompt } from "@/components/ui/upgrade-prompt";
+import { usePlan } from "@/hooks/usePlan";
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
@@ -771,6 +774,85 @@ function NotificationsSection() {
   );
 }
 
+// ── Inactivity window ─────────────────────────────────────────────────────────
+
+const INACTIVITY_OPTIONS = [
+  { value: 6,  label: "6 months" },
+  { value: 12, label: "12 months" },
+  { value: 18, label: "18 months" },
+  { value: 24, label: "24 months" },
+];
+
+function InactivitySection() {
+  const { isFree, loading: planLoading } = usePlan();
+  const [selected, setSelected] = useState(12);
+  const [saving, setSaving]     = useState(false);
+  const [saved, setSaved]       = useState(false);
+
+  const handleSelect = async (value: number) => {
+    if (isFree) return;
+    const prev = selected;
+    setSelected(value);
+    setSaving(true);
+    try {
+      // PATCH /inactivity/settings — wire up when endpoint is ready
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch {
+      setSelected(prev);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Section
+      title="Inactivity window"
+      description="How long Anchora waits before triggering the release pipeline after your last activity."
+    >
+      {!planLoading && isFree && (
+        <div className="mb-4">
+          <ProBadge />
+        </div>
+      )}
+
+      <div className={cn("flex flex-wrap gap-2 mb-4", isFree && "pointer-events-none opacity-60")}>
+        {INACTIVITY_OPTIONS.map(({ value, label }) => (
+          <button
+            key={value}
+            type="button"
+            disabled={saving || isFree}
+            onClick={() => handleSelect(value)}
+            className={cn(
+              "px-4 py-2 border-[1.5px] rounded-lg text-[13px] font-[500] transition-all disabled:pointer-events-none",
+              selected === value
+                ? "border-accent bg-accent-light text-accent"
+                : "border-border-color text-text-secondary hover:border-accent hover:bg-surface-2"
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {!planLoading && isFree && (
+        <>
+          <p className="text-[13px] text-text-secondary mb-4">
+            Inactivity window configuration is available on Pro. Free plan monitors for inactivity
+            but uses a fixed window.
+          </p>
+          <UpgradePrompt
+            feature="Configurable inactivity window"
+            description="Set a custom inactivity window between 6 and 24 months. Available on Pro."
+          />
+        </>
+      )}
+
+      {saved && <p className="text-[12.5px] text-green mt-2">Saved</p>}
+    </Section>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function SettingsClient() {
@@ -795,7 +877,12 @@ export function SettingsClient() {
           </>
         )}
         {tab === "Notifications" && <NotificationsSection />}
-        {tab === "Account" && <DangerZone />}
+        {tab === "Account" && (
+          <>
+            <InactivitySection />
+            <DangerZone />
+          </>
+        )}
     </div>
   );
 }

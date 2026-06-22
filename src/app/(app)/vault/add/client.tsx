@@ -8,11 +8,14 @@ import { StepIndicator } from "@/components/ui/step-indicator";
 import { CategorySelector } from "@/components/ui/category-selector";
 import { CategoryIcon, categoryLabels } from "@/components/ui/category-icon";
 import { VaultForm } from "@/components/vault/vault-form";
-import { BeneficiaryPicker } from "@/components/vault/beneficiary-picker";
 import { Button } from "@/components/ui/button";
+import { UpgradePrompt } from "@/components/ui/upgrade-prompt";
 import { VaultService } from "@/services/vault.service";
+import { usePlan } from "@/hooks/usePlan";
 import { useToastStore } from "@/stores/toastStore";
 import type { AssetCategory, VaultRecordInput } from "@/lib/types";
+
+const FREE_RECORD_LIMIT = 3;
 
 const VALID_CATEGORIES = new Set<string>([
   "BANK_ACCOUNT", "INVESTMENT_PLATFORM", "CRYPTO_WALLET",
@@ -25,13 +28,15 @@ interface AddAssetClientProps {
   initialCategory?: string;
 }
 
-export function AddAssetClient({ initialCategory }: AddAssetClientProps) {
+export function AddAssetClient({ initialCategory, recordCount }: AddAssetClientProps & { recordCount?: number }) {
   const router   = useRouter();
   const addToast = useToastStore((s) => s.add);
+  const { isFree, loading: planLoading } = usePlan();
 
-  const [step, setStep]               = useState<0 | 1>(0);
-  const [category, setCategory]       = useState<AssetCategory | null>(null);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [step, setStep]         = useState<0 | 1>(0);
+  const [category, setCategory] = useState<AssetCategory | null>(null);
+
+  const atLimit = isFree && (recordCount ?? 0) >= FREE_RECORD_LIMIT;
 
   useEffect(() => {
     if (initialCategory && VALID_CATEGORIES.has(initialCategory)) {
@@ -49,15 +54,28 @@ export function AddAssetClient({ initialCategory }: AddAssetClientProps) {
   };
 
   const handleSubmit = async (data: VaultRecordInput) => {
-    const record = await VaultService.createRecord(data);
-    if (selectedIds.length > 0) {
-      await Promise.allSettled(
-        selectedIds.map((id) => VaultService.assignBeneficiary(record.id, id))
-      );
-    }
+    await VaultService.createRecord(data);
     addToast("Asset saved to your vault.", "success");
     router.push("/vault");
   };
+
+  if (!planLoading && atLimit) {
+    return (
+      <div className="max-w-[600px] mx-auto pt-8">
+        <Link
+          href="/vault"
+          className="inline-flex items-center gap-2 text-[13px] text-text-secondary hover:text-text-primary transition-colors mb-6"
+        >
+          <ArrowLeft size={15} />
+          Back to vault
+        </Link>
+        <UpgradePrompt
+          feature="Unlimited asset records"
+          description="Free plan includes up to 3 records. Upgrade to Pro to add unlimited assets across all categories."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-[600px] mx-auto">
@@ -120,7 +138,7 @@ export function AddAssetClient({ initialCategory }: AddAssetClientProps) {
           </>
         )}
 
-        {/* Step 1 — asset details + beneficiary picker */}
+        {/* Step 1 — asset details */}
         {category && step === 1 && (
           <div>
             <div className="flex items-center gap-3 mb-6 pb-5 border-b border-border-color">
@@ -138,9 +156,7 @@ export function AddAssetClient({ initialCategory }: AddAssetClientProps) {
               onSubmit={handleSubmit}
               onCancel={() => router.push("/vault")}
               hideCancel
-            >
-              <BeneficiaryPicker selectedIds={selectedIds} onChange={setSelectedIds} />
-            </VaultForm>
+            />
           </div>
         )}
     </div>

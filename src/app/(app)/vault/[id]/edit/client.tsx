@@ -6,7 +6,6 @@ import { ArrowLeft, Loader2, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { VaultForm } from "@/components/vault/vault-form";
 import { DeleteAssetModal } from "@/components/ui/delete-asset-modal";
-import { RecordBeneficiaries } from "@/components/vault/record-beneficiaries";
 import { Button } from "@/components/ui/button";
 import { VaultService } from "@/services/vault.service";
 import { useToastStore } from "@/stores/toastStore";
@@ -106,9 +105,7 @@ export function EditAssetClient({ id }: EditAssetClientProps) {
           onSubmit={handleSubmit}
           onCancel={() => router.push("/vault")}
           hideCancel
-        >
-          <RecordBeneficiaries recordId={record.id} />
-        </VaultForm>
+        />
       </div>
 
       <DeleteAssetModal
