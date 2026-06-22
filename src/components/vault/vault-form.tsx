@@ -9,10 +9,11 @@ import { zodResolver as _zodResolver } from "@hookform/resolvers/zod";
 const zodResolver = _zodResolver as unknown as (
   schema: ReturnType<typeof getCategorySchema>
 ) => Resolver<VaultFormData>;
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Select } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { FormSection } from "@/components/ui/form-section";
@@ -24,6 +25,13 @@ import {
   CATEGORY_CONFIG,
   type VaultFormData,
 } from "@/lib/schemas/vault";
+
+const INTENT_OPTIONS = [
+  { value: "UNSPECIFIED", label: "Not specified" },
+  { value: "LIQUIDATE",   label: "Liquidate and distribute" },
+  { value: "TRANSFER",    label: "Transfer to intended person" },
+  { value: "HOLD",        label: "Hold" },
+] as const;
 
 interface VaultFormProps {
   category: AssetCategory;
@@ -66,16 +74,19 @@ export function VaultForm({
   // All others: accountName = institution (primary), nickname = user label.
   const defaultValues: VaultFormData = record
     ? {
-        institutionName: category === "OTHER" ? (record.nickname ?? "") : record.accountName,
-        accountType:     record.accountType ?? "",
-        nickname:        category === "OTHER" ? record.accountName : (record.nickname ?? ""),
-        holderName:      record.encryptedFields?.holderName ?? "",
-        accountNumber:   record.encryptedFields?.accountNumber ?? "",
-        usernameOrEmail: record.encryptedFields?.usernameOrEmail ?? "",
-        password:        record.encryptedFields?.password ?? "",
-        cardPin:         record.encryptedFields?.cardPin ?? "",
-        accountUrl:      record.accountUrl ?? "",
-        notes:           record.encryptedFields?.notes ?? "",
+        institutionName:     category === "OTHER" ? (record.nickname ?? "") : record.accountName,
+        accountType:         record.accountType ?? "",
+        nickname:            category === "OTHER" ? record.accountName : (record.nickname ?? ""),
+        holderName:          record.encryptedFields?.holderName ?? "",
+        accountNumber:       record.encryptedFields?.accountNumber ?? "",
+        usernameOrEmail:     record.encryptedFields?.usernameOrEmail ?? "",
+        password:            record.encryptedFields?.password ?? "",
+        cardPin:             record.encryptedFields?.cardPin ?? "",
+        notes:               record.encryptedFields?.notes ?? "",
+        executorIntent:      record.executorIntent ?? "UNSPECIFIED",
+        intendedBeneficiary: record.intendedBeneficiary ?? "",
+        isSelfCustodied:     record.isSelfCustodied ?? false,
+        recoveryNotes:       record.recoveryNotes ?? "",
       }
     : config.defaultValues;
 
@@ -84,28 +95,35 @@ export function VaultForm({
     handleSubmit,
     setError,
     watch,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<VaultFormData>({
     resolver: zodResolver(schema),
     defaultValues,
   });
 
-  const notesValue = watch("notes") ?? "";
+  const notesValue       = watch("notes") ?? "";
+  const isSelfCustodied  = watch("isSelfCustodied");
 
   const handleFormSubmit = async (values: VaultFormData) => {
     try {
       await onSubmit({
         category,
-        institutionName: values.institutionName,
-        accountType:     values.accountType,
-        nickname:        values.nickname,
-        holderName:      values.holderName      || undefined,
-        accountNumber:   values.accountNumber   || undefined,
-        usernameOrEmail: values.usernameOrEmail  || undefined,
-        password:        values.password         || undefined,
-        cardPin:         values.cardPin          || undefined,
-        accountUrl:      values.accountUrl       || undefined,
-        notes:           values.notes            || undefined,
+        institutionName:     values.institutionName,
+        accountType:         values.accountType,
+        nickname:            values.nickname,
+        holderName:          values.holderName      || undefined,
+        accountNumber:       values.accountNumber   || undefined,
+        usernameOrEmail:     values.usernameOrEmail || undefined,
+        password:            values.password        || undefined,
+        cardPin:             values.cardPin         || undefined,
+        notes:               values.notes           || undefined,
+        executorIntent:      values.executorIntent,
+        intendedBeneficiary: values.intendedBeneficiary || undefined,
+        isSelfCustodied:     values.isSelfCustodied,
+        recoveryNotes:       category === "CRYPTO_WALLET" && values.isSelfCustodied
+                               ? (values.recoveryNotes || undefined)
+                               : undefined,
       });
     } catch (err) {
       setError("root", {
@@ -115,7 +133,7 @@ export function VaultForm({
   };
 
   const renderTextField = (
-    field: "institutionName" | "nickname" | "holderName" | "accountNumber" | "usernameOrEmail" | "accountUrl" | "password" | "cardPin",
+    field: "institutionName" | "nickname" | "holderName" | "accountNumber" | "usernameOrEmail" | "password" | "cardPin",
     label: string,
     placeholder: string | undefined,
     required?: boolean,
@@ -141,7 +159,7 @@ export function VaultForm({
   );
 
   const renderSelectField = (
-    field: "accountType" | "accountUrl",
+    field: "accountType",
     label: string,
     options: readonly string[],
     required?: boolean
@@ -231,22 +249,6 @@ export function VaultForm({
           config.cardPin.required,
         )}
 
-      {/* accountUrl — select, url/text, or hidden */}
-      {config.accountUrl.type === "select"
-        ? renderSelectField(
-            "accountUrl",
-            config.accountUrl.label,
-            config.accountUrl.options!,
-            config.accountUrl.required
-          )
-        : config.accountUrl.type !== "hidden" &&
-            renderTextField(
-              "accountUrl",
-              config.accountUrl.label,
-              config.accountUrl.placeholder,
-              config.accountUrl.required
-            )}
-
       {/* Notes / instructions */}
       <FormSection divider>
         <FieldLabel text={config.notesLabel} required={config.notesRequired} />
@@ -258,6 +260,70 @@ export function VaultForm({
         <CharacterCounter value={notesValue} max={500} />
         <FieldError message={errors.notes?.message} />
       </FormSection>
+
+      {/* ── Executor intent fields ──────────────────────────────────────── */}
+      <FormSection divider>
+        <FieldLabel text="What should happen to this asset?" />
+        <Select {...register("executorIntent")}>
+          {INTENT_OPTIONS.map(({ value, label }) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
+        </Select>
+        <FieldError message={errors.executorIntent?.message} />
+      </FormSection>
+
+      <FormSection>
+        <FieldLabel text="Who should receive this asset?" />
+        <Input
+          placeholder="e.g. My wife Sarah, eldest son"
+          {...register("intendedBeneficiary")}
+        />
+        <p className="text-[11.5px] text-text-tertiary mt-[5px]">
+          Your stated intent for your executor — not a binding legal instruction.
+        </p>
+        <FieldError message={errors.intendedBeneficiary?.message} />
+      </FormSection>
+
+      {/* Self-custodied toggle — CRYPTO_WALLET only */}
+      {category === "CRYPTO_WALLET" && (
+        <FormSection>
+          <div className="flex items-start gap-3">
+            <Switch
+              checked={isSelfCustodied}
+              onCheckedChange={(v) => setValue("isSelfCustodied", v)}
+            />
+            <div>
+              <p className="text-[13px] font-[500] text-text-primary leading-tight">
+                This is a self-custodied wallet
+              </p>
+              <p className="text-[11.5px] text-text-tertiary mt-[3px]">
+                e.g. MetaMask, hardware wallet, paper wallet. Not an exchange account.
+              </p>
+            </div>
+          </div>
+        </FormSection>
+      )}
+
+      {/* Recovery notes — CRYPTO_WALLET + isSelfCustodied only */}
+      {category === "CRYPTO_WALLET" && isSelfCustodied && (
+        <FormSection>
+          {/* Amber callout */}
+          <div className="flex items-start gap-2 bg-[#FEF3C7] border border-[#F59E0B] rounded-lg p-3 mb-3">
+            <AlertTriangle size={15} className="text-[#D97706] flex-shrink-0 mt-[1px]" />
+            <p className="text-[12.5px] text-[#92400E] leading-snug">
+              Do not store your actual seed phrase here. Record where it can be found —
+              not the phrase itself.
+            </p>
+          </div>
+          <FieldLabel text="Where is the recovery information stored?" />
+          <Textarea
+            placeholder="e.g. Seed phrase is in the envelope marked 'crypto' in the safe in my study."
+            rows={3}
+            {...register("recoveryNotes")}
+          />
+          <FieldError message={errors.recoveryNotes?.message} />
+        </FormSection>
+      )}
 
       {children}
 

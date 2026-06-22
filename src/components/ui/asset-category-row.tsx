@@ -19,8 +19,20 @@ interface RecordRowProps {
   onDelete: (id: string) => void;
 }
 
+const INTENT_LABELS: Record<string, string> = {
+  LIQUIDATE: "Liquidate and distribute",
+  TRANSFER:  "Transfer to intended person",
+  HOLD:      "Hold",
+};
+
 function RecordRow({ record, onDelete }: RecordRowProps) {
   const [confirming, setConfirming] = useState(false);
+
+  const intentLabel = record.executorIntent && record.executorIntent !== "UNSPECIFIED"
+    ? INTENT_LABELS[record.executorIntent]
+    : null;
+
+  const hasIntent = record.executorIntent && record.executorIntent !== "UNSPECIFIED";
 
   return (
     <div className="flex items-center py-[10px] pl-10 pr-2 border-b border-border-color last:border-0">
@@ -28,13 +40,40 @@ function RecordRow({ record, onDelete }: RecordRowProps) {
         href={`/vault/${record.id}/edit`}
         className="flex-1 min-w-0 pr-3 no-underline"
       >
-        <p className="text-[13px] font-[500] text-text-primary">
-          {record.accountName}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-[13px] font-[500] text-text-primary">
+            {record.accountName}
+          </p>
+          {record.category === "CRYPTO_WALLET" && record.isSelfCustodied && (
+            <span className="bg-amber-100 text-amber-800 text-[10.5px] font-medium px-2 py-0.5 rounded-full flex-shrink-0">
+              Self-custodied
+            </span>
+          )}
+        </div>
         <p className="text-[11.5px] text-text-tertiary">
           {record.accountType ?? record.nickname ?? ""}
         </p>
+        {intentLabel && (
+          <p className="text-[11.5px] text-text-secondary mt-[2px]">
+            Intent: {intentLabel}
+          </p>
+        )}
+        {record.intendedBeneficiary && (
+          <p className="text-[11.5px] text-text-secondary">
+            For: {record.intendedBeneficiary}
+          </p>
+        )}
       </Link>
+
+      {/* Completeness dot */}
+      <div
+        className={cn(
+          "w-2 h-2 rounded-full flex-shrink-0 mr-2",
+          hasIntent ? "bg-emerald-500" : "bg-amber-400"
+        )}
+        aria-label={hasIntent ? "Executor intent set" : "Executor intent not specified"}
+        title={hasIntent ? "Executor intent set" : "Executor intent not specified"}
+      />
 
       {confirming ? (
         <div className="flex items-center gap-2 flex-shrink-0">

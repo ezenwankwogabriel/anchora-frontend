@@ -11,8 +11,11 @@ export interface VaultFormData {
   usernameOrEmail: string;  // online banking login email → encrypted usernameOrEmail
   password: string;         // online banking / portal password → encrypted password
   cardPin: string;          // ATM / card PIN → encrypted cardPin
-  accountUrl: string;       // portal URL or country
   notes: string;            // instructions → encrypted notes
+  executorIntent: "LIQUIDATE" | "TRANSFER" | "HOLD" | "UNSPECIFIED";
+  intendedBeneficiary: string;
+  isSelfCustodied: boolean;
+  recoveryNotes: string;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -22,6 +25,18 @@ const max500 = z.string().max(500, "Max 500 characters");
 
 const enumField = (values: readonly string[], msg: string) =>
   z.string().refine((v) => values.includes(v), msg);
+
+const intentEnum = z
+  .enum(["LIQUIDATE", "TRANSFER", "HOLD", "UNSPECIFIED"])
+  .default("UNSPECIFIED");
+
+// Shared extra fields appended to every category schema
+const extraFields = {
+  executorIntent:      intentEnum,
+  intendedBeneficiary: opt(),
+  isSelfCustodied:     z.boolean().default(false),
+  recoveryNotes:       opt(),
+};
 
 // ── Per-category Zod schemas ───────────────────────────────────────────────
 export const categorySchemas = {
@@ -34,8 +49,8 @@ export const categorySchemas = {
     usernameOrEmail: opt(),
     password:        opt(),
     cardPin:         opt(),
-    accountUrl:      opt(),
     notes:           max500,
+    ...extraFields,
   }),
 
   INVESTMENT_PLATFORM: z.object({
@@ -47,8 +62,8 @@ export const categorySchemas = {
     usernameOrEmail: opt(),
     password:        opt(),
     cardPin:         opt(),
-    accountUrl:      opt(),
     notes:           max500,
+    ...extraFields,
   }),
 
   CRYPTO_WALLET: z.object({
@@ -60,8 +75,8 @@ export const categorySchemas = {
     usernameOrEmail: opt(),
     password:        opt(),
     cardPin:         opt(),
-    accountUrl:      opt(),
     notes:           max500,
+    ...extraFields,
   }),
 
   PENSION_PORTAL: z.object({
@@ -73,8 +88,8 @@ export const categorySchemas = {
     usernameOrEmail: opt(),
     password:        opt(),
     cardPin:         opt(),
-    accountUrl:      opt(),
     notes:           max500,
+    ...extraFields,
   }),
 
   INSURANCE_POLICY: z.object({
@@ -86,8 +101,8 @@ export const categorySchemas = {
     usernameOrEmail: req("Policy number is required"),
     password:        opt(),
     cardPin:         opt(),
-    accountUrl:      opt(),
     notes:           max500,
+    ...extraFields,
   }),
 
   FOREIGN_ACCOUNT: z.object({
@@ -99,8 +114,8 @@ export const categorySchemas = {
     usernameOrEmail: opt(),
     password:        opt(),
     cardPin:         opt(),
-    accountUrl:      enumField(["United Kingdom", "United States", "Canada", "Other"], "Select a country"),
     notes:           max500,
+    ...extraFields,
   }),
 
   SUBSCRIPTION: z.object({
@@ -112,8 +127,8 @@ export const categorySchemas = {
     usernameOrEmail: opt(),
     password:        opt(),
     cardPin:         opt(),
-    accountUrl:      opt(),
     notes:           max500,
+    ...extraFields,
   }),
 
   OTHER: z.object({
@@ -125,8 +140,8 @@ export const categorySchemas = {
     usernameOrEmail: opt(),
     password:        opt(),
     cardPin:         opt(),
-    accountUrl:      opt(),
     notes:           z.string().min(1, "Description is required").max(500, "Max 500 characters"),
+    ...extraFields,
   }),
 };
 
@@ -150,7 +165,6 @@ export interface CategoryConfig {
   usernameOrEmail: FieldConfig;
   password: FieldConfig;
   cardPin: FieldConfig;
-  accountUrl: FieldConfig;
   notesLabel: string;
   notesPlaceholder: string;
   notesRequired?: boolean;
@@ -158,7 +172,14 @@ export interface CategoryConfig {
 }
 
 const INSTRUCTIONS_PLACEHOLDER =
-  "Add any instructions or context that would help your beneficiary understand or access this account...";
+  "Add any instructions or context that would help your executor understand or access this account...";
+
+const extraDefaults = {
+  executorIntent:      "UNSPECIFIED" as const,
+  intendedBeneficiary: "",
+  isSelfCustodied:     false,
+  recoveryNotes:       "",
+};
 
 export const CATEGORY_CONFIG: Record<AssetCategory, CategoryConfig> = {
   BANK_ACCOUNT: {
@@ -170,10 +191,9 @@ export const CATEGORY_CONFIG: Record<AssetCategory, CategoryConfig> = {
     usernameOrEmail: { label: "Online banking email",    type: "text",     placeholder: "Your internet banking login email" },
     password:        { label: "Online banking password", type: "password", placeholder: "Your internet banking password" },
     cardPin:         { label: "Card PIN",                type: "password", placeholder: "4-digit ATM PIN" },
-    accountUrl:      { label: "",                        type: "hidden" },
-    notesLabel: "Instructions for your beneficiary",
+    notesLabel: "Instructions for your executor",
     notesPlaceholder: INSTRUCTIONS_PLACEHOLDER,
-    defaultValues: { institutionName: "", accountType: "Savings", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", accountUrl: "", notes: "" },
+    defaultValues: { institutionName: "", accountType: "Savings", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", notes: "", ...extraDefaults },
   },
 
   INVESTMENT_PLATFORM: {
@@ -185,10 +205,9 @@ export const CATEGORY_CONFIG: Record<AssetCategory, CategoryConfig> = {
     usernameOrEmail: { label: "Account reference",  type: "text",     placeholder: "Reference or account number" },
     password:        { label: "Portal password",    type: "password", placeholder: "Your login password" },
     cardPin:         { label: "",                   type: "hidden" },
-    accountUrl:      { label: "Platform URL",       type: "url",      placeholder: "https://..." },
-    notesLabel: "Instructions for your beneficiary",
+    notesLabel: "Instructions for your executor",
     notesPlaceholder: INSTRUCTIONS_PLACEHOLDER,
-    defaultValues: { institutionName: "", accountType: "Stocks", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", accountUrl: "", notes: "" },
+    defaultValues: { institutionName: "", accountType: "Stocks", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", notes: "", ...extraDefaults },
   },
 
   CRYPTO_WALLET: {
@@ -200,10 +219,9 @@ export const CATEGORY_CONFIG: Record<AssetCategory, CategoryConfig> = {
     usernameOrEmail: { label: "Username / Email",   type: "text",     placeholder: "Exchange login or reference" },
     password:        { label: "",                   type: "hidden" },
     cardPin:         { label: "",                   type: "hidden" },
-    accountUrl:      { label: "",                   type: "hidden" },
-    notesLabel: "Instructions for your beneficiary",
+    notesLabel: "Instructions for your executor",
     notesPlaceholder: INSTRUCTIONS_PLACEHOLDER,
-    defaultValues: { institutionName: "", accountType: "Hardware wallet", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", accountUrl: "", notes: "" },
+    defaultValues: { institutionName: "", accountType: "Hardware wallet", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", notes: "", ...extraDefaults },
   },
 
   PENSION_PORTAL: {
@@ -215,10 +233,9 @@ export const CATEGORY_CONFIG: Record<AssetCategory, CategoryConfig> = {
     usernameOrEmail: { label: "RSA PIN",                    type: "text",     placeholder: "Your Retirement Savings Account PIN" },
     password:        { label: "Portal password",            type: "password", placeholder: "Your portal login password" },
     cardPin:         { label: "",                           type: "hidden" },
-    accountUrl:      { label: "Portal URL",                 type: "url",      placeholder: "https://..." },
-    notesLabel: "Instructions for your beneficiary",
+    notesLabel: "Instructions for your executor",
     notesPlaceholder: INSTRUCTIONS_PLACEHOLDER,
-    defaultValues: { institutionName: "", accountType: "CPS (Contributory)", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", accountUrl: "", notes: "" },
+    defaultValues: { institutionName: "", accountType: "CPS (Contributory)", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", notes: "", ...extraDefaults },
   },
 
   INSURANCE_POLICY: {
@@ -230,10 +247,9 @@ export const CATEGORY_CONFIG: Record<AssetCategory, CategoryConfig> = {
     usernameOrEmail: { label: "Policy number",       type: "text",     placeholder: "Your policy reference number" },
     password:        { label: "Portal password",     type: "password", placeholder: "Your portal login password" },
     cardPin:         { label: "",                    type: "hidden" },
-    accountUrl:      { label: "",                    type: "hidden" },
-    notesLabel: "Instructions for your beneficiary",
+    notesLabel: "Instructions for your executor",
     notesPlaceholder: INSTRUCTIONS_PLACEHOLDER,
-    defaultValues: { institutionName: "", accountType: "Life", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", accountUrl: "", notes: "" },
+    defaultValues: { institutionName: "", accountType: "Life", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", notes: "", ...extraDefaults },
   },
 
   FOREIGN_ACCOUNT: {
@@ -245,10 +261,9 @@ export const CATEGORY_CONFIG: Record<AssetCategory, CategoryConfig> = {
     usernameOrEmail: { label: "Online banking email",    type: "text",     placeholder: "Your internet banking login email" },
     password:        { label: "Online banking password", type: "password", placeholder: "Your internet banking password" },
     cardPin:         { label: "Card PIN",                type: "password", placeholder: "4-digit card PIN" },
-    accountUrl:      { label: "Country",                 type: "select",   options: ["United Kingdom", "United States", "Canada", "Other"], required: true },
-    notesLabel: "Instructions for your beneficiary",
+    notesLabel: "Instructions for your executor",
     notesPlaceholder: "Include currency, account type, or any other details...",
-    defaultValues: { institutionName: "", accountType: "Bank account", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", accountUrl: "United Kingdom", notes: "" },
+    defaultValues: { institutionName: "", accountType: "Bank account", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", notes: "", ...extraDefaults },
   },
 
   SUBSCRIPTION: {
@@ -260,10 +275,9 @@ export const CATEGORY_CONFIG: Record<AssetCategory, CategoryConfig> = {
     usernameOrEmail: { label: "Billing email",        type: "text",     placeholder: "Email used for billing or login" },
     password:        { label: "Account password",     type: "password", placeholder: "Your login password" },
     cardPin:         { label: "",                     type: "hidden" },
-    accountUrl:      { label: "Cancellation URL",     type: "url",      placeholder: "https://..." },
     notesLabel: "Cancellation instructions",
     notesPlaceholder: "How to cancel — direct link, phone number, or step-by-step instructions...",
-    defaultValues: { institutionName: "", accountType: "Monthly", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", accountUrl: "", notes: "" },
+    defaultValues: { institutionName: "", accountType: "Monthly", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", notes: "", ...extraDefaults },
   },
 
   OTHER: {
@@ -275,11 +289,10 @@ export const CATEGORY_CONFIG: Record<AssetCategory, CategoryConfig> = {
     usernameOrEmail: { label: "",                             type: "hidden" },
     password:        { label: "",                             type: "hidden" },
     cardPin:         { label: "",                             type: "hidden" },
-    accountUrl:      { label: "",                             type: "hidden" },
     notesLabel: "Description",
-    notesPlaceholder: "Describe this asset and add any instructions for your beneficiary...",
+    notesPlaceholder: "Describe this asset and add any instructions for your executor...",
     notesRequired: true,
-    defaultValues: { institutionName: "", accountType: "", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", accountUrl: "", notes: "" },
+    defaultValues: { institutionName: "", accountType: "", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", notes: "", ...extraDefaults },
   },
 };
 

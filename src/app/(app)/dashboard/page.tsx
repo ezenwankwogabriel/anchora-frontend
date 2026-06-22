@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, FilePlus, FileEdit, UserPlus } from "lucide-react";
+import { Plus, FilePlus, FileEdit, UserPlus, Shield, Clock, CheckCircle } from "lucide-react";
 import { HealthCard } from "@/components/ui/health-card";
 import { PanelCard } from "@/components/ui/panel-card";
 import { ChecklistCard, type ChecklistItem } from "@/components/ui/checklist-card";
@@ -12,7 +12,7 @@ import { SkeletonCard, SkeletonRow } from "@/components/ui/skeleton-card";
 import { Button } from "@/components/ui/button";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useAuthStore } from "@/stores/authStore";
-import type { AssetCategory, Beneficiary, VaultRecord } from "@/lib/types";
+import type { AssetCategory, Beneficiary, Executor, VaultRecord } from "@/lib/types";
 
 const DISMISSED_KEY = "onboardingDismissed";
 
@@ -93,7 +93,7 @@ const ALL_CATEGORIES: AssetCategory[] = [
 
 function buildChecklist(
   hasRecords: boolean,
-  beneficiaries: Beneficiary[] | null
+  executor: Executor | null,
 ): ChecklistItem[] {
   return [
     {
@@ -103,23 +103,17 @@ function buildChecklist(
       href: "/vault/add",
     },
     {
-      id: "beneficiary",
-      label: "Add a beneficiary",
-      done: (beneficiaries?.length ?? 0) > 0,
-      href: "/beneficiaries",
+      id: "executor",
+      label: "Designate your executor",
+      done: executor !== null,
+      href: "/executor",
     },
-    // {
-    //   id: "mfa",
-    //   label: "Enable two-factor authentication",
-    //   done: false,
-    //   href: "/mfa-setup",
-    // }
   ];
 }
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
-  const { loading, records, beneficiaries, errors, deleteRecord } =
+  const { loading, records, beneficiaries, executor, errors, deleteRecord } =
     useDashboardData();
 
   const totalRecords  = records?.length ?? 0;
@@ -241,10 +235,61 @@ export default function DashboardPage() {
           )}
         </div>
 
+        {/* Executor status nudge */}
+        {!loading && (
+          executor === null ? (
+            <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+              <Shield size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-[500] text-amber-900">No executor designated</p>
+                <p className="text-[12px] text-amber-700">
+                  Your estate report cannot be delivered without an executor.
+                </p>
+              </div>
+              <Link
+                href="/executor"
+                className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap flex-shrink-0"
+              >
+                Designate now →
+              </Link>
+            </div>
+          ) : executor.status === "PENDING_INVITE" ? (
+            <div className="flex items-start gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl px-4 py-3">
+              <Clock size={16} className="text-blue-500 flex-shrink-0 mt-[2px]" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-[500] text-blue-900">Executor invitation pending</p>
+                <p className="text-[12px] text-blue-700">
+                  {executor.name} has not yet accepted their invitation.
+                </p>
+              </div>
+              <Link
+                href="/executor"
+                className="text-[12.5px] font-semibold text-blue-700 hover:text-blue-900 whitespace-nowrap flex-shrink-0"
+              >
+                View executor →
+              </Link>
+            </div>
+          ) : (
+            <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+              <CheckCircle size={16} className="text-emerald-500 flex-shrink-0 mt-[2px]" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[13px] font-[500] text-emerald-900">Executor designated</p>
+                <p className="text-[12px] text-emerald-700">{executor.name} is active.</p>
+              </div>
+              <Link
+                href="/executor"
+                className="text-[12.5px] font-semibold text-emerald-700 hover:text-emerald-900 whitespace-nowrap flex-shrink-0"
+              >
+                View executor →
+              </Link>
+            </div>
+          )
+        )}
+
         {/* Onboarding checklist */}
         {!checklistDismissed && !loading && (
           <ChecklistCard
-            items={buildChecklist((records?.length ?? 0) > 0, beneficiaries)}
+            items={buildChecklist((records?.length ?? 0) > 0, executor)}
             onDismiss={dismissChecklist}
           />
         )}

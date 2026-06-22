@@ -7,16 +7,18 @@ import type { VaultRecord, VaultRecordInput, Beneficiary } from "@/lib/types";
 // For OTHER: nickname (asset label) is the primary identifier; institutionName is secondary.
 function toApiPayload(input: VaultRecordInput) {
   const shared = {
-    accountType:     input.accountType     || null,
-    nickname:        input.nickname        || null,
-    accountUrl:      input.accountUrl      || undefined,
-    holderName:      input.holderName      || undefined,
-    accountNumber:   input.accountNumber   || undefined,
-    usernameOrEmail: input.usernameOrEmail || undefined,
-    password:        input.password        || undefined,
-    cardPin:         input.cardPin         || undefined,
-    notes:           input.notes           || undefined,
-    ...(input.beneficiaryId ? { beneficiaryId: input.beneficiaryId } : {}),
+    accountType:         input.accountType         || null,
+    nickname:            input.nickname            || null,
+    holderName:          input.holderName          || undefined,
+    accountNumber:       input.accountNumber       || undefined,
+    usernameOrEmail:     input.usernameOrEmail     || undefined,
+    password:            input.password            || undefined,
+    cardPin:             input.cardPin             || undefined,
+    notes:               input.notes               || undefined,
+    executorIntent:      input.executorIntent      ?? "UNSPECIFIED",
+    intendedBeneficiary: input.intendedBeneficiary || undefined,
+    isSelfCustodied:     input.isSelfCustodied     ?? false,
+    recoveryNotes:       input.recoveryNotes       || undefined,
   };
 
   if (input.category === "OTHER") {
@@ -63,7 +65,7 @@ createRecord: async (data: VaultRecordInput): Promise<VaultRecord> => {
 
   updateRecord: async (id: string, data: VaultRecordInput): Promise<VaultRecord> => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { category, beneficiaryId, ...payload } = toApiPayload(data) as Record<string, unknown>;
+    const { category, ...payload } = toApiPayload(data) as Record<string, unknown>;
     try {
       return (await http.patch<VaultRecord>(`/vault/records/${id}`, payload)).data;
     } catch (err) {

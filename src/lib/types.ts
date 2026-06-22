@@ -49,6 +49,8 @@ export type AssetCategory =
   | "SUBSCRIPTION"
   | "OTHER";
 
+export type ExecutorIntent = "LIQUIDATE" | "TRANSFER" | "HOLD" | "UNSPECIFIED";
+
 export interface VaultRecord {
   id: string;
   userId: string;
@@ -56,7 +58,10 @@ export interface VaultRecord {
   accountName: string;       // institution / platform name — shown in list views
   accountType: string | null; // type descriptor (Savings, Stocks, Life, etc.)
   nickname: string | null;   // user's personal label
-  accountUrl: string | null;
+  executorIntent: ExecutorIntent;
+  intendedBeneficiary?: string;
+  isSelfCustodied: boolean;
+  recoveryNotes?: string;
   encryptedFields: {
     holderName?: string;
     accountNumber?: string;
@@ -87,9 +92,11 @@ export interface VaultRecordInput {
   usernameOrEmail?: string;
   password?: string;
   cardPin?: string;
-  accountUrl?: string;
   notes?: string;
-  beneficiaryId?: string;
+  executorIntent?: ExecutorIntent;
+  intendedBeneficiary?: string;
+  isSelfCustodied?: boolean;
+  recoveryNotes?: string;
 }
 
 // ── Beneficiaries ─────────────────────────────────────────────────────────
@@ -173,6 +180,31 @@ export interface GuardianInput {
   firstName: string;
   email: string;
   beneficiaryId?: string;
+}
+
+// ── Executor ──────────────────────────────────────────
+
+export type ExecutorStatus = "PENDING_INVITE" | "ACTIVE" | "REMOVED";
+
+export interface Executor {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  relationship?: string;
+  status: ExecutorStatus;
+  invitedAt: string;
+  accountCreatedAt?: string;
+  removedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ExecutorInput {
+  name: string;
+  email: string;
+  phone?: string;
+  relationship?: string;
 }
 
 // ── Release ───────────────────────────────────────────
