@@ -8,7 +8,7 @@ import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { ServiceError } from "@/lib/types";
 import type { AuditLogEntry } from "@/lib/admin-types";
 
-const ACTOR_TYPE_OPTIONS = ["", "USER", "BENEFICIARY", "ADMIN", "SYSTEM"];
+const ACTOR_TYPE_OPTIONS = ["", "USER", "EXECUTOR", "ADMIN", "SYSTEM"];
 const LIMIT = 50;
 
 function formatDate(iso: string) {
@@ -112,8 +112,6 @@ export default function AdminAuditLogsPage() {
   if (!isAuthenticated) return null;
 
   const canExport = admin?.role === "SUPER_ADMIN";
-
-  console.log('entries', entries)
 
   return (
     <div>

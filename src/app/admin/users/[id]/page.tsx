@@ -8,7 +8,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { AdminService } from "@/services/admin.service";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { ServiceError } from "@/lib/types";
-import type { AdminUserDetail, ReleaseStatus } from "@/lib/admin-types";
+import type { AdminUserDetail, ReleaseStatus, UserPlan } from "@/lib/admin-types";
 
 function releaseVariant(status: ReleaseStatus) {
   switch (status) {
@@ -133,16 +133,34 @@ export default function AdminUserDetailPage() {
   const [showReactivate, setShowReactivate] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError]     = useState<string | null>(null);
+  const [planOverride, setPlanOverride]   = useState<UserPlan>("FREE");
+  const [planLoading, setPlanLoading]     = useState(false);
+  const [planFeedback, setPlanFeedback]   = useState<{ ok: boolean; msg: string } | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
     AdminService.getUser(userId)
-      .then(setUser)
+      .then((u) => { setUser(u); setPlanOverride(u.plan); })
       .catch((err) =>
         setError(err instanceof ServiceError ? err.message : "Failed to load user.")
       )
       .finally(() => setLoading(false));
   }, [isAuthenticated, userId]);
+
+  const handlePlanUpdate = async () => {
+    if (!user) return;
+    setPlanLoading(true);
+    setPlanFeedback(null);
+    try {
+      await AdminService.updateUserPlan(userId, planOverride);
+      setUser((u) => u ? { ...u, plan: planOverride } : u);
+      setPlanFeedback({ ok: true, msg: "Plan updated." });
+    } catch (err) {
+      setPlanFeedback({ ok: false, msg: err instanceof ServiceError ? err.message : "Failed to update plan." });
+    } finally {
+      setPlanLoading(false);
+    }
+  };
 
   const handleSuspend = async (reason: string) => {
     setActionLoading(true);
@@ -191,6 +209,7 @@ export default function AdminUserDetailPage() {
   }
 
   const canAct = admin?.role === "ADMIN" || admin?.role === "SUPER_ADMIN";
+  const isSuperAdmin = admin?.role === "SUPER_ADMIN";
 
   return (
     <div>
@@ -241,14 +260,13 @@ export default function AdminUserDetailPage() {
         <div className="lg:col-span-2 bg-surface border border-border-color rounded-xl p-5">
           <h2 className="text-[14px] font-semibold text-text-primary mb-1">Account details</h2>
           <div className="mt-3">
-            <DetailRow label="Full name"       value={user.name} />
-            <DetailRow label="Email"           value={user.email} />
-            <DetailRow label="Email verified"  value={user.emailVerifiedAt ? formatDate(user.emailVerifiedAt) : "Not verified"} />
-            <DetailRow label="MFA"             value={user.mfaEnabled ? "Enabled" : "Disabled"} />
-            <DetailRow label="Joined"          value={formatDate(user.createdAt)} />
-            <DetailRow label="Last activity"   value={formatDate(user.lastActiveAt)} />
-            <DetailRow label="Vault records"   value={user.vaultItemCount} />
-            <DetailRow label="Beneficiaries"   value={user.beneficiaryCount} />
+            <DetailRow label="Full name"      value={user.name} />
+            <DetailRow label="Email"          value={user.email} />
+            <DetailRow label="Email verified" value={user.emailVerifiedAt ? formatDate(user.emailVerifiedAt) : "Not verified"} />
+            <DetailRow label="MFA"            value={user.mfaEnabled ? "Enabled" : "Disabled"} />
+            <DetailRow label="Joined"         value={formatDate(user.createdAt)} />
+            <DetailRow label="Last activity"  value={formatDate(user.lastActiveAt)} />
+            <DetailRow label="Vault records"  value={user.vaultItemCount} />
           </div>
         </div>
 
@@ -264,22 +282,109 @@ export default function AdminUserDetailPage() {
                   key={r.id}
                   className="flex items-center justify-between gap-3 py-2 border-b border-border-color last:border-0"
                 >
-                  <div>
-                    <p className="text-[12.5px] text-text-primary font-[500]">
-                      {formatDate(r.triggeredAt)}
-                    </p>
-                  </div>
+                  <p className="text-[12.5px] text-text-primary font-[500]">
+                    {formatDate(r.triggeredAt)}
+                  </p>
                   <div className="flex items-center gap-2">
                     <StatusBadge variant={releaseVariant(r.status)} label={r.status} />
-                    <a
-                      href={`/admin/releases/${r.id}`}
-                      className="text-[12px] text-accent hover:underline"
-                    >
+                    <a href={`/admin/releases/${r.id}`} className="text-[12px] text-accent hover:underline">
                       View
                     </a>
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Executor & Plan */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-5">
+        {/* Executor */}
+        <div className="bg-surface border border-border-color rounded-xl p-5">
+          <h2 className="text-[14px] font-semibold text-text-primary mb-3">Executor</h2>
+          {user.executor ? (
+            <div>
+              <DetailRow label="Name"          value={user.executor.name} />
+              <DetailRow label="Email"         value={user.executor.email} />
+              {user.executor.relationship && (
+                <DetailRow label="Relationship" value={user.executor.relationship} />
+              )}
+              <DetailRow
+                label="Status"
+                value={
+                  <span className={`text-[11.5px] font-[500] px-2 py-0.5 rounded-full ${
+                    user.executor.status === "ACTIVE"
+                      ? "bg-emerald-100 text-emerald-700"
+                      : user.executor.status === "PENDING_INVITE"
+                      ? "bg-amber-100 text-amber-700"
+                      : "bg-gray-100 text-gray-500"
+                  }`}>
+                    {user.executor.status === "PENDING_INVITE" ? "Pending invite" : user.executor.status.charAt(0) + user.executor.status.slice(1).toLowerCase()}
+                  </span>
+                }
+              />
+              <DetailRow label="Invited"          value={formatDate(user.executor.invitedAt)} />
+              <DetailRow
+                label="Account created"
+                value={user.executor.accountCreatedAt ? formatDate(user.executor.accountCreatedAt) : "Not yet created"}
+              />
+            </div>
+          ) : (
+            <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 p-3">
+              <p className="text-[12.5px] text-amber-800">
+                No executor designated. This user&apos;s estate report cannot be delivered without one.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Plan */}
+        <div className="bg-surface border border-border-color rounded-xl p-5">
+          <h2 className="text-[14px] font-semibold text-text-primary mb-3">Plan</h2>
+          <DetailRow
+            label="Current plan"
+            value={
+              <span className={`text-[11.5px] font-[500] px-2 py-0.5 rounded-full ${
+                user.plan === "PRO" ? "bg-accent text-white" : "bg-gray-100 text-gray-600"
+              }`}>
+                {user.plan}
+              </span>
+            }
+          />
+          {user.planActivatedAt && (
+            <DetailRow label="Activated"  value={formatDate(user.planActivatedAt)} />
+          )}
+          {user.planExpiresAt && (
+            <DetailRow label="Expires"    value={formatDate(user.planExpiresAt)} />
+          )}
+
+          {isSuperAdmin && (
+            <div className="mt-4 pt-4 border-t border-border-color">
+              <p className="text-[12px] font-semibold text-text-tertiary mb-2 tracking-[0.03em] uppercase">Override plan</p>
+              <div className="flex items-center gap-2">
+                <select
+                  value={planOverride}
+                  onChange={(e) => setPlanOverride(e.target.value as UserPlan)}
+                  className="px-3 py-2 text-[13px] bg-surface border border-border-color rounded-lg text-text-primary focus:outline-none focus:border-accent"
+                >
+                  <option value="FREE">FREE</option>
+                  <option value="PRO">PRO</option>
+                </select>
+                <Button
+                  size="sm"
+                  onClick={handlePlanUpdate}
+                  disabled={planLoading || planOverride === user.plan}
+                >
+                  {planLoading && <Loader2 size={13} className="animate-spin" />}
+                  Update plan
+                </Button>
+              </div>
+              {planFeedback && (
+                <p className={`text-[12px] mt-2 ${planFeedback.ok ? "text-green-700" : "text-red"}`}>
+                  {planFeedback.msg}
+                </p>
+              )}
             </div>
           )}
         </div>

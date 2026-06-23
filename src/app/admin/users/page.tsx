@@ -23,6 +23,26 @@ function statusLabel(isSuspended: boolean) {
   return isSuspended ? "Suspended" : "Active";
 }
 
+function ExecutorBadge({ executor }: { executor: AdminUserListItem["executor"] }) {
+  if (!executor) {
+    return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">None</span>;
+  }
+  if (executor.status === "ACTIVE") {
+    return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Active</span>;
+  }
+  if (executor.status === "PENDING_INVITE") {
+    return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Pending</span>;
+  }
+  return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Removed</span>;
+}
+
+function PlanBadge({ plan }: { plan: AdminUserListItem["plan"] }) {
+  if (plan === "PRO") {
+    return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-accent text-white">PRO</span>;
+  }
+  return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">FREE</span>;
+}
+
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", {
     day: "2-digit", month: "short", year: "numeric",
@@ -138,7 +158,7 @@ export default function AdminUsersPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border-color">
-                {["Name", "Email", "Status", "Joined", "Vault records", ""].map((h) => (
+                {["Name", "Email", "Status", "Executor", "Plan", "Joined", "Vault records", ""].map((h) => (
                   <th
                     key={h}
                     className="px-5 py-3 text-left text-[11.5px] font-semibold text-text-tertiary tracking-[0.04em] uppercase"
@@ -163,6 +183,12 @@ export default function AdminUsersPage() {
                       variant={statusVariant(u.isSuspended)}
                       label={statusLabel(u.isSuspended)}
                     />
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <ExecutorBadge executor={u.executor} />
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <PlanBadge plan={u.plan} />
                   </td>
                   <td className="px-5 py-3.5 text-[13px] text-text-secondary whitespace-nowrap">
                     {formatDate(u.createdAt)}

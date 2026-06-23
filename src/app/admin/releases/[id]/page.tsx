@@ -59,7 +59,7 @@ function CancelModal({
       <div className="relative z-10 bg-surface rounded-2xl border border-border-color shadow-md w-full max-w-[420px] p-6">
         <h2 className="font-heading text-[19px] text-text-primary mb-2">Cancel release</h2>
         <p className="text-[13px] text-text-secondary mb-5">
-          This will halt the release process. Beneficiaries will be notified that the release
+          This will halt the release process. The executor will be notified that the release
           has been cancelled.
         </p>
         <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
@@ -217,50 +217,43 @@ export default function AdminReleaseDetailPage() {
           </div>
         </div>
 
-        {/* Beneficiaries */}
+        {/* Executor verification */}
         <div className="lg:col-span-2 bg-surface border border-border-color rounded-xl p-5">
-          <h2 className="text-[14px] font-semibold text-text-primary mb-3">
-            Beneficiaries ({release.beneficiaries.length})
-          </h2>
-          {release.beneficiaries.length === 0 ? (
-            <p className="text-[13px] text-text-tertiary">No beneficiaries on this release.</p>
+          <h2 className="text-[14px] font-semibold text-text-primary mb-3">Executor verification</h2>
+          {!release.executor ? (
+            <p className="text-[13px] text-text-tertiary">No executor verification record on this release.</p>
           ) : (
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border-color">
-                  {["Name", "Email", "Verification", "Submitted", "Reviewed"].map((h) => (
-                    <th
-                      key={h}
-                      className="pb-2 text-left text-[11.5px] font-semibold text-text-tertiary tracking-[0.04em] uppercase"
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {release.beneficiaries.map((b) => (
-                  <tr key={b.id} className="border-b border-border-color last:border-0">
-                    <td className="py-3 pr-4 text-[13px] font-[500] text-text-primary whitespace-nowrap">
-                      {b.name}
-                    </td>
-                    <td className="py-3 pr-4 text-[12.5px] text-text-secondary">{b.email}</td>
-                    <td className="py-3 pr-4">
-                      <StatusBadge
-                        variant={verificationVariant(b.verificationStatus)}
-                        label={b.verificationStatus.replace("_", " ")}
-                      />
-                    </td>
-                    <td className="py-3 pr-4 text-[12.5px] text-text-secondary whitespace-nowrap">
-                      {formatDate(b.submittedAt)}
-                    </td>
-                    <td className="py-3 text-[12.5px] text-text-secondary whitespace-nowrap">
-                      {formatDate(b.reviewedAt)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="space-y-3 text-[13px]">
+              <div className="flex justify-between">
+                <span className="text-text-tertiary">Name</span>
+                <span className="text-text-primary font-[500]">{release.executor.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-text-tertiary">Email</span>
+                <span className="text-text-secondary">{release.executor.email}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-text-tertiary">Status</span>
+                <StatusBadge
+                  variant={verificationVariant(release.executor.verificationStatus)}
+                  label={release.executor.verificationStatus.replace(/_/g, " ")}
+                />
+              </div>
+              <div className="flex justify-between">
+                <span className="text-text-tertiary">Submitted</span>
+                <span className="text-text-primary">{formatDate(release.executor.submittedAt)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-text-tertiary">Reviewed</span>
+                <span className="text-text-primary">{formatDate(release.executor.reviewedAt)}</span>
+              </div>
+              {release.executor.rejectionReason && (
+                <div className="pt-2 border-t border-border-color">
+                  <p className="text-text-tertiary mb-1">Rejection reason</p>
+                  <p className="text-text-primary">{release.executor.rejectionReason}</p>
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

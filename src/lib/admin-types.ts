@@ -12,7 +12,11 @@ export type VerificationStatus =
   | "RESUBMITTED"
   | "PERMANENTLY_REJECTED";
 
-export type ActorType = "USER" | "BENEFICIARY" | "ADMIN" | "SYSTEM";
+export type ActorType = "USER" | "EXECUTOR" | "ADMIN" | "SYSTEM";
+
+export type ExecutorStatus = "PENDING_INVITE" | "ACTIVE" | "REMOVED";
+
+export type UserPlan = "FREE" | "PRO";
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 
@@ -30,6 +34,29 @@ export interface AdminAuthResponse {
   accessToken: string;
 }
 
+// ── Executor ──────────────────────────────────────────────────────────────────
+
+export interface AdminExecutor {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  relationship?: string;
+  status: ExecutorStatus;
+  invitedAt: string;
+  accountCreatedAt?: string;
+}
+
+export interface AdminExecutorVerification {
+  id: string;
+  name: string;
+  email: string;
+  verificationStatus: VerificationStatus;
+  submittedAt: string | null;
+  reviewedAt: string | null;
+  rejectionReason: string | null;
+}
+
 // ── Users ─────────────────────────────────────────────────────────────────────
 
 export interface AdminUserListItem {
@@ -41,14 +68,17 @@ export interface AdminUserListItem {
   isSuspended: boolean;
   createdAt: string;
   vaultItemCount: number;
-  beneficiaryCount: number;
+  executor: { status: ExecutorStatus } | null;
+  plan: UserPlan;
 }
 
 export interface AdminUserDetail extends AdminUserListItem {
   emailVerifiedAt: string | null;
   mfaEnabled: boolean;
+  planActivatedAt: string | null;
+  planExpiresAt: string | null;
   releases: { id: string; status: ReleaseStatus; triggeredAt: string }[];
-  beneficiaries: { id: string; name: string; email: string; verificationStatus: string | null }[];
+  executor: AdminExecutor | null;
 }
 
 // ── Releases ──────────────────────────────────────────────────────────────────
@@ -62,26 +92,13 @@ export interface AdminRelease {
   triggeredAt: string;
   completedAt: string | null;
   cancelledAt: string | null;
-  beneficiaryCount: number;
-  approvedCount: number;
-  pendingCount: number;
-  rejectedCount: number;
-}
-
-export interface AdminReleaseBeneficiary {
-  id: string;
-  name: string;
-  email: string;
-  verificationStatus: VerificationStatus;
-  submittedAt: string | null;
-  reviewedAt: string | null;
-  rejectionReason: string | null;
+  executor: { name: string; email: string } | null;
 }
 
 export interface AdminReleaseDetail extends AdminRelease {
   cancelReason: string | null;
   emptyVault: boolean;
-  beneficiaries: AdminReleaseBeneficiary[];
+  executor: AdminExecutorVerification | null;
 }
 
 // ── Audit Logs ────────────────────────────────────────────────────────────────

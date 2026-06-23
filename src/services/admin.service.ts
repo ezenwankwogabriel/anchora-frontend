@@ -10,6 +10,7 @@ import type {
   AdminAccount,
   PaginatedList,
   DevUserState,
+  UserPlan,
 } from "@/lib/admin-types";
 
 export const AdminService = {
@@ -65,6 +66,14 @@ export const AdminService = {
   reactivateUser: async (id: string): Promise<void> => {
     try {
       await adminHttp.patch(`/admin/users/${id}/reactivate`);
+    } catch (err) {
+      normaliseAdmin(err);
+    }
+  },
+
+  updateUserPlan: async (id: string, plan: UserPlan): Promise<void> => {
+    try {
+      await adminHttp.post(`/admin/users/${id}/plan`, { plan });
     } catch (err) {
       normaliseAdmin(err);
     }

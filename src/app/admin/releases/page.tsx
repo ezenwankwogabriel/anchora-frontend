@@ -116,7 +116,7 @@ export default function AdminReleasesPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border-color">
-                {["Account owner", "Status", "Triggered", "Completed", "Beneficiaries", ""].map((h) => (
+                {["Account owner", "Executor", "Status", "Triggered", "Completed", ""].map((h) => (
                   <th
                     key={h}
                     className="px-5 py-3 text-left text-[11.5px] font-semibold text-text-tertiary tracking-[0.04em] uppercase"
@@ -145,10 +145,10 @@ export default function AdminReleasesPage() {
                     {formatDate(r.triggeredAt)}
                   </td>
                   <td className="px-5 py-3.5 text-[13px] text-text-secondary whitespace-nowrap">
-                    {formatDate(r.completedAt)}
+                    {r.executor ? r.executor.name : <span className="text-text-tertiary">None designated</span>}
                   </td>
-                  <td className="px-5 py-3.5 text-[13px] text-text-secondary">
-                    {r.beneficiaryCount}
+                  <td className="px-5 py-3.5 text-[13px] text-text-secondary whitespace-nowrap">
+                    {formatDate(r.completedAt)}
                   </td>
                   <td className="px-5 py-3.5 text-right">
                     <Link
