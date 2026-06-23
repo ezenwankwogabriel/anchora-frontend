@@ -1,299 +1,243 @@
 import { z } from "zod";
 import type { AssetCategory } from "@/lib/types";
 
-// ── Unified form data shape ────────────────────────────────────────────────
+// ── Sprint 4 form data shape ───────────────────────────────────────────────
 export interface VaultFormData {
-  institutionName: string;  // institution / platform name → backend accountName
-  accountType: string;      // type descriptor (select) → backend accountType
-  nickname: string;         // user's personal label → backend nickname
-  holderName: string;       // name on account/policy → encrypted holderName
-  accountNumber: string;    // bank/foreign account number → encrypted accountNumber
-  usernameOrEmail: string;  // online banking login email → encrypted usernameOrEmail
-  password: string;         // online banking / portal password → encrypted password
-  cardPin: string;          // ATM / card PIN → encrypted cardPin
-  notes: string;            // instructions → encrypted notes
+  institutionName: string;
+  accountName: string;        // optional label → maps to nickname in API
+  accountNumber: string;      // account / reference number → encrypted
+  usernameOrEmail: string;
+  accountUrl: string;         // document URL — physical categories only
+  notes: string;
   executorIntent: "LIQUIDATE" | "TRANSFER" | "HOLD" | "UNSPECIFIED";
   intendedBeneficiary: string;
   isSelfCustodied: boolean;
-  recoveryNotes: string;
 }
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-const req   = (msg = "Required") => z.string().min(1, msg);
-const opt   = () => z.string();
-const max500 = z.string().max(500, "Max 500 characters");
+// ── Field config (single source of truth for labels/placeholders) ──────────
+export type FieldType = "text" | "url" | "checkbox" | "textarea";
 
-const enumField = (values: readonly string[], msg: string) =>
-  z.string().refine((v) => values.includes(v), msg);
+export interface FieldConfig {
+  fieldName: keyof VaultFormData;
+  label: string;
+  placeholder?: string;
+  required?: boolean;
+  helperText?: string;
+  type: FieldType;
+}
+
+// ── Category groupings (single source of truth) ───────────────────────────
+export const DIGITAL_ASSET_CATEGORIES: AssetCategory[] = [
+  "BANK_ACCOUNT",
+  "INVESTMENT_PLATFORM",
+  "CRYPTO_WALLET",
+  "PENSION_PORTAL",
+  "INSURANCE_POLICY",
+  "FOREIGN_ACCOUNT",
+];
+
+export const PHYSICAL_ASSET_CATEGORIES: AssetCategory[] = [
+  "REAL_ESTATE",
+  "VEHICLE",
+  "JEWELRY_WATCHES",
+  "SHARE_CERTIFICATES",
+];
+
+// All selectable categories in the add-asset flow (excludes SUBSCRIPTION, which is legacy).
+export const SELECTABLE_CATEGORIES: AssetCategory[] = [
+  ...DIGITAL_ASSET_CATEGORIES,
+  ...PHYSICAL_ASSET_CATEGORIES,
+  "OTHER",
+];
+
+// All categories that may appear in vault lists (includes legacy SUBSCRIPTION).
+export const ALL_VAULT_CATEGORIES: AssetCategory[] = [
+  ...DIGITAL_ASSET_CATEGORIES,
+  ...PHYSICAL_ASSET_CATEGORIES,
+  "SUBSCRIPTION",
+  "OTHER",
+];
+
+// ── Physical category helper ───────────────────────────────────────────────
+export function isPhysicalCategory(category: AssetCategory): boolean {
+  return (
+    category === "REAL_ESTATE" ||
+    category === "VEHICLE" ||
+    category === "JEWELRY_WATCHES" ||
+    category === "SHARE_CERTIFICATES" ||
+    category === "OTHER"
+  );
+}
+
+// ── Per-category field configs ─────────────────────────────────────────────
+const DOCUMENT_URL_FIELD: FieldConfig = {
+  fieldName: "accountUrl",
+  label: "Document location URL",
+  placeholder: "https://drive.google.com/...",
+  helperText: "Optional — only if you have a digital copy stored online.",
+  type: "url",
+};
+
+const FIELD_CONFIGS: Record<AssetCategory, FieldConfig[]> = {
+  BANK_ACCOUNT: [
+    { fieldName: "institutionName", label: "Bank name", placeholder: "e.g. GTB, Zenith, Access Bank", required: true, type: "text" },
+    { fieldName: "accountName",     label: "Account name", placeholder: "e.g. Joint savings, Dollar account", type: "text" },
+    { fieldName: "accountNumber",   label: "Account number", placeholder: "e.g. 0123456789", type: "text" },
+    { fieldName: "usernameOrEmail", label: "Internet banking username / email", type: "text" },
+    { fieldName: "notes",           label: "Notes", placeholder: "Branch, NUBAN, any relevant access context", type: "textarea" },
+  ],
+  INVESTMENT_PLATFORM: [
+    { fieldName: "institutionName", label: "Platform name", placeholder: "e.g. Bamboo, Risevest, PiggyVest", required: true, type: "text" },
+    { fieldName: "accountName",     label: "Portfolio / account name", type: "text" },
+    { fieldName: "usernameOrEmail", label: "Login email", type: "text" },
+    { fieldName: "notes",           label: "Notes", placeholder: "Account number, broker details, portfolio type", type: "textarea" },
+  ],
+  CRYPTO_WALLET: [
+    { fieldName: "institutionName", label: "Wallet or exchange name", placeholder: "e.g. Binance, Ledger hardware wallet", required: true, type: "text" },
+    { fieldName: "accountName",     label: "Wallet label", type: "text" },
+    { fieldName: "usernameOrEmail", label: "Login email / username", type: "text" },
+    { fieldName: "isSelfCustodied", label: "I hold my own private keys", type: "checkbox" },
+    { fieldName: "notes",           label: "Notes", placeholder: "Seed phrase storage location, hardware wallet location, exchange account details", type: "textarea" },
+  ],
+  PENSION_PORTAL: [
+    { fieldName: "institutionName", label: "Pension fund administrator (PFA)", placeholder: "e.g. ARM Pension, Stanbic IBTC", required: true, type: "text" },
+    { fieldName: "accountName",     label: "RSA / account name", type: "text" },
+    { fieldName: "usernameOrEmail", label: "Portal login email", type: "text" },
+    { fieldName: "notes",           label: "Notes", placeholder: "RSA PIN, employer name, portal access details", type: "textarea" },
+  ],
+  INSURANCE_POLICY: [
+    { fieldName: "institutionName", label: "Insurance provider", placeholder: "e.g. AXA Mansard, Leadway Assurance", required: true, type: "text" },
+    { fieldName: "accountName",     label: "Policy name / type", placeholder: "e.g. Term life, whole life, health", type: "text" },
+    { fieldName: "usernameOrEmail", label: "Portal login email", type: "text" },
+    { fieldName: "notes",           label: "Notes", placeholder: "Policy number, coverage amount, agent contact", type: "textarea" },
+  ],
+  FOREIGN_ACCOUNT: [
+    { fieldName: "institutionName", label: "Institution name", placeholder: "e.g. Barclays UK, Charles Schwab", required: true, type: "text" },
+    { fieldName: "accountName",     label: "Account / portfolio name", type: "text" },
+    { fieldName: "usernameOrEmail", label: "Login email", type: "text" },
+    { fieldName: "notes",           label: "Notes", placeholder: "Country, account number, FX or remittance details", type: "textarea" },
+  ],
+  REAL_ESTATE: [
+    { fieldName: "institutionName", label: "Property name / description", placeholder: "e.g. Duplex on Admiralty Way, Lekki", required: true, type: "text" },
+    { fieldName: "usernameOrEmail", label: "Title number / survey plan ref", type: "text" },
+    { fieldName: "notes",           label: "Description & storage notes", placeholder: "Address, where title documents are stored, estimated value", type: "textarea" },
+    { ...DOCUMENT_URL_FIELD, placeholder: "Dropbox / Drive link to a scanned title document" },
+  ],
+  VEHICLE: [
+    { fieldName: "institutionName", label: "Vehicle description", placeholder: "e.g. 2019 Toyota Land Cruiser", required: true, type: "text" },
+    { fieldName: "usernameOrEmail", label: "Plate number / chassis number", type: "text" },
+    { fieldName: "notes",           label: "Description & storage notes", placeholder: "Colour, where vehicle logbook is stored", type: "textarea" },
+    { ...DOCUMENT_URL_FIELD, placeholder: "Dropbox / Drive link to proof of ownership" },
+  ],
+  JEWELRY_WATCHES: [
+    { fieldName: "institutionName", label: "Item description", placeholder: "e.g. Rolex Datejust, gold wedding band", required: true, type: "text" },
+    { fieldName: "usernameOrEmail", label: "Serial number (if known)", type: "text" },
+    { fieldName: "notes",           label: "Description & storage notes", placeholder: "Where it is stored, estimated value", type: "textarea" },
+    { ...DOCUMENT_URL_FIELD, placeholder: "Dropbox / Drive link to certificate of authenticity" },
+  ],
+  SHARE_CERTIFICATES: [
+    { fieldName: "institutionName", label: "Asset description", placeholder: "e.g. Dangote Cement paper cert", required: true, type: "text" },
+    { fieldName: "usernameOrEmail", label: "Certificate number", type: "text" },
+    { fieldName: "notes",           label: "Description & storage notes", placeholder: "Number of units, where the certificate is physically stored", type: "textarea" },
+    { ...DOCUMENT_URL_FIELD, placeholder: "Dropbox / Drive link to a scan of the certificate" },
+  ],
+  SUBSCRIPTION: [
+    { fieldName: "institutionName", label: "Service name", placeholder: "e.g. Netflix, Spotify, AWS", required: true, type: "text" },
+    { fieldName: "accountName",     label: "Subscription label", placeholder: "e.g. Family plan, Team account", type: "text" },
+    { fieldName: "usernameOrEmail", label: "Billing email", type: "text" },
+    { fieldName: "notes",           label: "Cancellation instructions", placeholder: "How to cancel — direct link, phone number, or step-by-step instructions...", type: "textarea" },
+  ],
+  OTHER: [
+    { fieldName: "institutionName", label: "Asset or account name", placeholder: "e.g. PayPal, savings club, industrial generator", required: true, type: "text" },
+    { fieldName: "accountName",     label: "Label / type", type: "text" },
+    { fieldName: "usernameOrEmail", label: "Reference number or login email", type: "text" },
+    { fieldName: "notes",           label: "Notes", placeholder: "Description, location, and where any documents are stored", type: "textarea" },
+    { ...DOCUMENT_URL_FIELD, placeholder: "Dropbox / Drive link (optional)" },
+  ],
+};
+
+export function getFieldConfig(category: AssetCategory): { fields: FieldConfig[] } {
+  return { fields: FIELD_CONFIGS[category] };
+}
+
+// ── Default form values ────────────────────────────────────────────────────
+const BASE_DEFAULTS: VaultFormData = {
+  institutionName: "",
+  accountName: "",
+  accountNumber: "",
+  usernameOrEmail: "",
+  accountUrl: "",
+  notes: "",
+  executorIntent: "UNSPECIFIED",
+  intendedBeneficiary: "",
+  isSelfCustodied: false,
+};
+
+export const CATEGORY_DEFAULTS: Record<AssetCategory, VaultFormData> = {
+  BANK_ACCOUNT:        { ...BASE_DEFAULTS },
+  INVESTMENT_PLATFORM: { ...BASE_DEFAULTS },
+  CRYPTO_WALLET:       { ...BASE_DEFAULTS },
+  PENSION_PORTAL:      { ...BASE_DEFAULTS },
+  INSURANCE_POLICY:    { ...BASE_DEFAULTS },
+  FOREIGN_ACCOUNT:     { ...BASE_DEFAULTS },
+  REAL_ESTATE:         { ...BASE_DEFAULTS },
+  VEHICLE:             { ...BASE_DEFAULTS },
+  JEWELRY_WATCHES:     { ...BASE_DEFAULTS },
+  SHARE_CERTIFICATES:  { ...BASE_DEFAULTS },
+  SUBSCRIPTION:        { ...BASE_DEFAULTS },
+  OTHER:               { ...BASE_DEFAULTS },
+};
+
+// ── Per-category Zod schemas ───────────────────────────────────────────────
+const req   = (msg = "Required") => z.string().min(1, msg);
+const opt   = () => z.string().optional().default("");
+const max500 = z.string().max(500, "Max 500 characters").optional().default("");
 
 const intentEnum = z
   .enum(["LIQUIDATE", "TRANSFER", "HOLD", "UNSPECIFIED"])
   .default("UNSPECIFIED");
 
-// Shared extra fields appended to every category schema
-const extraFields = {
+const sharedFields = {
+  accountNumber:       opt(),
+  accountUrl:          z.string().optional().default(""),
   executorIntent:      intentEnum,
   intendedBeneficiary: opt(),
   isSelfCustodied:     z.boolean().default(false),
-  recoveryNotes:       opt(),
 };
 
-// ── Per-category Zod schemas ───────────────────────────────────────────────
-export const categorySchemas = {
-  BANK_ACCOUNT: z.object({
+const digitalSchema = (overrides?: object) =>
+  z.object({
     institutionName: req(),
-    accountType:     enumField(["Savings", "Current", "Domiciliary"], "Select an account type"),
-    nickname:        opt(),
-    holderName:      opt(),
-    accountNumber:   req("Account number is required"),
+    accountName:     opt(),
     usernameOrEmail: opt(),
-    password:        opt(),
-    cardPin:         opt(),
     notes:           max500,
-    ...extraFields,
-  }),
+    ...sharedFields,
+    ...overrides,
+  });
 
-  INVESTMENT_PLATFORM: z.object({
+const physicalSchema = (overrides?: object) =>
+  z.object({
     institutionName: req(),
-    accountType:     enumField(["Stocks", "Savings", "Bonds", "Mixed"], "Select an account type"),
-    nickname:        opt(),
-    holderName:      opt(),
-    accountNumber:   opt(),
+    accountName:     opt(),
     usernameOrEmail: opt(),
-    password:        opt(),
-    cardPin:         opt(),
     notes:           max500,
-    ...extraFields,
-  }),
+    ...sharedFields,
+    ...overrides,
+  });
 
-  CRYPTO_WALLET: z.object({
-    institutionName: req("Provider name is required"),
-    accountType:     enumField(["Hardware wallet", "Software wallet", "Exchange account"], "Select a wallet type"),
-    nickname:        req("Wallet label is required"),
-    holderName:      opt(),
-    accountNumber:   opt(),
-    usernameOrEmail: opt(),
-    password:        opt(),
-    cardPin:         opt(),
-    notes:           max500,
-    ...extraFields,
-  }),
-
-  PENSION_PORTAL: z.object({
-    institutionName: req("Pension fund administrator is required"),
-    accountType:     enumField(["CPS (Contributory)", "Legacy", "Other"], "Select an account type"),
-    nickname:        opt(),
-    holderName:      opt(),
-    accountNumber:   opt(),
-    usernameOrEmail: opt(),
-    password:        opt(),
-    cardPin:         opt(),
-    notes:           max500,
-    ...extraFields,
-  }),
-
-  INSURANCE_POLICY: z.object({
-    institutionName: req("Provider name is required"),
-    accountType:     enumField(["Life", "Health", "Auto", "Property", "Other"], "Select a policy type"),
-    nickname:        opt(),
-    holderName:      opt(),
-    accountNumber:   opt(),
-    usernameOrEmail: req("Policy number is required"),
-    password:        opt(),
-    cardPin:         opt(),
-    notes:           max500,
-    ...extraFields,
-  }),
-
-  FOREIGN_ACCOUNT: z.object({
-    institutionName: req(),
-    accountType:     enumField(["Bank account", "Brokerage", "ISA", "Pension", "Other"], "Select an account type"),
-    nickname:        opt(),
-    holderName:      opt(),
-    accountNumber:   opt(),
-    usernameOrEmail: opt(),
-    password:        opt(),
-    cardPin:         opt(),
-    notes:           max500,
-    ...extraFields,
-  }),
-
-  SUBSCRIPTION: z.object({
-    institutionName: req("Service name is required"),
-    accountType:     enumField(["Monthly", "Annual", "Weekly"], "Select a billing cycle"),
-    nickname:        opt(),
-    holderName:      opt(),
-    accountNumber:   opt(),
-    usernameOrEmail: opt(),
-    password:        opt(),
-    cardPin:         opt(),
-    notes:           max500,
-    ...extraFields,
-  }),
-
-  OTHER: z.object({
-    institutionName: opt(),
-    accountType:     opt(),
-    nickname:        req("Asset label is required"),
-    holderName:      opt(),
-    accountNumber:   opt(),
-    usernameOrEmail: opt(),
-    password:        opt(),
-    cardPin:         opt(),
-    notes:           z.string().min(1, "Description is required").max(500, "Max 500 characters"),
-    ...extraFields,
-  }),
-};
-
-// ── Rendering configuration ────────────────────────────────────────────────
-type FieldType = "text" | "select" | "url" | "hidden" | "password";
-
-interface FieldConfig {
-  label: string;
-  type: FieldType;
-  placeholder?: string;
-  options?: readonly string[];
-  required?: boolean;
-}
-
-export interface CategoryConfig {
-  institutionName: FieldConfig;
-  accountType: FieldConfig;
-  nickname: FieldConfig;
-  holderName: FieldConfig;
-  accountNumber: FieldConfig;
-  usernameOrEmail: FieldConfig;
-  password: FieldConfig;
-  cardPin: FieldConfig;
-  notesLabel: string;
-  notesPlaceholder: string;
-  notesRequired?: boolean;
-  defaultValues: VaultFormData;
-}
-
-const INSTRUCTIONS_PLACEHOLDER =
-  "Add any instructions or context that would help your executor understand or access this account...";
-
-const extraDefaults = {
-  executorIntent:      "UNSPECIFIED" as const,
-  intendedBeneficiary: "",
-  isSelfCustodied:     false,
-  recoveryNotes:       "",
-};
-
-export const CATEGORY_CONFIG: Record<AssetCategory, CategoryConfig> = {
-  BANK_ACCOUNT: {
-    institutionName: { label: "Institution name",       type: "text",     placeholder: "e.g. Guaranty Trust Bank", required: true },
-    accountType:     { label: "Account type",            type: "select",   options: ["Savings", "Current", "Domiciliary"], required: true },
-    nickname:        { label: "Account label",           type: "text",     placeholder: "e.g. Main savings, Joint account" },
-    holderName:      { label: "Account name",            type: "text",     placeholder: "Name registered on the account" },
-    accountNumber:   { label: "Account number",          type: "text",     placeholder: "0123456789", required: true },
-    usernameOrEmail: { label: "Online banking email",    type: "text",     placeholder: "Your internet banking login email" },
-    password:        { label: "Online banking password", type: "password", placeholder: "Your internet banking password" },
-    cardPin:         { label: "Card PIN",                type: "password", placeholder: "4-digit ATM PIN" },
-    notesLabel: "Instructions for your executor",
-    notesPlaceholder: INSTRUCTIONS_PLACEHOLDER,
-    defaultValues: { institutionName: "", accountType: "Savings", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", notes: "", ...extraDefaults },
-  },
-
-  INVESTMENT_PLATFORM: {
-    institutionName: { label: "Platform name",      type: "text",     placeholder: "e.g. Bamboo, Risevest", required: true },
-    accountType:     { label: "Account type",       type: "select",   options: ["Stocks", "Savings", "Bonds", "Mixed"], required: true },
-    nickname:        { label: "Account label",      type: "text",     placeholder: "e.g. Emergency fund" },
-    holderName:      { label: "Account name",       type: "text",     placeholder: "Name registered on the account" },
-    accountNumber:   { label: "",                   type: "hidden" },
-    usernameOrEmail: { label: "Account reference",  type: "text",     placeholder: "Reference or account number" },
-    password:        { label: "Portal password",    type: "password", placeholder: "Your login password" },
-    cardPin:         { label: "",                   type: "hidden" },
-    notesLabel: "Instructions for your executor",
-    notesPlaceholder: INSTRUCTIONS_PLACEHOLDER,
-    defaultValues: { institutionName: "", accountType: "Stocks", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", notes: "", ...extraDefaults },
-  },
-
-  CRYPTO_WALLET: {
-    institutionName: { label: "Provider name",      type: "text",     placeholder: "e.g. Ledger, MetaMask, Binance", required: true },
-    accountType:     { label: "Wallet type",        type: "select",   options: ["Hardware wallet", "Software wallet", "Exchange account"], required: true },
-    nickname:        { label: "Wallet label",       type: "text",     placeholder: "e.g. My Ledger, Binance Account", required: true },
-    holderName:      { label: "",                   type: "hidden" },
-    accountNumber:   { label: "",                   type: "hidden" },
-    usernameOrEmail: { label: "Username / Email",   type: "text",     placeholder: "Exchange login or reference" },
-    password:        { label: "",                   type: "hidden" },
-    cardPin:         { label: "",                   type: "hidden" },
-    notesLabel: "Instructions for your executor",
-    notesPlaceholder: INSTRUCTIONS_PLACEHOLDER,
-    defaultValues: { institutionName: "", accountType: "Hardware wallet", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", notes: "", ...extraDefaults },
-  },
-
-  PENSION_PORTAL: {
-    institutionName: { label: "Pension fund administrator", type: "text",     placeholder: "e.g. ARM Pension, NLPC, Stanbic", required: true },
-    accountType:     { label: "Account type",               type: "select",   options: ["CPS (Contributory)", "Legacy", "Other"], required: true },
-    nickname:        { label: "Account label",              type: "text",     placeholder: "e.g. Main pension" },
-    holderName:      { label: "Account name",               type: "text",     placeholder: "Name registered on the account" },
-    accountNumber:   { label: "",                           type: "hidden" },
-    usernameOrEmail: { label: "RSA PIN",                    type: "text",     placeholder: "Your Retirement Savings Account PIN" },
-    password:        { label: "Portal password",            type: "password", placeholder: "Your portal login password" },
-    cardPin:         { label: "",                           type: "hidden" },
-    notesLabel: "Instructions for your executor",
-    notesPlaceholder: INSTRUCTIONS_PLACEHOLDER,
-    defaultValues: { institutionName: "", accountType: "CPS (Contributory)", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", notes: "", ...extraDefaults },
-  },
-
-  INSURANCE_POLICY: {
-    institutionName: { label: "Provider name",       type: "text",     placeholder: "e.g. AXA Mansard, Leadway Assurance", required: true },
-    accountType:     { label: "Policy type",         type: "select",   options: ["Life", "Health", "Auto", "Property", "Other"], required: true },
-    nickname:        { label: "Policy label",        type: "text",     placeholder: "e.g. Family life policy" },
-    holderName:      { label: "Policyholder name",   type: "text",     placeholder: "Name on the policy" },
-    accountNumber:   { label: "",                    type: "hidden" },
-    usernameOrEmail: { label: "Policy number",       type: "text",     placeholder: "Your policy reference number" },
-    password:        { label: "Portal password",     type: "password", placeholder: "Your portal login password" },
-    cardPin:         { label: "",                    type: "hidden" },
-    notesLabel: "Instructions for your executor",
-    notesPlaceholder: INSTRUCTIONS_PLACEHOLDER,
-    defaultValues: { institutionName: "", accountType: "Life", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", notes: "", ...extraDefaults },
-  },
-
-  FOREIGN_ACCOUNT: {
-    institutionName: { label: "Institution name",        type: "text",     placeholder: "e.g. Barclays, Charles Schwab", required: true },
-    accountType:     { label: "Account type",            type: "select",   options: ["Bank account", "Brokerage", "ISA", "Pension", "Other"], required: true },
-    nickname:        { label: "Account label",           type: "text",     placeholder: "e.g. UK ISA, US brokerage" },
-    holderName:      { label: "Account name",            type: "text",     placeholder: "Name on the account" },
-    accountNumber:   { label: "Account number / IBAN",   type: "text",     placeholder: "Account number or IBAN" },
-    usernameOrEmail: { label: "Online banking email",    type: "text",     placeholder: "Your internet banking login email" },
-    password:        { label: "Online banking password", type: "password", placeholder: "Your internet banking password" },
-    cardPin:         { label: "Card PIN",                type: "password", placeholder: "4-digit card PIN" },
-    notesLabel: "Instructions for your executor",
-    notesPlaceholder: "Include currency, account type, or any other details...",
-    defaultValues: { institutionName: "", accountType: "Bank account", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", notes: "", ...extraDefaults },
-  },
-
-  SUBSCRIPTION: {
-    institutionName: { label: "Service name",        type: "text",     placeholder: "e.g. Netflix, Spotify, AWS", required: true },
-    accountType:     { label: "Billing cycle",        type: "select",   options: ["Monthly", "Annual", "Weekly"], required: true },
-    nickname:        { label: "Subscription label",   type: "text",     placeholder: "e.g. Family plan, Team account" },
-    holderName:      { label: "",                     type: "hidden" },
-    accountNumber:   { label: "",                     type: "hidden" },
-    usernameOrEmail: { label: "Billing email",        type: "text",     placeholder: "Email used for billing or login" },
-    password:        { label: "Account password",     type: "password", placeholder: "Your login password" },
-    cardPin:         { label: "",                     type: "hidden" },
-    notesLabel: "Cancellation instructions",
-    notesPlaceholder: "How to cancel — direct link, phone number, or step-by-step instructions...",
-    defaultValues: { institutionName: "", accountType: "Monthly", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", notes: "", ...extraDefaults },
-  },
-
-  OTHER: {
-    institutionName: { label: "Institution or platform name", type: "text",   placeholder: "e.g. Co-operative, ROSCA group" },
-    accountType:     { label: "",                             type: "hidden" },
-    nickname:        { label: "Asset label",                  type: "text",   placeholder: "e.g. Co-operative savings, ROSCA", required: true },
-    holderName:      { label: "",                             type: "hidden" },
-    accountNumber:   { label: "",                             type: "hidden" },
-    usernameOrEmail: { label: "",                             type: "hidden" },
-    password:        { label: "",                             type: "hidden" },
-    cardPin:         { label: "",                             type: "hidden" },
-    notesLabel: "Description",
-    notesPlaceholder: "Describe this asset and add any instructions for your executor...",
-    notesRequired: true,
-    defaultValues: { institutionName: "", accountType: "", nickname: "", holderName: "", accountNumber: "", usernameOrEmail: "", password: "", cardPin: "", notes: "", ...extraDefaults },
-  },
+export const categorySchemas: Record<AssetCategory, ReturnType<typeof digitalSchema>> = {
+  BANK_ACCOUNT:        digitalSchema(),
+  INVESTMENT_PLATFORM: digitalSchema(),
+  CRYPTO_WALLET:       digitalSchema(),
+  PENSION_PORTAL:      digitalSchema(),
+  INSURANCE_POLICY:    digitalSchema(),
+  FOREIGN_ACCOUNT:     digitalSchema(),
+  REAL_ESTATE:         physicalSchema(),
+  VEHICLE:             physicalSchema(),
+  JEWELRY_WATCHES:     physicalSchema(),
+  SHARE_CERTIFICATES:  physicalSchema(),
+  SUBSCRIPTION:        digitalSchema(),
+  OTHER:               physicalSchema({ institutionName: req("Asset name is required") }),
 };
 
 export function getCategorySchema(category: AssetCategory) {

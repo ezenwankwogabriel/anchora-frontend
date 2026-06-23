@@ -15,17 +15,9 @@ import { usePlan } from "@/hooks/usePlan";
 import { useToastStore } from "@/stores/toastStore";
 import { RELATIONSHIP_LABELS } from "@/lib/schemas/beneficiary";
 import type { VaultRecord, AssetCategory, SharedVaultItem } from "@/lib/types";
+import { ALL_VAULT_CATEGORIES } from "@/lib/schemas/vault";
 import http from "@/lib/axios";
 
-const ALL_CATEGORIES: AssetCategory[] = [
-  "BANK_ACCOUNT",
-  "INVESTMENT_PLATFORM",
-  "CRYPTO_WALLET",
-  "PENSION_PORTAL",
-  "INSURANCE_POLICY",
-  "FOREIGN_ACCOUNT",
-  "OTHER",
-];
 
 const FREE_RECORD_LIMIT = 3;
 
@@ -110,7 +102,7 @@ export default function VaultClient() {
   const atLimit     = isFree && recordCount >= FREE_RECORD_LIMIT;
   const remaining   = FREE_RECORD_LIMIT - recordCount;
 
-  const recordsByCategory = ALL_CATEGORIES.reduce<Record<AssetCategory, VaultRecord[]>>(
+  const recordsByCategory = ALL_VAULT_CATEGORIES.reduce<Record<AssetCategory, VaultRecord[]>>(
     (acc, cat) => {
       acc[cat] = records?.filter((r) => r.category === cat) ?? [];
       return acc;
@@ -118,7 +110,7 @@ export default function VaultClient() {
     {} as Record<AssetCategory, VaultRecord[]>
   );
 
-  const categoriesWithRecords = ALL_CATEGORIES.filter(
+  const categoriesWithRecords = ALL_VAULT_CATEGORIES.filter(
     (c) => (recordsByCategory[c]?.length ?? 0) > 0
   );
 

@@ -46,6 +46,10 @@ export type AssetCategory =
   | "PENSION_PORTAL"
   | "INSURANCE_POLICY"
   | "FOREIGN_ACCOUNT"
+  | "REAL_ESTATE"
+  | "VEHICLE"
+  | "JEWELRY_WATCHES"
+  | "SHARE_CERTIFICATES"
   | "SUBSCRIPTION"
   | "OTHER";
 
@@ -55,19 +59,16 @@ export interface VaultRecord {
   id: string;
   userId: string;
   category: AssetCategory;
-  accountName: string;       // institution / platform name — shown in list views
-  accountType: string | null; // type descriptor (Savings, Stocks, Life, etc.)
-  nickname: string | null;   // user's personal label
+  accountName: string;        // institution / platform name — shown in list views
+  accountType: string | null; // type descriptor, kept for backward compat
+  nickname: string | null;    // user's personal label (Sprint 4 accountName field)
+  accountUrl: string | null;  // document/link URL (physical categories)
   executorIntent: ExecutorIntent;
   intendedBeneficiary?: string;
   isSelfCustodied: boolean;
-  recoveryNotes?: string;
   encryptedFields: {
-    holderName?: string;
     accountNumber?: string;
     usernameOrEmail?: string;
-    password?: string;
-    cardPin?: string;
     notes?: string;
   };
   beneficiary: {
@@ -80,23 +81,20 @@ export interface VaultRecord {
   updatedAt: string;
 }
 
-// VaultRecordInput uses frontend form field names.
-// The service layer maps these to backend API field names before API calls.
+// VaultRecordInput uses Sprint 4 frontend field names.
+// The service layer maps institutionName → accountName and accountName → nickname.
 export interface VaultRecordInput {
   category: AssetCategory;
   institutionName: string;
-  accountType: string;
-  nickname: string;
-  holderName?: string;
+  accountName?: string;       // optional label → maps to nickname
+  accountType?: string;       // optional type, kept for backward compat
   accountNumber?: string;
   usernameOrEmail?: string;
-  password?: string;
-  cardPin?: string;
+  accountUrl?: string;
   notes?: string;
   executorIntent?: ExecutorIntent;
   intendedBeneficiary?: string;
   isSelfCustodied?: boolean;
-  recoveryNotes?: string;
 }
 
 // ── Beneficiaries (shared vault only) ────────────────────────────────────────

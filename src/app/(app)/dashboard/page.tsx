@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useAuthStore } from "@/stores/authStore";
 import type { AssetCategory, Executor, VaultRecord } from "@/lib/types";
+import { DIGITAL_ASSET_CATEGORIES, PHYSICAL_ASSET_CATEGORIES, ALL_VAULT_CATEGORIES } from "@/lib/schemas/vault";
 
 const DISMISSED_KEY = "onboardingDismissed";
 
@@ -63,16 +64,6 @@ function deriveActivity(records: VaultRecord[] | null): ActivityItem[] {
     .slice(0, 5);
 }
 
-const ALL_CATEGORIES: AssetCategory[] = [
-  "BANK_ACCOUNT",
-  "INVESTMENT_PLATFORM",
-  "CRYPTO_WALLET",
-  "PENSION_PORTAL",
-  "INSURANCE_POLICY",
-  "FOREIGN_ACCOUNT",
-  "OTHER",
-];
-
 function buildChecklist(hasRecords: boolean, executor: Executor | null): ChecklistItem[] {
   return [
     { id: "vault",    label: "Add your first financial asset", done: hasRecords,        href: "/vault/add" },
@@ -87,6 +78,14 @@ export default function DashboardPage() {
   const totalRecords  = records?.length ?? 0;
   const intentSet     = records?.filter((r) => r.executorIntent !== "UNSPECIFIED").length ?? 0;
 
+  const digitalCovered = DIGITAL_ASSET_CATEGORIES.filter(
+    (c: AssetCategory) => (records ?? []).some((r) => r.category === c)
+  ).length;
+
+  const physicalCount = (records ?? []).filter(
+    (r) => PHYSICAL_ASSET_CATEGORIES.includes(r.category as (typeof PHYSICAL_ASSET_CATEGORIES)[number])
+  ).length;
+
   const [checklistDismissed, setChecklistDismissed] = useState(false);
 
   useEffect(() => {
@@ -98,12 +97,12 @@ export default function DashboardPage() {
     setChecklistDismissed(true);
   };
 
-  const recordsByCategory = ALL_CATEGORIES.reduce<Record<AssetCategory, typeof records>>(
+  const recordsByCategory = ALL_VAULT_CATEGORIES.reduce<Record<AssetCategory, typeof records>>(
     (acc, cat) => { acc[cat] = records?.filter((r) => r.category === cat) ?? []; return acc; },
     {} as Record<AssetCategory, typeof records>
   );
 
-  const categoriesWithRecords = ALL_CATEGORIES.filter(
+  const categoriesWithRecords = ALL_VAULT_CATEGORIES.filter(
     (c) => (recordsByCategory[c]?.length ?? 0) > 0
   );
 
@@ -164,16 +163,17 @@ export default function DashboardPage() {
               }
             />
             <HealthCard
-              label="Assets recorded"
+              label="Account coverage"
               borderAccent="navy"
-              value={error ? "—" : totalRecords}
+              value={error ? "—" : `${digitalCovered}/6`}
               subtext={
                 error ? "Could not load"
-                : categoriesWithRecords.length > 0
-                ? `${categoriesWithRecords.length} ${categoriesWithRecords.length === 1 ? "category" : "categories"}`
-                : "No assets yet"
+                : digitalCovered === 6 ? "All 6 account types covered"
+                : physicalCount > 0
+                  ? `${6 - digitalCovered} types missing · +${physicalCount} physical asset${physicalCount !== 1 ? "s" : ""} recorded`
+                  : `${6 - digitalCovered} account type${6 - digitalCovered !== 1 ? "s" : ""} not yet recorded`
               }
-              status={error ? "empty" : totalRecords > 0 ? "good" : "critical"}
+              status={error ? "empty" : digitalCovered === 6 ? "good" : digitalCovered > 0 ? "warning" : "critical"}
             />
           </>
         )}

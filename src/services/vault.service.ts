@@ -1,40 +1,27 @@
 import http, { normalise } from "@/lib/axios";
 import type { VaultRecord, VaultRecordInput } from "@/lib/types";
 
-// Maps frontend form fields to backend API field names.
-// institutionName → accountName (primary identifier shown in lists).
-// accountType, nickname map directly to their backend counterparts.
-// For OTHER: nickname (asset label) is the primary identifier; institutionName is secondary.
-function toApiPayload(input: VaultRecordInput) {
-  const shared = {
-    accountType:         input.accountType         || null,
-    nickname:            input.nickname            || null,
-    holderName:          input.holderName          || undefined,
-    accountNumber:       input.accountNumber       || undefined,
-    usernameOrEmail:     input.usernameOrEmail     || undefined,
-    password:            input.password            || undefined,
-    cardPin:             input.cardPin             || undefined,
-    notes:               input.notes               || undefined,
-    executorIntent:      input.executorIntent      ?? "UNSPECIFIED",
-    intendedBeneficiary: input.intendedBeneficiary || undefined,
-    isSelfCustodied:     input.isSelfCustodied     ?? false,
-    recoveryNotes:       input.recoveryNotes       || undefined,
+export interface VaultCompleteness {
+  overallComplete: boolean;
+  percentComplete: number;
+  categories: {
+    [category: string]: { hasRecord: boolean; count: number };
   };
+}
 
-  if (input.category === "OTHER") {
-    return {
-      ...shared,
-      category:    input.category,
-      accountName: input.nickname || input.institutionName,
-      accountType: null,
-      nickname:    input.institutionName || null,
-    };
-  }
-
+function toApiPayload(input: VaultRecordInput) {
   return {
-    ...shared,
-    category:    input.category,
-    accountName: input.institutionName,
+    category:            input.category,
+    institutionName:     input.institutionName,
+    accountName:         input.accountName      || undefined,
+    accountType:         input.accountType      || undefined,
+    accountNumber:       input.accountNumber    || undefined,
+    usernameOrEmail:     input.usernameOrEmail  || undefined,
+    accountUrl:          input.accountUrl       || undefined,
+    notes:               input.notes            || undefined,
+    executorIntent:      input.executorIntent   ?? "UNSPECIFIED",
+    intendedBeneficiary: input.intendedBeneficiary || undefined,
+    isSelfCustodied:     input.isSelfCustodied  ?? false,
   };
 }
 
@@ -55,7 +42,7 @@ export const VaultService = {
     }
   },
 
-createRecord: async (data: VaultRecordInput): Promise<VaultRecord> => {
+  createRecord: async (data: VaultRecordInput): Promise<VaultRecord> => {
     try {
       return (await http.post<VaultRecord>("/vault/records", toApiPayload(data))).data;
     } catch (err) {
@@ -81,4 +68,11 @@ createRecord: async (data: VaultRecordInput): Promise<VaultRecord> => {
     }
   },
 
+  getCompleteness: async (): Promise<VaultCompleteness> => {
+    try {
+      return (await http.get<VaultCompleteness>("/vault/completeness")).data;
+    } catch (err) {
+      normalise(err);
+    }
+  },
 };
