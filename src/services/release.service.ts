@@ -19,4 +19,12 @@ export const ReleaseService = {
       normalise(err);
     }
   },
+
+  getExecutorReport: async (releaseId: string): Promise<{ url: string; expiresAt: string }> => {
+    try {
+      return (await http.get<{ url: string; expiresAt: string }>(`/release/report/${releaseId}`)).data;
+    } catch (err) {
+      normalise(err);
+    }
+  },
 };

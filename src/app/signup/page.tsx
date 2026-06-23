@@ -1,11 +1,12 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Shield } from "lucide-react";
 import { AuthLayout } from "@/components/layout/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,8 +43,14 @@ function FieldError({ message }: { message?: string }) {
   return <p className="text-[11.5px] text-red mt-[5px]">{message}</p>;
 }
 
-export default function SignupPage() {
-  const router = useRouter();
+function SignupForm() {
+  const router       = useRouter();
+  const searchParams = useSearchParams();
+
+  const executorToken    = searchParams.get("token");
+  const role             = searchParams.get("role");
+  const isExecutorInvite = role === "executor" && !!executorToken;
+
   const {
     register,
     handleSubmit,
@@ -52,10 +59,7 @@ export default function SignupPage() {
     setError,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      termsAccepted: false,
-      privacyAccepted: false,
-    },
+    defaultValues: { termsAccepted: false, privacyAccepted: false },
   });
 
   const passwordValue = watch("password") ?? "";
@@ -67,12 +71,13 @@ export default function SignupPage() {
         lastName: data.lastName,
         email: data.email,
         password: data.password,
+        ...(isExecutorInvite ? { executorToken, role } : {}),
       });
       router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
     } catch (err) {
-      const message =
-        err instanceof ServiceError ? err.message : "Something went wrong";
-      setError("root", { message });
+      setError("root", {
+        message: err instanceof ServiceError ? err.message : "Something went wrong",
+      });
     }
   };
 
@@ -88,10 +93,19 @@ export default function SignupPage() {
         </Link>
       </p>
 
+      {isExecutorInvite && (
+        <div className="flex items-start gap-3 bg-navy/5 border border-navy/20 rounded-xl p-4 mb-6">
+          <Shield size={16} className="text-navy flex-shrink-0 mt-[1px]" />
+          <p className="text-[13px] text-navy">
+            You&apos;ve been invited as an executor on Anchora. Create your account to confirm
+            your designation.
+          </p>
+        </div>
+      )}
+
       <SocialAuthButtons />
 
       <form onSubmit={handleSubmit(onSubmit)} method="post" noValidate>
-        {/* Name row */}
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
             <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
@@ -109,20 +123,14 @@ export default function SignupPage() {
           </div>
         </div>
 
-        {/* Email */}
         <div className="mb-4">
           <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
             Email address
           </label>
-          <Input
-            type="email"
-            placeholder="olumide@gmail.com"
-            {...register("email")}
-          />
+          <Input type="email" placeholder="olumide@gmail.com" {...register("email")} />
           <FieldError message={errors.email?.message} />
         </div>
 
-        {/* Password */}
         <div className="mb-4">
           <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
             Password
@@ -132,51 +140,33 @@ export default function SignupPage() {
           <FieldError message={errors.password?.message} />
         </div>
 
-        {/* Confirm password */}
         <div className="mb-5">
           <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
             Confirm password
           </label>
-          <PasswordInput
-            placeholder="Repeat your password"
-            {...register("confirmPassword")}
-          />
+          <PasswordInput placeholder="Repeat your password" {...register("confirmPassword")} />
           <FieldError message={errors.confirmPassword?.message} />
         </div>
 
-        {/* Checkboxes */}
         <div className="flex flex-col gap-2 mb-5">
           <label className="flex items-start gap-2 text-[12.5px] text-text-secondary cursor-pointer">
-            <input
-              type="checkbox"
-              className="mt-[2px] flex-shrink-0 accent-accent"
-              {...register("termsAccepted")}
-            />
+            <input type="checkbox" className="mt-[2px] flex-shrink-0 accent-accent" {...register("termsAccepted")} />
             <span>
               I accept the{" "}
-              <Link href="#" className="text-accent hover:underline">
-                Terms of Service
-              </Link>
+              <Link href="#" className="text-accent hover:underline">Terms of Service</Link>
             </span>
           </label>
           <FieldError message={errors.termsAccepted?.message} />
           <label className="flex items-start gap-2 text-[12.5px] text-text-secondary cursor-pointer">
-            <input
-              type="checkbox"
-              className="mt-[2px] flex-shrink-0 accent-accent"
-              {...register("privacyAccepted")}
-            />
+            <input type="checkbox" className="mt-[2px] flex-shrink-0 accent-accent" {...register("privacyAccepted")} />
             <span>
               I accept the{" "}
-              <Link href="#" className="text-accent hover:underline">
-                Privacy Policy
-              </Link>
+              <Link href="#" className="text-accent hover:underline">Privacy Policy</Link>
             </span>
           </label>
           <FieldError message={errors.privacyAccepted?.message} />
         </div>
 
-        {/* Root error */}
         {errors.root && (
           <p className="text-[12.5px] text-red bg-red-light border border-[#F5B0B0] rounded-md px-3 py-2 mb-4">
             {errors.root.message}
@@ -184,9 +174,7 @@ export default function SignupPage() {
         )}
 
         <Button type="submit" fullWidth disabled={isSubmitting}>
-          {isSubmitting ? (
-            <Loader2 size={15} className="animate-spin" />
-          ) : null}
+          {isSubmitting && <Loader2 size={15} className="animate-spin" />}
           Create account →
         </Button>
 
@@ -195,5 +183,13 @@ export default function SignupPage() {
         </p>
       </form>
     </AuthLayout>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense>
+      <SignupForm />
+    </Suspense>
   );
 }

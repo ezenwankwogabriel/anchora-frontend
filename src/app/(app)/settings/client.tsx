@@ -158,6 +158,7 @@ function ProfileTab() {
   const accessToken  = useAuthStore((s) => s.accessToken);
   const refreshToken = useAuthStore((s) => s.refreshToken);
   const sessionId    = useAuthStore((s) => s.sessionId);
+  const { planData } = usePlan();
 
   const profileResolver = _zodResolver as unknown as (schema: z.ZodTypeAny) => Resolver<ProfileFormData>;
 
@@ -225,9 +226,16 @@ function ProfileTab() {
             {initials}
           </div>
           <div>
-            <p className="text-[16px] font-[600] text-text-primary">
-              {user.firstName} {user.lastName}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-[16px] font-[600] text-text-primary">
+                {user.firstName} {user.lastName}
+              </p>
+              {planData && (
+                planData.plan === "PRO"
+                  ? <ProBadge />
+                  : <span className="bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-full">FREE</span>
+              )}
+            </div>
             <p className="text-[13px] text-text-tertiary">{user.email}</p>
           </div>
         </div>

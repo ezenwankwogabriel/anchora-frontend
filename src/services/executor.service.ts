@@ -41,4 +41,15 @@ export const ExecutorService = {
       normalise(err);
     }
   },
+
+  accept: async (token: string): Promise<{ status: "LINKED" | "SIGNUP_REQUIRED"; redirectUrl?: string }> => {
+    try {
+      return (await http.post<{ status: "LINKED" | "SIGNUP_REQUIRED"; redirectUrl?: string }>(
+        "/executor/accept",
+        { token }
+      )).data;
+    } catch (err) {
+      normalise(err);
+    }
+  },
 };
