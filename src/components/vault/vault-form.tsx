@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { FormSection } from "@/components/ui/form-section";
 import { InfoBanner } from "@/components/ui/info-banner";
+import { CharacterCounter } from "@/components/ui/character-counter";
 import { ServiceError } from "@/lib/types";
 import type { VaultRecord, VaultRecordInput, AssetCategory } from "@/lib/types";
 import {
@@ -98,6 +99,7 @@ export function VaultForm({
   });
 
   const isSelfCustodied = watch("isSelfCustodied");
+  const notesValue      = watch("notes") ?? "";
 
   const handleFormSubmit = async (values: VaultFormData) => {
     try {
@@ -131,7 +133,7 @@ export function VaultForm({
             <input
               type="checkbox"
               className="mt-[3px] h-4 w-4 rounded border-border-color text-accent focus:ring-accent accent-accent"
-              {...register("isSelfCustodied")}
+              checked={isSelfCustodied}
               onChange={(e) => setValue("isSelfCustodied", e.target.checked)}
             />
             <div>
@@ -161,6 +163,7 @@ export function VaultForm({
             rows={4}
             {...register("notes")}
           />
+          <CharacterCounter value={notesValue} max={500} />
           {field.helperText && <HelperText text={field.helperText} />}
           <FieldError message={error} />
         </FormSection>
