@@ -63,7 +63,7 @@ export interface AdminUserListItem {
   id: string;
   name: string;
   email: string;
-  inactivityStage: string;
+  inactivityStatus: string;
   lastActiveAt: string;
   isSuspended: boolean;
   createdAt: string;
@@ -149,14 +149,13 @@ export interface PaginatedList<T> {
 
 // ── Dev Tools ─────────────────────────────────────────────────────────────────
 
-export type InactivityStage = "NONE" | "STAGE_1" | "STAGE_2" | "STAGE_3";
+export type InactivityStatus = "ACTIVE" | "NOTIFIED" | "RELEASING";
 
 export interface DevUserState {
   userId: string;
   email: string;
-  inactivityStage: InactivityStage;
-  stageEnteredAt: string | null;
-  coolingOffUntil: string | null;
+  inactivityStatus: InactivityStatus;
+  notifiedAt: string | null;
   lastActivityAt: string;
   activeRelease: {
     id: string;

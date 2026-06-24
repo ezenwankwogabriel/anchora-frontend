@@ -183,7 +183,6 @@ export interface PlanLimits {
   canDownloadReport: boolean;
   canConfigureInactivityWindow: boolean;
   executorReceivesReport: boolean;
-  inactivityStageLimit: number;
 }
 
 export interface PlanData {

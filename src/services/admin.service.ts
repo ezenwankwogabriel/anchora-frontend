@@ -188,16 +188,16 @@ export const AdminService = {
     }
   },
 
-  devSetStage: async (
+  devSetStatus: async (
     userId: string,
-    stage: string,
+    status: string,
     backdateDays?: number,
   ): Promise<DevUserState> => {
     try {
       return (
         await adminHttp.post<DevUserState>(
-          `/admin/dev/users/${userId}/set-stage`,
-          { stage, ...(backdateDays !== undefined ? { backdateDays } : {}) },
+          `/admin/dev/users/${userId}/set-status`,
+          { status, ...(backdateDays !== undefined ? { backdateDays } : {}) },
         )
       ).data;
     } catch (err) {

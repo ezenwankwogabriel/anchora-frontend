@@ -7,16 +7,15 @@ import { AdminService } from "@/services/admin.service";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ServiceError } from "@/lib/types";
-import type { DevUserState, InactivityStage } from "@/lib/admin-types";
+import type { DevUserState, InactivityStatus } from "@/lib/admin-types";
 
-const STAGES: InactivityStage[] = ["NONE", "STAGE_1", "STAGE_2", "STAGE_3"];
+const STATUSES: InactivityStatus[] = ["ACTIVE", "NOTIFIED", "RELEASING"];
 
-const STAGE_VARIANT = {
-  NONE:    "success",
-  STAGE_1: "warning",
-  STAGE_2: "warning",
-  STAGE_3: "error",
-} as const;
+const STATUS_VARIANT: Record<InactivityStatus, "success" | "warning" | "error"> = {
+  ACTIVE:    "success",
+  NOTIFIED:  "warning",
+  RELEASING: "error",
+};
 
 function fmt(iso: string | null) {
   if (!iso) return "—";
@@ -35,15 +34,14 @@ function StateCard({ state }: { state: DevUserState }) {
           <p className="text-[11.5px] text-text-tertiary font-mono mt-0.5">{state.userId}</p>
         </div>
         <StatusBadge
-          variant={STAGE_VARIANT[state.inactivityStage]}
-          label={state.inactivityStage}
+          variant={STATUS_VARIANT[state.inactivityStatus]}
+          label={state.inactivityStatus}
         />
       </div>
 
       <div className="grid grid-cols-2 gap-x-6 gap-y-2 pt-1 border-t border-border-color">
-        <Row label="Stage entered" value={fmt(state.stageEnteredAt)} />
+        <Row label="Notified at" value={fmt(state.notifiedAt)} />
         <Row label="Last activity" value={fmt(state.lastActivityAt)} />
-        <Row label="Cooling off until" value={fmt(state.coolingOffUntil)} />
         <Row
           label="Active release"
           value={
@@ -84,7 +82,7 @@ export default function DevToolsPage() {
   const [error, setError]       = useState<string | null>(null);
 
   // Set-stage controls
-  const [selectedStage, setSelectedStage] = useState<InactivityStage>("STAGE_3");
+  const [selectedStatus, setSelectedStatus] = useState<InactivityStatus>("NOTIFIED");
   const [backdateDays, setBackdateDays]   = useState("");
 
   if (process.env.NEXT_PUBLIC_DEV_TOOLS !== "true") return null;
@@ -123,12 +121,12 @@ export default function DevToolsPage() {
     }
   }
 
-  function handleSetStage() {
+  function handleSetStatus() {
     if (!state) return;
     const days = backdateDays ? parseInt(backdateDays, 10) : undefined;
     withAction(
-      "Set stage",
-      () => AdminService.devSetStage(state.userId, selectedStage, days),
+      "Set status",
+      () => AdminService.devSetStatus(state.userId, selectedStatus, days),
     );
   }
 
@@ -190,11 +188,11 @@ export default function DevToolsPage() {
             <div className="flex flex-col gap-1">
               <label className="text-[11px] text-text-tertiary uppercase tracking-wide">Stage</label>
               <select
-                value={selectedStage}
-                onChange={(e) => setSelectedStage(e.target.value as InactivityStage)}
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value as InactivityStatus)}
                 className="px-3 py-2 rounded-lg border border-border-color bg-bg text-[13px] text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30"
               >
-                {STAGES.map((s) => (
+                {STATUSES.map((s) => (
                   <option key={s} value={s}>{s}</option>
                 ))}
               </select>
@@ -212,11 +210,11 @@ export default function DevToolsPage() {
               />
             </div>
             <button
-              onClick={handleSetStage}
+              onClick={handleSetStatus}
               disabled={loading}
               className="px-4 py-2 rounded-lg border border-border-color text-[13px] font-[500] text-text-primary hover:bg-bg/60 disabled:opacity-40 transition-colors"
             >
-              Set stage
+              Set status
             </button>
           </div>
 

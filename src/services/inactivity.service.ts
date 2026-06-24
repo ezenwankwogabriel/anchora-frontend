@@ -1,9 +1,9 @@
 import http, { normalise } from "@/lib/axios";
 
 export const InactivityService = {
-  checkIn: async (): Promise<{ message: string; coolingOffUntil: string | null }> => {
+  checkIn: async (): Promise<{ message: string }> => {
     try {
-      return (await http.post<{ message: string; coolingOffUntil: string | null }>("/inactivity/check-in")).data;
+      return (await http.post<{ message: string }>("/inactivity/check-in")).data;
     } catch (err) {
       normalise(err);
     }
