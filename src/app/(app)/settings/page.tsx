@@ -1,5 +1,9 @@
 import { SettingsClient } from "./client";
 
-export default function SettingsPage() {
-  return <SettingsClient />;
+export default function SettingsPage({
+  searchParams,
+}: {
+  searchParams: { tab?: string };
+}) {
+  return <SettingsClient initialTab={searchParams.tab} />;
 }

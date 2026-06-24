@@ -138,6 +138,7 @@ export const AuthService = {
     lastName?: string;
     phoneNumber?: string;
     reminderFrequencyDays?: number;
+    inactivityWindowMonths?: number;
   }): Promise<User> => {
     try {
       return (await http.patch<User>("/auth/me", data)).data;

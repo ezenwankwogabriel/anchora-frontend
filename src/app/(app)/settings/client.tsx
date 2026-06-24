@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
+import { useToastStore } from "@/stores/toastStore";
 import { zodResolver as _zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -11,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormSection } from "@/components/ui/form-section";
 import { StatusBadge } from "@/components/ui/status-badge";
-import { InfoBanner } from "@/components/ui/info-banner";
 import { AuthService } from "@/services/auth.service";
 import { useAuthStore } from "@/stores/authStore";
 import { ServiceError } from "@/lib/types";
@@ -20,10 +20,12 @@ import { cn } from "@/lib/utils";
 import { ProBadge } from "@/components/ui/pro-badge";
 import { UpgradePrompt } from "@/components/ui/upgrade-prompt";
 import { usePlan } from "@/hooks/usePlan";
+import Link from "next/link";
+import { CheckCircle2, X, ArrowRight } from "lucide-react";
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
-const TABS = ["Profile", "Security", "Notifications", "Account"] as const;
+const TABS = ["Profile", "Security", "Notifications", "Plan", "Account"] as const;
 type Tab = (typeof TABS)[number];
 
 function TabNav({ active, onChange }: { active: Tab; onChange: (t: Tab) => void }) {
@@ -697,174 +699,331 @@ function DangerZone() {
   );
 }
 
-// ── Notifications ─────────────────────────────────────────────────────────────
+// ── Inactivity & Reminders ────────────────────────────────────────────────────
 
-const FREQUENCY_OPTIONS: Array<{ value: number; label: string; recommended?: boolean }> = [
-  { value: 30,  label: "Every month" },
-  { value: 90,  label: "Every 3 months", recommended: true },
-  { value: 180, label: "Every 6 months" },
-  { value: 0,   label: "Never" },
+const INACTIVITY_OPTIONS: Array<{ value: number; label: string; recommended?: boolean }> = [
+  { value: 3,  label: "3 months", recommended: true },
+  { value: 6,  label: "6 months" },
+  { value: 12, label: "12 months" },
+  { value: 18, label: "18 months" },
 ];
 
-function NotificationsSection() {
+const REMINDER_OPTIONS: Array<{ value: number; label: string; recommended?: boolean }> = [
+  { value: 1, label: "Every month", recommended: true },
+  { value: 3, label: "Every 3 months" },
+  { value: 6, label: "Every 6 months" },
+  { value: 0, label: "Never" },
+];
+
+const MONTHS_TO_DAYS: Record<number, number> = { 1: 30, 3: 90, 6: 180, 0: 0 };
+const DAYS_TO_MONTHS: Record<number, number> = { 30: 1, 90: 3, 180: 6, 0: 0 };
+
+function InactivityRemindersSection() {
+  const { isFree, loading: planLoading } = usePlan();
   const user         = useAuthStore((s) => s.user);
   const setAuth      = useAuthStore((s) => s.setAuth);
   const accessToken  = useAuthStore((s) => s.accessToken);
   const refreshToken = useAuthStore((s) => s.refreshToken);
   const sessionId    = useAuthStore((s) => s.sessionId);
+  const addToast     = useToastStore((s) => s.add);
 
-  const [frequency, setFrequency] = useState<number>(user?.reminderFrequencyDays ?? 90);
-  const [saving, setSaving]       = useState(false);
-  const [saved, setSaved]         = useState(false);
-  const [error, setError]         = useState<string | null>(null);
+  const [inactivityWindow, setInactivityWindow] = useState(
+    user?.inactivityWindowMonths ?? 3
+  );
+  const [reminderFrequency, setReminderFrequency] = useState(
+    DAYS_TO_MONTHS[user?.reminderFrequencyDays ?? 30] ?? 1
+  );
+  const [saving, setSaving] = useState(false);
 
-  const handleSelect = async (value: number) => {
-    const previous = frequency;
-    setFrequency(value);
-    setError(null);
+  const showCrossValidation = reminderFrequency > 0 && reminderFrequency >= inactivityWindow;
+
+  const handleSave = async () => {
     setSaving(true);
     try {
-      const updated = await AuthService.updateMe({ reminderFrequencyDays: value });
+      const updated = await AuthService.updateMe({
+        reminderFrequencyDays: MONTHS_TO_DAYS[reminderFrequency],
+        inactivityWindowMonths: inactivityWindow,
+      });
       if (user && accessToken) {
         setAuth(
-          { ...user, reminderFrequencyDays: updated.reminderFrequencyDays },
+          {
+            ...user,
+            reminderFrequencyDays: updated.reminderFrequencyDays,
+            inactivityWindowMonths: updated.inactivityWindowMonths,
+          },
           accessToken,
           refreshToken ?? "",
           sessionId ?? "",
         );
       }
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    } catch (err) {
-      setFrequency(previous);
-      setError(err instanceof ServiceError ? err.message : "Failed to save — please try again");
+      addToast("Settings saved.", "success");
+    } catch {
+      addToast("Failed to save settings. Please try again.", "error");
     } finally {
       setSaving(false);
     }
   };
 
+  if (planLoading) {
+    return (
+      <div>
+        <div className="animate-pulse h-5 w-48 bg-surface-2 rounded mb-2" />
+        <div className="animate-pulse h-3.5 w-full max-w-lg bg-surface-2 rounded mb-5" />
+        <div className="bg-surface rounded-xl border border-border-color overflow-hidden">
+          <div className="p-5">
+            <div className="animate-pulse h-3.5 w-32 bg-surface-2 rounded mb-3" />
+            <div className="flex gap-2">
+              {[1, 2, 3, 4].map((i) => <div key={i} className="animate-pulse h-9 w-24 bg-surface-2 rounded-lg" />)}
+            </div>
+          </div>
+          <div className="p-5 border-t border-border-color">
+            <div className="animate-pulse h-3.5 w-36 bg-surface-2 rounded mb-3" />
+            <div className="flex gap-2">
+              {[1, 2, 3, 4].map((i) => <div key={i} className="animate-pulse h-9 w-28 bg-surface-2 rounded-lg" />)}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <Section
-      title="Reminder notifications"
-      description="How often Anchora should remind you to confirm your vault is up to date."
-    >
-      <div className="flex flex-wrap gap-2 mb-4">
-        {FREQUENCY_OPTIONS.map(({ value, label, recommended }) => (
-          <button
-            key={value}
-            type="button"
-            disabled={saving}
-            onClick={() => handleSelect(value)}
-            className={cn(
-              "px-4 py-2 border-[1.5px] rounded-lg text-[13px] font-[500] transition-all disabled:opacity-60",
-              frequency === value
-                ? "border-accent bg-accent-light text-accent"
-                : "border-border-color text-text-secondary hover:border-accent hover:bg-surface-2"
-            )}
-          >
-            {label}
-            {recommended && (
-              <span className="ml-1.5 text-[11px] font-normal opacity-70">(Recommended)</span>
-            )}
-          </button>
-        ))}
+    <div>
+      <div className="flex items-center gap-2 mb-1">
+        <h2 className="text-[14px] font-semibold text-text-primary">Inactivity &amp; Reminders</h2>
+        {isFree && <ProBadge />}
+      </div>
+      <p className="text-sm text-text-secondary mb-4">
+        If Anchora doesn&apos;t detect any activity from you within your chosen window, your executor
+        will be notified to begin the estate release process. We&apos;ll send you reminders throughout
+        so you can check in and reset the clock.
+      </p>
+
+      <div className={cn(
+        "bg-surface rounded-xl border border-border-color overflow-hidden mb-5",
+        isFree && "pointer-events-none opacity-60"
+      )}>
+        {/* Inactivity window */}
+        <div className="p-5">
+          <p className="text-[13px] font-semibold text-text-primary mb-0.5">Inactivity window</p>
+          <p className="text-[12px] text-text-secondary mb-3">
+            How long before your executor is notified after your last activity.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {INACTIVITY_OPTIONS.map(({ value, label, recommended }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setInactivityWindow(value)}
+                className={cn(
+                  "px-4 py-2 border-[1.5px] rounded-lg text-[13px] font-[500] transition-all",
+                  inactivityWindow === value
+                    ? "border-accent bg-accent-light text-accent"
+                    : "border-border-color text-text-secondary hover:border-accent hover:bg-surface-2"
+                )}
+              >
+                {label}
+                {recommended && (
+                  <span className="ml-1.5 text-[11px] font-normal opacity-70">(Recommended)</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Cross-validation advisory */}
+        {showCrossValidation && (
+          <div className="flex items-start gap-2.5 px-5 py-3 border-t border-border-color bg-amber-light">
+            <AlertTriangle size={14} className="text-amber mt-[1px] flex-shrink-0" />
+            <p className="text-sm text-amber leading-relaxed">
+              Your reminder frequency is longer than your inactivity window. You may not receive any reminders before release is triggered.
+            </p>
+          </div>
+        )}
+
+        {/* Reminder frequency */}
+        <div className="p-5 border-t border-border-color">
+          <p className="text-[13px] font-semibold text-text-primary mb-0.5">Reminder frequency</p>
+          <p className="text-[12px] text-text-secondary mb-3">
+            How often Anchora reminds you to confirm your vault is up to date.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {REMINDER_OPTIONS.map(({ value, label, recommended }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setReminderFrequency(value)}
+                className={cn(
+                  "px-4 py-2 border-[1.5px] rounded-lg text-[13px] font-[500] transition-all",
+                  reminderFrequency === value
+                    ? "border-accent bg-accent-light text-accent"
+                    : "border-border-color text-text-secondary hover:border-accent hover:bg-surface-2"
+                )}
+              >
+                {label}
+                {recommended && (
+                  <span className="ml-1.5 text-[11px] font-normal opacity-70">(Recommended)</span>
+                )}
+              </button>
+            ))}
+          </div>
+          {reminderFrequency === 0 && (
+            <p className="text-xs text-amber mt-2">
+              You won&apos;t receive reminders before your executor is notified.
+            </p>
+          )}
+        </div>
+
+        {/* Save */}
+        <div className="px-5 py-4 border-t border-border-color flex justify-end">
+          <Button onClick={handleSave} disabled={saving}>
+            {saving && <Loader2 size={15} className="animate-spin" />}
+            Save changes
+          </Button>
+        </div>
       </div>
 
-      {frequency === 0 && (
-        <InfoBanner variant="warning" className="mb-4">
-          You&apos;ll still be notified if your vault approaches the release threshold.
-        </InfoBanner>
+      {isFree && (
+        <UpgradePrompt
+          feature="Configurable inactivity window"
+          description="Set a custom inactivity window and reminder schedule. Available on Pro."
+        />
       )}
-
-      {error && <InlineError message={error} />}
-      {saved && <InlineSuccess message="Saved" />}
-    </Section>
+    </div>
   );
 }
 
-// ── Inactivity window ─────────────────────────────────────────────────────────
+// ── Plan tab ──────────────────────────────────────────────────────────────────
 
-const INACTIVITY_OPTIONS = [
-  { value: 6,  label: "6 months" },
-  { value: 12, label: "12 months" },
-  { value: 18, label: "18 months" },
-  { value: 24, label: "24 months" },
-];
+function PlanFeature({ included, text }: { included: boolean; text: string }) {
+  return (
+    <li className="flex items-start gap-2">
+      {included
+        ? <CheckCircle2 size={14} className="text-green flex-shrink-0 mt-[2px]" />
+        : <X           size={14} className="text-text-tertiary flex-shrink-0 mt-[2px]" />}
+      <span className={`text-[13px] ${included ? "text-text-primary" : "text-text-tertiary"}`}>
+        {text}
+      </span>
+    </li>
+  );
+}
 
-function InactivitySection() {
-  const { isFree, loading: planLoading } = usePlan();
-  const [selected, setSelected] = useState(12);
-  const [saving, setSaving]     = useState(false);
-  const [saved, setSaved]       = useState(false);
+function PlanTab() {
+  const { planData, loading } = usePlan();
+  const user = useAuthStore((s) => s.user);
+  const [showComingSoon, setShowComingSoon] = useState(false);
 
-  const handleSelect = async (value: number) => {
-    if (isFree) return;
-    const prev = selected;
-    setSelected(value);
-    setSaving(true);
-    try {
-      // PATCH /inactivity/settings — wire up when endpoint is ready
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    } catch {
-      setSelected(prev);
-    } finally {
-      setSaving(false);
-    }
-  };
+  if (loading) return null;
+
+  const isPro = planData?.plan === "PRO";
 
   return (
-    <Section
-      title="Inactivity window"
-      description="How long Anchora waits before triggering the release pipeline after your last activity."
-    >
-      {!planLoading && isFree && (
-        <div className="mb-4">
-          <ProBadge />
+    <>
+      <Section title="Current plan" description="Your active Anchora subscription.">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <p className="text-[15px] font-semibold text-text-primary">
+                {isPro ? "Pro" : "Free"}
+              </p>
+              {isPro && <ProBadge />}
+            </div>
+            <p className="text-[12.5px] text-text-secondary">
+              {isPro
+                ? planData?.planExpiresAt
+                  ? `Renews ${new Date(planData.planExpiresAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`
+                  : "Active"
+                : "Up to 3 asset records · all 11 categories"}
+            </p>
+          </div>
+          {!isPro && (
+            <Button size="sm" onClick={() => setShowComingSoon(true)}>
+              Upgrade to Pro
+              <ArrowRight size={13} />
+            </Button>
+          )}
         </div>
-      )}
+      </Section>
 
-      <div className={cn("flex flex-wrap gap-2 mb-4", isFree && "pointer-events-none opacity-60")}>
-        {INACTIVITY_OPTIONS.map(({ value, label }) => (
-          <button
-            key={value}
-            type="button"
-            disabled={saving || isFree}
-            onClick={() => handleSelect(value)}
-            className={cn(
-              "px-4 py-2 border-[1.5px] rounded-lg text-[13px] font-[500] transition-all disabled:pointer-events-none",
-              selected === value
-                ? "border-accent bg-accent-light text-accent"
-                : "border-border-color text-text-secondary hover:border-accent hover:bg-surface-2"
-            )}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="flex gap-5">
+        {/* Free */}
+        <div className="flex-1 bg-surface border border-border-color rounded-xl p-5">
+          <span className="bg-[#F3F4F6] text-[#6B7280] text-[11.5px] font-medium px-2.5 py-1 rounded-full">
+            Free
+          </span>
+          <p className="text-[26px] font-heading text-text-primary mt-3">₦0</p>
+          <p className="text-[12px] text-text-secondary">Always free</p>
+          <ul className="mt-4 space-y-2">
+            <PlanFeature included text="Up to 3 asset records" />
+            <PlanFeature included text="All 11 asset categories" />
+            <PlanFeature included text="Designate one executor" />
+            <PlanFeature included text="Inactivity monitoring" />
+            <PlanFeature included={false} text="Executor receives estate report" />
+            <PlanFeature included={false} text="Downloadable estate summary" />
+            <PlanFeature included={false} text="Configurable inactivity window" />
+            <PlanFeature included={false} text="Unlimited asset records" />
+          </ul>
+          <Button variant="secondary" fullWidth disabled className="mt-5">
+            {!isPro ? "Current plan" : "Free"}
+          </Button>
+        </div>
+
+        {/* Pro */}
+        <div className="flex-1 bg-surface border-2 border-navy rounded-xl p-5">
+          <span className="bg-navy text-white text-[11.5px] font-medium px-2.5 py-1 rounded-full">
+            Pro
+          </span>
+          <p className="text-[26px] font-heading text-navy mt-3">₦2,500</p>
+          <p className="text-[12px] text-text-secondary">per month</p>
+          <ul className="mt-4 space-y-2">
+            <PlanFeature included text="Unlimited asset records" />
+            <PlanFeature included text="All 11 asset categories" />
+            <PlanFeature included text="Designate one executor" />
+            <PlanFeature included text="Full inactivity monitoring" />
+            <PlanFeature included text="Executor receives estate report" />
+            <PlanFeature included text="Downloadable estate summary" />
+            <PlanFeature included text="Configurable inactivity window (6–24 mo)" />
+            <PlanFeature included text="Priority email support" />
+          </ul>
+          {isPro ? (
+            <Button fullWidth disabled className="mt-5">Current plan</Button>
+          ) : (
+            <Button fullWidth className="mt-5" onClick={() => setShowComingSoon(true)}>
+              Upgrade to Pro
+            </Button>
+          )}
+        </div>
       </div>
 
-      {!planLoading && isFree && (
-        <>
-          <p className="text-[13px] text-text-secondary mb-4">
-            Inactivity window configuration is available on Pro. Free plan monitors for inactivity
-            but uses a fixed window.
-          </p>
-          <UpgradePrompt
-            feature="Configurable inactivity window"
-            description="Set a custom inactivity window between 6 and 24 months. Available on Pro."
-          />
-        </>
-      )}
+      <p className="text-[12.5px] text-text-secondary text-center mt-5">
+        Questions? Contact us at hello@anchora.co
+      </p>
 
-      {saved && <p className="text-[12.5px] text-green mt-2">Saved</p>}
-    </Section>
+      {showComingSoon && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowComingSoon(false)} />
+          <div className="relative bg-surface rounded-xl shadow-xl p-6 max-w-sm w-full mx-4 text-center">
+            <p className="text-[15px] font-semibold text-text-primary mb-2">Coming soon</p>
+            <p className="text-[13px] text-text-secondary">
+              Payment is coming soon. We&apos;ll notify you at{" "}
+              <span className="font-medium text-text-primary">{user?.email}</span>{" "}
+              when Pro is available.
+            </p>
+            <Button className="mt-5" onClick={() => setShowComingSoon(false)}>Got it</Button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export function SettingsClient() {
-  const [tab, setTab] = useState<Tab>("Profile");
+export function SettingsClient({ initialTab }: { initialTab?: string }) {
+  const validTab = (TABS as readonly string[]).includes(initialTab ?? "")
+    ? (initialTab as Tab)
+    : "Profile";
+  const [tab, setTab] = useState<Tab>(validTab);
 
   return (
     <div className="mx-auto">
@@ -884,13 +1043,9 @@ export function SettingsClient() {
             {false && <MfaSection />}
           </>
         )}
-        {tab === "Notifications" && <NotificationsSection />}
-        {tab === "Account" && (
-          <>
-            <InactivitySection />
-            <DangerZone />
-          </>
-        )}
+        {tab === "Notifications" && <InactivityRemindersSection />}
+        {tab === "Plan" && <PlanTab />}
+        {tab === "Account" && <DangerZone />}
     </div>
   );
 }
