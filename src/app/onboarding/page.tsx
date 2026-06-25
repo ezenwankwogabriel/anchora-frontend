@@ -153,7 +153,7 @@ const HOW_STEPS = [
   {
     icon: <VaultIcon />,
     title: "Store",
-    desc: "Add your financial accounts across up to 7 categories — banks, crypto, pensions, and more.",
+    desc: "Add your financial accounts across up to 12 categories — banks, crypto, pensions, and more.",
   },
   {
     icon: <UsersIcon />,
