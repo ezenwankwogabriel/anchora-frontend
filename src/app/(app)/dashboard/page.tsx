@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, FilePlus, FileEdit, Shield, Clock, CheckCircle } from "lucide-react";
+import { Plus, FilePlus, FileEdit, Shield, Clock, CheckCircle, AlertTriangle } from "lucide-react";
 import { HealthCard } from "@/components/ui/health-card";
 import { PanelCard } from "@/components/ui/panel-card";
 import { ChecklistCard, type ChecklistItem } from "@/components/ui/checklist-card";
@@ -66,8 +66,8 @@ function deriveActivity(records: VaultRecord[] | null): ActivityItem[] {
 
 function buildChecklist(hasRecords: boolean, executor: Executor | null): ChecklistItem[] {
   return [
-    { id: "vault",    label: "Add your first financial asset", done: hasRecords,        href: "/vault/add" },
-    { id: "executor", label: "Designate your executor",        done: executor !== null, href: "/executor" },
+    { id: "vault",    label: "Add your first financial asset", done: hasRecords,                                        href: "/vault/add" },
+    { id: "executor", label: "Designate your executor",        done: executor !== null && executor.status !== "DECLINED", href: "/executor" },
   ];
 }
 
@@ -147,19 +147,25 @@ export default function DashboardPage() {
               label="Executor"
               borderAccent="accent"
               value={
-                executor === null ? "None"
+                executor === null                       ? "None"
                 : executor.status === "PENDING_INVITE" ? "Pending"
-                : "Active"
+                : executor.status === "ACTIVE"         ? "Active"
+                : executor.status === "DECLINED"       ? "Declined"
+                : executor.status
               }
               subtext={
-                executor === null ? "No executor designated"
+                executor === null                       ? "No executor designated"
                 : executor.status === "PENDING_INVITE" ? `Invitation sent to ${executor.name}`
-                : `${executor.name} is active`
+                : executor.status === "ACTIVE"         ? `${executor.name} is active`
+                : executor.status === "DECLINED"       ? `${executor.name} declined the invitation`
+                : executor.name
               }
               status={
-                executor === null ? "critical"
+                executor === null                       ? "critical"
                 : executor.status === "PENDING_INVITE" ? "warning"
-                : "good"
+                : executor.status === "ACTIVE"         ? "good"
+                : executor.status === "DECLINED"       ? "critical"
+                : "warning"
               }
             />
             <HealthCard
@@ -203,7 +209,18 @@ export default function DashboardPage() {
               View executor →
             </Link>
           </div>
-        ) : (
+        ) : executor.status === "DECLINED" ? (
+          <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+            <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-[500] text-amber-900">Executor invitation declined</p>
+              <p className="text-[12px] text-amber-700">{executor.name} declined your invitation. Resend or designate someone else.</p>
+            </div>
+            <Link href="/executor" className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap flex-shrink-0">
+              View executor →
+            </Link>
+          </div>
+        ) : executor.status === "ACTIVE" ? (
           <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
             <CheckCircle size={16} className="text-emerald-500 flex-shrink-0 mt-[2px]" />
             <div className="flex-1 min-w-0">
@@ -214,7 +231,7 @@ export default function DashboardPage() {
               View executor →
             </Link>
           </div>
-        )
+        ) : null
       )}
 
       {/* Onboarding checklist */}

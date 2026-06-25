@@ -210,7 +210,28 @@ function ExecutorCard({ executor, onRemoved }: ExecutorCardProps) {
     }
   };
 
-  const isPending = executor.status === "PENDING_INVITE";
+  function getStatusBadge(status: typeof executor.status): { label: string; className: string } {
+    switch (status) {
+      case "PENDING_INVITE":
+        return { label: "Invitation pending", className: "bg-amber-100 text-amber-800" };
+      case "ACTIVE":
+        return { label: "Active", className: "bg-emerald-100 text-emerald-700" };
+      case "DECLINED":
+        return { label: "Declined", className: "bg-red-light text-red" };
+      case "REMOVED":
+        return { label: "Removed", className: "bg-surface-2 text-text-tertiary" };
+      default: {
+        // compile-time guard: if a new status is added to ExecutorStatus, TypeScript
+        // will error here until this switch is updated
+        ((_: never) => {})(status);
+        return { label: "Unknown", className: "bg-surface-2 text-text-tertiary" };
+      }
+    }
+  }
+
+  const isPending  = executor.status === "PENDING_INVITE";
+  const isDeclined = executor.status === "DECLINED";
+  const statusBadge = getStatusBadge(executor.status);
 
   return (
     <div className="space-y-6">
@@ -220,6 +241,16 @@ function ExecutorCard({ executor, onRemoved }: ExecutorCardProps) {
           This person will receive your estate report if a release is triggered.
         </p>
       </div>
+
+      {isDeclined && (
+        <div className="flex items-start gap-3 bg-red-light border border-[#F5B0B0] rounded-xl p-4">
+          <AlertTriangle size={16} className="text-red flex-shrink-0 mt-[1px]" />
+          <p className="text-[13px] text-red">
+            <strong>{executor.name}</strong> declined your executor invitation. You can resend
+            the invitation or remove them and designate someone else.
+          </p>
+        </div>
+      )}
 
       <div className="bg-surface border border-border-color rounded-xl shadow-sm p-6">
         <div className="flex items-center gap-4 mb-4">
@@ -236,14 +267,8 @@ function ExecutorCard({ executor, onRemoved }: ExecutorCardProps) {
         </div>
 
         <div className="mb-1">
-          <span
-            className={
-              isPending
-                ? "bg-amber-100 text-amber-800 text-[12px] font-medium px-2.5 py-0.5 rounded-full"
-                : "bg-emerald-100 text-emerald-700 text-[12px] font-medium px-2.5 py-0.5 rounded-full"
-            }
-          >
-            {isPending ? "Invitation pending" : "Active"}
+          <span className={`text-[12px] font-medium px-2.5 py-0.5 rounded-full ${statusBadge.className}`}>
+            {statusBadge.label}
           </span>
         </div>
 
@@ -254,7 +279,7 @@ function ExecutorCard({ executor, onRemoved }: ExecutorCardProps) {
         <div className="border-t border-border-color mb-4" />
 
         <div className="flex gap-2 flex-wrap">
-          {isPending && (
+          {(isPending || isDeclined) && (
             <Button variant="secondary" size="sm" onClick={handleResend} disabled={resending}>
               {resending && <Loader2 size={13} className="animate-spin" />}
               Resend invitation
