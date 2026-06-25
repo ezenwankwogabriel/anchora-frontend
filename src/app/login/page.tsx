@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Shield } from "lucide-react";
 import { AuthLayout } from "@/components/layout/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -58,12 +58,10 @@ function CredentialsStep({
 }: {
   onMfaRequired: (tempToken: string) => void;
 }) {
-  const router = useRouter();
-  const setAuth = useAuthStore((s) => s.setAuth);
-  const searchParams = new URLSearchParams(
-    typeof window !== "undefined" ? window.location.search : ""
-  );
-  const oauthError = searchParams.get("error") === "oauth_failed";
+  const router      = useRouter();
+  const setAuth     = useAuthStore((s) => s.setAuth);
+  const searchParams = useSearchParams();
+  const oauthError  = searchParams.get("error") === "oauth_failed";
 
   const {
     register,
@@ -71,6 +69,9 @@ function CredentialsStep({
     formState: { errors, isSubmitting },
     setError,
   } = useForm<CredentialsForm>({ resolver: zodResolver(credentialsSchema) });
+
+  const next               = searchParams.get("next");
+  const isExecutorInvite   = !!next && next.includes("/executor/accept");
 
   const onSubmit = async (data: CredentialsForm) => {
     try {
@@ -80,7 +81,7 @@ function CredentialsStep({
       } else {
         const user = await AuthService.getMe(res.accessToken);
         setAuth(user, res.accessToken, res.refreshToken, res.sessionId);
-        const dest = user.onboardingCompletedAt ? "/dashboard" : "/onboarding";
+        const dest = next ?? (user.onboardingCompletedAt ? "/dashboard" : "/onboarding");
         router.push(dest);
       }
     } catch (err) {
@@ -109,6 +110,15 @@ function CredentialsStep({
           Create one
         </Link>
       </p>
+
+      {isExecutorInvite && (
+        <div className="flex items-start gap-3 bg-navy/5 border border-navy/20 rounded-xl p-4 mb-6">
+          <Shield size={16} className="text-navy flex-shrink-0 mt-[1px]" />
+          <p className="text-[13px] text-navy">
+            Sign in to accept your executor invitation on Anchora.
+          </p>
+        </div>
+      )}
 
       {oauthError && (
         <p className="text-[12.5px] text-red bg-red-light border border-[#F5B0B0] rounded-md px-3 py-2 mb-4">
@@ -161,8 +171,10 @@ function CredentialsStep({
 
 // ── MFA step ───────────────────────────────────────────────────────────────
 function MfaStep({ tempToken }: { tempToken: string }) {
-  const router = useRouter();
-  const setAuth = useAuthStore((s) => s.setAuth);
+  const router       = useRouter();
+  const setAuth      = useAuthStore((s) => s.setAuth);
+  const searchParams = useSearchParams();
+  const next         = searchParams.get("next");
   const [useRecovery, setUseRecovery] = useState(false);
 
   const codeForm = useForm<MfaCodeForm>({ resolver: zodResolver(mfaCodeSchema) });
@@ -172,7 +184,7 @@ function MfaStep({ tempToken }: { tempToken: string }) {
     const res = await AuthService.verifyMfa({ code, tempToken });
     const user = await AuthService.getMe(res.accessToken);
     setAuth(user, res.accessToken, res.refreshToken, res.sessionId);
-    const dest = user.onboardingCompletedAt ? "/dashboard" : "/onboarding";
+    const dest = next ?? (user.onboardingCompletedAt ? "/dashboard" : "/onboarding");
     router.push(dest);
   };
 
@@ -266,7 +278,7 @@ function MfaStep({ tempToken }: { tempToken: string }) {
 }
 
 // ── Page ───────────────────────────────────────────────────────────────────
-export default function LoginPage() {
+function LoginContent() {
   const [tempToken, setTempToken] = useState<string | null>(null);
 
   return (
@@ -277,5 +289,13 @@ export default function LoginPage() {
         <CredentialsStep onMfaRequired={setTempToken} />
       )}
     </AuthLayout>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
   );
 }
