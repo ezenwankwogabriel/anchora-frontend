@@ -20,7 +20,6 @@ import { cn } from "@/lib/utils";
 import { ProBadge } from "@/components/ui/pro-badge";
 import { UpgradePrompt } from "@/components/ui/upgrade-prompt";
 import { usePlan } from "@/hooks/usePlan";
-import Link from "next/link";
 import { CheckCircle2, X, ArrowRight } from "lucide-react";
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
