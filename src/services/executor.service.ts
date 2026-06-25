@@ -42,12 +42,19 @@ export const ExecutorService = {
     }
   },
 
-  accept: async (token: string): Promise<{ status: "LINKED" | "SIGNUP_REQUIRED"; redirectUrl?: string }> => {
+  accept: async (token: string): Promise<{ status: "LINKED" | "LOGIN_REQUIRED" | "SIGNUP_REQUIRED"; redirectUrl?: string }> => {
     try {
-      return (await http.post<{ status: "LINKED" | "SIGNUP_REQUIRED"; redirectUrl?: string }>(
-        "/executor/accept",
-        { token }
+      return (await http.post<{ status: "LINKED" | "LOGIN_REQUIRED" | "SIGNUP_REQUIRED"; redirectUrl?: string }>(
+        `/executor/accept?token=${encodeURIComponent(token)}`
       )).data;
+    } catch (err) {
+      normalise(err);
+    }
+  },
+
+  decline: async (token: string): Promise<void> => {
+    try {
+      await http.post(`/executor/decline?token=${encodeURIComponent(token)}`);
     } catch (err) {
       normalise(err);
     }

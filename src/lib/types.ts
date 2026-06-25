@@ -145,7 +145,7 @@ export interface GuardianInput {
 
 // ── Executor ──────────────────────────────────────────
 
-export type ExecutorStatus = "PENDING_INVITE" | "ACTIVE" | "REMOVED";
+export type ExecutorStatus = "PENDING_INVITE" | "ACTIVE" | "DECLINED" | "REMOVED";
 
 export interface Executor {
   id: string;
