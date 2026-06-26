@@ -153,13 +153,12 @@ const zodResolver = _zodResolver as unknown as (
 
 // ── Profile tab ───────────────────────────────────────────────────────────────
 
-function ProfileTab() {
+function ProfileTab({ planData }: { planData: ReturnType<typeof usePlan>["planData"] }) {
   const user         = useAuthStore((s) => s.user);
   const setAuth      = useAuthStore((s) => s.setAuth);
   const accessToken  = useAuthStore((s) => s.accessToken);
   const refreshToken = useAuthStore((s) => s.refreshToken);
   const sessionId    = useAuthStore((s) => s.sessionId);
-  const { planData } = usePlan();
 
   const profileResolver = _zodResolver as unknown as (schema: z.ZodTypeAny) => Resolver<ProfileFormData>;
 
@@ -717,8 +716,7 @@ const REMINDER_OPTIONS: Array<{ value: number; label: string; recommended?: bool
 const MONTHS_TO_DAYS: Record<number, number> = { 1: 30, 3: 90, 6: 180, 0: 0 };
 const DAYS_TO_MONTHS: Record<number, number> = { 30: 1, 90: 3, 180: 6, 0: 0 };
 
-function InactivityRemindersSection() {
-  const { isFree, loading: planLoading } = usePlan();
+function InactivityRemindersSection({ isFree, planLoading }: { isFree: boolean; planLoading: boolean }) {
   const user         = useAuthStore((s) => s.user);
   const setAuth      = useAuthStore((s) => s.setAuth);
   const accessToken  = useAuthStore((s) => s.accessToken);
@@ -907,8 +905,7 @@ function PlanFeature({ included, text }: { included: boolean; text: string }) {
   );
 }
 
-function PlanTab() {
-  const { planData, loading } = usePlan();
+function PlanTab({ planData, loading }: { planData: ReturnType<typeof usePlan>["planData"]; loading: boolean }) {
   const user = useAuthStore((s) => s.user);
   const [showComingSoon, setShowComingSoon] = useState(false);
 
@@ -1023,6 +1020,7 @@ export function SettingsClient({ initialTab }: { initialTab?: string }) {
     ? (initialTab as Tab)
     : "Profile";
   const [tab, setTab] = useState<Tab>(validTab);
+  const { planData, loading: planLoading, isFree } = usePlan();
 
   return (
     <div className="mx-auto">
@@ -1035,15 +1033,15 @@ export function SettingsClient({ initialTab }: { initialTab?: string }) {
 
         <TabNav active={tab} onChange={setTab} />
 
-        {tab === "Profile" && <ProfileTab />}
+        {tab === "Profile" && <ProfileTab planData={planData} />}
         {tab === "Security" && (
           <>
             <PasswordSection />
             {false && <MfaSection />}
           </>
         )}
-        {tab === "Notifications" && <InactivityRemindersSection />}
-        {tab === "Plan" && <PlanTab />}
+        {tab === "Notifications" && <InactivityRemindersSection isFree={isFree} planLoading={planLoading} />}
+        {tab === "Plan" && <PlanTab planData={planData} loading={planLoading} />}
         {tab === "Account" && <DangerZone />}
     </div>
   );

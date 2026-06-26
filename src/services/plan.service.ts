@@ -4,7 +4,7 @@ import type { PlanData } from "@/lib/types";
 export const PlanService = {
   get: async (): Promise<PlanData> => {
     try {
-      return (await http.get<PlanData>("/user/plan")).data;
+      return (await http.get<PlanData>("/auth/plan")).data;
     } catch (err) {
       normalise(err);
     }

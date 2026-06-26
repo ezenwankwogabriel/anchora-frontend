@@ -8,9 +8,8 @@ export function usePlan() {
 
   useEffect(() => {
     PlanService.get()
-      .then((data) => setPlanData(data))
-      .catch(() => {/* silently degrade — no plan data means no gating */})
-      .finally(() => setLoading(false));
+      .then((data) => { setPlanData(data); setLoading(false); })
+      .catch(() => setLoading(false));
   }, []);
 
   const isPro  = planData?.plan === "PRO";
