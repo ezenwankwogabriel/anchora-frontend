@@ -3,25 +3,27 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LayoutDashboard,
   Archive,
   Shield,
+  Users,
   Settings,
   LogOut,
   Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
+import { useEstatesStore } from "@/stores/estatesStore";
 import { AuthService } from "@/services/auth.service";
 
 const navItems = [
-  { label: "Dashboard",        href: "/dashboard",     icon: LayoutDashboard },
-  { label: "Vault",            href: "/vault",          icon: Archive },
-  { label: "Executor",         href: "/executor",       icon: Shield },
-  // { label: "Check-In",       href: "/checkin",       icon: ShieldCheck },
-  { label: "Settings",         href: "/settings",       icon: Settings },
+  { label: "Dashboard",  href: "/dashboard",  icon: LayoutDashboard, dot: false },
+  { label: "Vault",      href: "/vault",       icon: Archive,         dot: false },
+  { label: "Executor",   href: "/executor",    icon: Shield,          dot: false },
+  { label: "Estates",    href: "/estates",     icon: Users,           dot: true  },
+  { label: "Settings",   href: "/settings",    icon: Settings,        dot: false },
 ];
 
 
@@ -81,6 +83,15 @@ function UserCard() {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const hasAttentionRequired = useEstatesStore((s) => s.hasAttentionRequired);
+  const fetchEstates = useEstatesStore((s) => s.fetchEstates);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      void fetchEstates();
+    }
+  }, [isAuthenticated, fetchEstates]);
 
   const isActive = (href: string) =>
     href === "/dashboard"
@@ -100,7 +111,7 @@ export function Sidebar() {
         <p className="text-[10px] font-semibold tracking-[0.08em] uppercase text-text-tertiary px-2 pt-3 pb-[5px]">
           Menu
         </p>
-        {navItems.map(({ label, href, icon: Icon }) => (
+        {navItems.map(({ label, href, icon: Icon, dot }) => (
           <Link
             key={href}
             href={href}
@@ -111,7 +122,12 @@ export function Sidebar() {
                 : "text-text-secondary hover:bg-surface-2 hover:text-text-primary [&_svg]:opacity-70"
             )}
           >
-            <Icon size={17} className="flex-shrink-0" />
+            <span className="relative flex-shrink-0">
+              <Icon size={17} />
+              {dot && hasAttentionRequired && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-400" />
+              )}
+            </span>
             {label}
           </Link>
         ))}
