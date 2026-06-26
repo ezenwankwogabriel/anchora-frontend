@@ -1,3 +1,6 @@
+export type { IdentityVerificationStatus } from './types/estates';
+import type { IdentityVerificationStatus } from './types/estates';
+
 export interface User {
   id: string;
   firstName: string;
@@ -9,6 +12,8 @@ export interface User {
   reminderFrequencyDays?: number;
   inactivityWindowMonths?: number;
   onboardingCompletedAt: string | null;
+  identityVerificationStatus?: IdentityVerificationStatus;
+  identityVerifiedAt?: string | null;
 }
 
 export type AuthResponse =
