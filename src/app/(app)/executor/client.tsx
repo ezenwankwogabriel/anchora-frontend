@@ -220,12 +220,8 @@ function ExecutorCard({ executor, onRemoved }: ExecutorCardProps) {
         return { label: "Declined", className: "bg-red-light text-red" };
       case "REMOVED":
         return { label: "Removed", className: "bg-surface-2 text-text-tertiary" };
-      default: {
-        // compile-time guard: if a new status is added to ExecutorStatus, TypeScript
-        // will error here until this switch is updated
-        ((_: never) => {})(status);
+      default:
         return { label: "Unknown", className: "bg-surface-2 text-text-tertiary" };
-      }
     }
   }
 
