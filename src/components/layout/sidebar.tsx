@@ -12,6 +12,7 @@ import {
   Settings,
   LogOut,
   Loader2,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
@@ -39,7 +40,7 @@ function LogoMark() {
   );
 }
 
-function UserCard() {
+function UserCard({ onClose }: { onClose: () => void }) {
   const user = useAuthStore((s) => s.user);
   const [loggingOut, setLoggingOut] = useState(false);
   const initials = user
@@ -48,6 +49,7 @@ function UserCard() {
   const fullName = user ? `${user.firstName} ${user.lastName}` : "";
 
   const handleLogout = async () => {
+    onClose();
     setLoggingOut(true);
     await AuthService.logout();
   };
@@ -81,7 +83,12 @@ function UserCard() {
   );
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
   const hasAttentionRequired = useEstatesStore((s) => s.hasAttentionRequired);
   const fetchEstates = useEstatesStore((s) => s.fetchEstates);
@@ -99,11 +106,25 @@ export function Sidebar() {
       : pathname.startsWith(href);
 
   return (
-    <aside className="w-[240px] flex-shrink-0 bg-surface border-r border-border-color flex flex-col py-6 min-h-screen">
+    <aside className={cn(
+      "w-[240px] flex-shrink-0 bg-surface border-r border-border-color flex flex-col py-6",
+      "fixed inset-y-0 left-0 z-30 transition-transform duration-200",
+      "md:relative md:translate-x-0 md:z-auto md:min-h-screen",
+      isOpen ? "translate-x-0" : "-translate-x-full"
+    )}>
       {/* Logo */}
-      <div className="flex items-center gap-[10px] px-5 pb-6 border-b border-border-color mb-2">
-        <LogoMark />
-        <span className="font-heading text-[18px] text-text-primary">Anchora</span>
+      <div className="flex items-center justify-between px-5 pb-6 border-b border-border-color mb-2">
+        <div className="flex items-center gap-[10px]">
+          <LogoMark />
+          <span className="font-heading text-[18px] text-text-primary">Anchora</span>
+        </div>
+        <button
+          onClick={onClose}
+          className="md:hidden p-1.5 rounded-md text-text-secondary hover:text-text-primary hover:bg-surface-2 transition-colors"
+          aria-label="Close navigation"
+        >
+          <X size={18} />
+        </button>
       </div>
 
       {/* Nav */}
@@ -115,6 +136,7 @@ export function Sidebar() {
           <Link
             key={href}
             href={href}
+            onClick={onClose}
             className={cn(
               "flex items-center gap-[10px] px-3 py-2 rounded-md cursor-pointer text-[13.5px] font-[450] transition-all duration-150 mb-0.5",
               isActive(href)
@@ -134,7 +156,7 @@ export function Sidebar() {
 
       </nav>
 
-      <UserCard />
+      <UserCard onClose={onClose} />
     </aside>
   );
 }

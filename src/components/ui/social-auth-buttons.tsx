@@ -19,25 +19,26 @@ function FacebookIcon() {
   );
 }
 
+const BASE_BTN = "flex items-center justify-center gap-2.5 w-full py-[10px] px-4 rounded-lg border border-border-color bg-surface hover:bg-surface-2 transition-colors text-[13.5px] font-[500] text-text-primary no-underline";
+
 export function SocialAuthButtons() {
   return (
-    <div className="space-y-3 mb-6">
-      <a
-        href="/api/auth/google"
-        className="flex items-center justify-center gap-3 w-full py-[10px] px-4 rounded-lg border border-border-color bg-surface hover:bg-surface-2 transition-colors text-[13.5px] font-[500] text-text-primary no-underline"
-      >
-        <GoogleIcon />
-        Continue with Google
-      </a>
-      <a
-        href="/api/auth/facebook"
-        className="flex items-center justify-center gap-3 w-full py-[10px] px-4 rounded-lg border border-border-color bg-surface hover:bg-surface-2 transition-colors text-[13.5px] font-[500] text-text-primary no-underline"
-      >
-        <FacebookIcon />
-        Continue with Facebook
-      </a>
+    <div className="mb-5">
+      {/* On mobile: side-by-side compact buttons. On sm+: stacked full-label buttons. */}
+      <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 sm:gap-3">
+        <a href="/api/auth/google" className={BASE_BTN}>
+          <GoogleIcon />
+          <span className="sm:hidden">Google</span>
+          <span className="hidden sm:inline">Continue with Google</span>
+        </a>
+        <a href="/api/auth/facebook" className={BASE_BTN}>
+          <FacebookIcon />
+          <span className="sm:hidden">Facebook</span>
+          <span className="hidden sm:inline">Continue with Facebook</span>
+        </a>
+      </div>
 
-      <div className="flex items-center gap-3 my-2">
+      <div className="flex items-center gap-3 mt-4">
         <div className="flex-1 h-px bg-border-color" />
         <span className="text-[12px] text-text-tertiary">or</span>
         <div className="flex-1 h-px bg-border-color" />

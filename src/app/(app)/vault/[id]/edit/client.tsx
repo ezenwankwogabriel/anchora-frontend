@@ -72,31 +72,33 @@ export function EditAssetClient({ id }: EditAssetClientProps) {
     <div>
       <div className="max-w-[600px] mx-auto">
         {/* Header row */}
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <Link
-              href="/vault"
-              className="inline-flex items-center gap-2 text-[13px] text-text-secondary hover:text-text-primary transition-colors mb-3"
-            >
-              <ArrowLeft size={15} />
-              Back to vault
-            </Link>
-            <h1 className="font-heading text-[26px] text-text-primary leading-tight">
-              {record.accountName}{record.accountType ? ` — ${record.accountType}` : ""}
-            </h1>
-            <p className="text-[12.5px] text-text-tertiary mt-1">
-              {categoryLabels[record.category]} · Last edited {updatedAt}
-            </p>
-          </div>
-          <Button
-            variant="danger"
-            size="sm"
-            onClick={() => setDeleteOpen(true)}
-            className="mt-8 flex-shrink-0"
+        <div className="mb-6">
+          <Link
+            href="/vault"
+            className="inline-flex items-center gap-2 text-[13px] text-text-secondary hover:text-text-primary transition-colors mb-3"
           >
-            <Trash2 size={13} />
-            Delete asset
-          </Button>
+            <ArrowLeft size={15} />
+            Back to vault
+          </Link>
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <h1 className="font-heading text-[26px] text-text-primary leading-tight">
+                {record.accountName}{record.accountType ? ` — ${record.accountType}` : ""}
+              </h1>
+              <p className="text-[12.5px] text-text-tertiary mt-1">
+                {categoryLabels[record.category]} · Last edited {updatedAt}
+              </p>
+            </div>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => setDeleteOpen(true)}
+              className="flex-shrink-0 mt-1"
+            >
+              <Trash2 size={13} />
+              Delete asset
+            </Button>
+          </div>
         </div>
 
         <VaultForm

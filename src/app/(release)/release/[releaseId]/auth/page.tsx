@@ -156,7 +156,7 @@ function RegisterForm({ releaseId }: { releaseId: string }) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} method="post" noValidate>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <FormSection className="mb-0">
           <FieldLabel text="First name" required />
           <Input placeholder="Jane" {...register("firstName")} />

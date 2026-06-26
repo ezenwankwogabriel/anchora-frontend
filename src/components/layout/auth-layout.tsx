@@ -32,6 +32,8 @@ const DEFAULT_TRUST: TrustItem[] = [
 const DEFAULT_FOOTER =
   "Anchora is a software information platform. We do not hold funds or execute financial transactions.";
 
+const BRAND_GRADIENT = "linear-gradient(160deg,#0D1526 0%,#141B34 60%,#1A2140 100%)";
+
 export function AuthLayout({
   children,
   tagline = DEFAULT_TAGLINE,
@@ -41,13 +43,10 @@ export function AuthLayout({
 }: AuthLayoutProps) {
   return (
     <div className="flex min-h-screen">
-      {/* ── Left brand panel ── */}
+      {/* ── Left brand panel (desktop only) ── */}
       <div
-        className="w-[420px] flex-shrink-0 flex flex-col justify-between p-12"
-        style={{
-          background:
-            "linear-gradient(160deg,#0D1526 0%,#141B34 60%,#1A2140 100%)",
-        }}
+        className="hidden md:flex w-[420px] flex-shrink-0 flex-col justify-between p-12"
+        style={{ background: BRAND_GRADIENT }}
       >
         {/* Logo */}
         <div>
@@ -99,9 +98,36 @@ export function AuthLayout({
         </p>
       </div>
 
-      {/* ── Right form panel ── */}
-      <div className="flex-1 flex items-center justify-center p-12 bg-bg">
-        <div className="w-full max-w-[420px]">{children}</div>
+      {/* ── Right panel ── */}
+      <div className="flex-1 bg-bg min-h-screen md:min-h-0 flex flex-col">
+
+        {/* Mobile branded header — hidden on desktop */}
+        <div
+          className="md:hidden px-6 pt-7 pb-8"
+          style={{ background: BRAND_GRADIENT }}
+        >
+          <div className="flex items-center gap-2.5 mb-4">
+            <Image
+              src="/images/logo-icon-blue.png"
+              alt="Anchora"
+              width={32}
+              height={32}
+              className="rounded-[7px]"
+            />
+            <span className="font-heading text-[18px] text-white">Anchora</span>
+          </div>
+          <h2 className="font-heading text-[20px] text-white leading-[1.35]">
+            {tagline}
+          </h2>
+        </div>
+
+        {/* Form area */}
+        <div className="flex-1 flex items-start md:items-center justify-center px-6 pt-6 pb-6 md:p-12">
+          <div className="w-full max-w-[420px]">
+            {children}
+          </div>
+        </div>
+
       </div>
     </div>
   );

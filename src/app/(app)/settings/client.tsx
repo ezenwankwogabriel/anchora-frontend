@@ -29,13 +29,13 @@ type Tab = (typeof TABS)[number];
 
 function TabNav({ active, onChange }: { active: Tab; onChange: (t: Tab) => void }) {
   return (
-    <div className="flex border-b border-border-color mb-8">
+    <div className="flex border-b border-border-color mb-8 overflow-x-auto">
       {TABS.map((t) => (
         <button
           key={t}
           type="button"
           onClick={() => onChange(t)}
-          className={`px-5 py-[11px] text-[13.5px] font-[500] transition-colors border-b-2 -mb-px ${
+          className={`px-5 py-[11px] text-[13.5px] font-[500] transition-colors border-b-2 -mb-px whitespace-nowrap flex-shrink-0 ${
             active === t
               ? "border-accent text-accent font-semibold"
               : "border-transparent text-text-secondary hover:text-text-primary"
@@ -256,7 +256,7 @@ function ProfileTab() {
       {success && <InlineSuccess message="Profile updated." />}
 
       {!editing ? (
-        <div className="grid grid-cols-2 gap-x-8 gap-y-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
           <div>
             <p className="text-[11px] font-semibold text-text-tertiary uppercase tracking-[0.07em] mb-1">First name</p>
             <p className="text-[13.5px] text-text-primary">{user.firstName}</p>
@@ -282,7 +282,7 @@ function ProfileTab() {
         </div>
       ) : (
         <form onSubmit={handleSubmit(onSubmit)} method="post" noValidate>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-5 mb-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5 mb-5">
             <div>
               <FieldLabel text="First name" required />
               <Input {...register("firstName")} />
@@ -637,14 +637,14 @@ function DangerZone() {
   return (
     <>
       <Section title="Danger zone" description="Permanent actions that cannot be undone." danger>
-        <div className="flex items-start justify-between gap-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
             <p className="text-[13.5px] font-[500] text-text-primary">Delete account</p>
             <p className="text-[12.5px] text-text-tertiary mt-0.5">
               Permanently deletes your account, vault, and all records.
             </p>
           </div>
-          <Button variant="danger" size="sm" onClick={() => setModalOpen(true)} className="flex-shrink-0">
+          <Button variant="danger" size="sm" onClick={() => setModalOpen(true)} className="flex-shrink-0 self-start">
             Delete account
           </Button>
         </div>
@@ -944,7 +944,7 @@ function PlanTab() {
         </div>
       </Section>
 
-      <div className="flex gap-5">
+      <div className="flex flex-col sm:flex-row gap-5">
         {/* Free */}
         <div className="flex-1 bg-surface border border-border-color rounded-xl p-5">
           <span className="bg-[#F3F4F6] text-[#6B7280] text-[11.5px] font-medium px-2.5 py-1 rounded-full">

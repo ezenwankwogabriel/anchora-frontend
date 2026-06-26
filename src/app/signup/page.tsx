@@ -83,10 +83,10 @@ function SignupForm() {
 
   return (
     <AuthLayout>
-      <h1 className="font-heading text-[26px] text-text-primary mb-[6px]">
+      <h1 className="font-heading text-[24px] sm:text-[26px] text-text-primary mb-1">
         Create your account
       </h1>
-      <p className="text-[13.5px] text-text-secondary mb-7">
+      <p className="text-[13.5px] text-text-secondary mb-4 sm:mb-7">
         Already have one?{" "}
         <Link href="/login" className="text-accent font-medium hover:underline">
           Sign in instead
@@ -94,7 +94,7 @@ function SignupForm() {
       </p>
 
       {isExecutorInvite && (
-        <div className="flex items-start gap-3 bg-navy/5 border border-navy/20 rounded-xl p-4 mb-6">
+        <div className="flex items-start gap-3 bg-navy/5 border border-navy/20 rounded-xl p-4 mb-4">
           <Shield size={16} className="text-navy flex-shrink-0 mt-[1px]" />
           <p className="text-[13px] text-navy">
             You&apos;ve been invited as an executor on Anchora. Create your account to confirm
@@ -106,7 +106,7 @@ function SignupForm() {
       <SocialAuthButtons />
 
       <form onSubmit={handleSubmit(onSubmit)} method="post" noValidate>
-        <div className="grid grid-cols-2 gap-3 mb-4">
+        <div className="grid grid-cols-2 gap-3 mb-3">
           <div>
             <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
               First name
@@ -123,7 +123,7 @@ function SignupForm() {
           </div>
         </div>
 
-        <div className="mb-4">
+        <div className="mb-3">
           <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
             Email address
           </label>
@@ -131,7 +131,7 @@ function SignupForm() {
           <FieldError message={errors.email?.message} />
         </div>
 
-        <div className="mb-4">
+        <div className="mb-3">
           <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
             Password
           </label>
@@ -140,7 +140,7 @@ function SignupForm() {
           <FieldError message={errors.password?.message} />
         </div>
 
-        <div className="mb-5">
+        <div className="mb-3">
           <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
             Confirm password
           </label>
@@ -148,7 +148,7 @@ function SignupForm() {
           <FieldError message={errors.confirmPassword?.message} />
         </div>
 
-        <div className="flex flex-col gap-2 mb-5">
+        <div className="flex flex-col gap-1.5 mb-4">
           <label className="flex items-start gap-2 text-[12.5px] text-text-secondary cursor-pointer">
             <input type="checkbox" className="mt-[2px] flex-shrink-0 accent-accent" {...register("termsAccepted")} />
             <span>
@@ -168,7 +168,7 @@ function SignupForm() {
         </div>
 
         {errors.root && (
-          <p className="text-[12.5px] text-red bg-red-light border border-[#F5B0B0] rounded-md px-3 py-2 mb-4">
+          <p className="text-[12.5px] text-red bg-red-light border border-[#F5B0B0] rounded-md px-3 py-2 mb-3">
             {errors.root.message}
           </p>
         )}
@@ -178,7 +178,7 @@ function SignupForm() {
           Create account →
         </Button>
 
-        <p className="mt-5 text-center text-[12px] text-text-tertiary">
+        <p className="hidden sm:block mt-5 text-center text-[12px] text-text-tertiary">
           After creating your account, we&apos;ll send you a verification email.
         </p>
       </form>
