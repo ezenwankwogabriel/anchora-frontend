@@ -23,6 +23,8 @@ export default function OnboardingPage() {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [relationship, setRelationship] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -33,7 +35,12 @@ export default function OnboardingPage() {
     setSubmitting(true);
     setApiError(null);
     try {
-      await ExecutorService.create({ name: name.trim(), email: email.trim() });
+      await ExecutorService.create({
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim() || undefined,
+        relationship: relationship.trim() || undefined,
+      });
       await finish(router);
     } catch {
       setApiError(
@@ -97,10 +104,14 @@ export default function OnboardingPage() {
               <ScreenExecutor
                 name={name}
                 email={email}
+                phone={phone}
+                relationship={relationship}
                 submitting={submitting}
                 apiError={apiError}
                 onNameChange={setName}
                 onEmailChange={setEmail}
+                onPhoneChange={setPhone}
+                onRelationshipChange={setRelationship}
                 onBack={() => setStep(2)}
                 onSubmit={submitExecutor}
                 onSkip={skip}
@@ -259,20 +270,28 @@ function ScreenExpectations({
 function ScreenExecutor({
   name,
   email,
+  phone,
+  relationship,
   submitting,
   apiError,
   onNameChange,
   onEmailChange,
+  onPhoneChange,
+  onRelationshipChange,
   onBack,
   onSubmit,
   onSkip,
 }: {
   name: string;
   email: string;
+  phone: string;
+  relationship: string;
   submitting: boolean;
   apiError: string | null;
   onNameChange: (v: string) => void;
   onEmailChange: (v: string) => void;
+  onPhoneChange: (v: string) => void;
+  onRelationshipChange: (v: string) => void;
   onBack: () => void;
   onSubmit: () => void;
   onSkip: () => void;
@@ -314,6 +333,30 @@ function ScreenExecutor({
             placeholder="emeka@gmail.com"
             value={email}
             onChange={(e) => onEmailChange(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
+            Phone number
+          </label>
+          <Input
+            type="tel"
+            placeholder="+234 800 000 0000"
+            value={phone}
+            onChange={(e) => onPhoneChange(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
+            Relationship
+          </label>
+          <Input
+            type="text"
+            placeholder="e.g. Spouse, sibling, lawyer"
+            value={relationship}
+            onChange={(e) => onRelationshipChange(e.target.value)}
           />
         </div>
       </div>
