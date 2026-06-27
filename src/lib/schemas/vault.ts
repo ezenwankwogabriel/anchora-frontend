@@ -4,10 +4,10 @@ import type { AssetCategory } from "@/lib/types";
 // ── Sprint 4 form data shape ───────────────────────────────────────────────
 export interface VaultFormData {
   institutionName: string;
-  accountName: string;        // optional label → maps to nickname in API
-  accountNumber: string;      // account / reference number → encrypted
-  usernameOrEmail: string;
-  accountUrl: string;         // document URL — physical categories only
+  accountName: string;
+  referenceId: string;
+  credential: string;
+  accountUrl: string;
   notes: string;
   executorIntent: "LIQUIDATE" | "TRANSFER" | "HOLD" | "UNSPECIFIED";
   intendedBeneficiary: string;
@@ -82,75 +82,75 @@ const FIELD_CONFIGS: Record<AssetCategory, FieldConfig[]> = {
   BANK_ACCOUNT: [
     { fieldName: "institutionName", label: "Bank name", placeholder: "e.g. GTB, Zenith, Access Bank", required: true, type: "text" },
     { fieldName: "accountName",     label: "Account name", placeholder: "e.g. Joint savings, Dollar account", type: "text" },
-    { fieldName: "accountNumber",   label: "Account number", placeholder: "e.g. 0123456789", type: "text" },
-    { fieldName: "usernameOrEmail", label: "Internet banking username / email", type: "text" },
+    { fieldName: "referenceId",   label: "Account number", placeholder: "e.g. 0123456789", type: "text" },
+    { fieldName: "credential", label: "Internet banking username / email", type: "text" },
     { fieldName: "notes",           label: "Notes", placeholder: "Branch, NUBAN, any relevant access context", type: "textarea" },
   ],
   INVESTMENT_PLATFORM: [
     { fieldName: "institutionName", label: "Platform name", placeholder: "e.g. Bamboo, Risevest, PiggyVest", required: true, type: "text" },
     { fieldName: "accountName",     label: "Portfolio / account name", type: "text" },
-    { fieldName: "usernameOrEmail", label: "Login email", type: "text" },
+    { fieldName: "credential", label: "Login email", type: "text" },
     { fieldName: "notes",           label: "Notes", placeholder: "Account number, broker details, portfolio type", type: "textarea" },
   ],
   CRYPTO_WALLET: [
     { fieldName: "institutionName", label: "Wallet or exchange name", placeholder: "e.g. Binance, Ledger hardware wallet", required: true, type: "text" },
     { fieldName: "accountName",     label: "Wallet label", type: "text" },
-    { fieldName: "usernameOrEmail", label: "Login email / username", type: "text" },
+    { fieldName: "credential", label: "Login email / username", type: "text" },
     { fieldName: "isSelfCustodied", label: "I hold my own private keys", type: "checkbox" },
     { fieldName: "notes",           label: "Notes", placeholder: "Seed phrase storage location, hardware wallet location, exchange account details", type: "textarea" },
   ],
   PENSION_PORTAL: [
     { fieldName: "institutionName", label: "Pension fund administrator (PFA)", placeholder: "e.g. ARM Pension, Stanbic IBTC", required: true, type: "text" },
     { fieldName: "accountName",     label: "RSA / account name", type: "text" },
-    { fieldName: "usernameOrEmail", label: "Portal login email", type: "text" },
+    { fieldName: "credential", label: "Portal login email", type: "text" },
     { fieldName: "notes",           label: "Notes", placeholder: "RSA PIN, employer name, portal access details", type: "textarea" },
   ],
   INSURANCE_POLICY: [
     { fieldName: "institutionName", label: "Insurance provider", placeholder: "e.g. AXA Mansard, Leadway Assurance", required: true, type: "text" },
     { fieldName: "accountName",     label: "Policy name / type", placeholder: "e.g. Term life, whole life, health", type: "text" },
-    { fieldName: "usernameOrEmail", label: "Portal login email", type: "text" },
+    { fieldName: "credential", label: "Portal login email", type: "text" },
     { fieldName: "notes",           label: "Notes", placeholder: "Policy number, coverage amount, agent contact", type: "textarea" },
   ],
   FOREIGN_ACCOUNT: [
     { fieldName: "institutionName", label: "Institution name", placeholder: "e.g. Barclays UK, Charles Schwab", required: true, type: "text" },
     { fieldName: "accountName",     label: "Account / portfolio name", type: "text" },
-    { fieldName: "usernameOrEmail", label: "Login email", type: "text" },
+    { fieldName: "credential", label: "Login email", type: "text" },
     { fieldName: "notes",           label: "Notes", placeholder: "Country, account number, FX or remittance details", type: "textarea" },
   ],
   REAL_ESTATE: [
     { fieldName: "institutionName", label: "Property name / description", placeholder: "e.g. Duplex on Admiralty Way, Lekki", required: true, type: "text" },
-    { fieldName: "usernameOrEmail", label: "Title number / survey plan ref", type: "text" },
+    { fieldName: "credential", label: "Title number / survey plan ref", type: "text" },
     { fieldName: "notes",           label: "Description & storage notes", placeholder: "Address, where title documents are stored, estimated value", type: "textarea" },
     { ...DOCUMENT_URL_FIELD, placeholder: "Dropbox / Drive link to a scanned title document" },
   ],
   VEHICLE: [
     { fieldName: "institutionName", label: "Vehicle description", placeholder: "e.g. 2019 Toyota Land Cruiser", required: true, type: "text" },
-    { fieldName: "usernameOrEmail", label: "Plate number / chassis number", type: "text" },
+    { fieldName: "credential", label: "Plate number / chassis number", type: "text" },
     { fieldName: "notes",           label: "Description & storage notes", placeholder: "Colour, where vehicle logbook is stored", type: "textarea" },
     { ...DOCUMENT_URL_FIELD, placeholder: "Dropbox / Drive link to proof of ownership" },
   ],
   JEWELRY_WATCHES: [
     { fieldName: "institutionName", label: "Item description", placeholder: "e.g. Rolex Datejust, gold wedding band", required: true, type: "text" },
-    { fieldName: "usernameOrEmail", label: "Serial number (if known)", type: "text" },
+    { fieldName: "credential", label: "Serial number (if known)", type: "text" },
     { fieldName: "notes",           label: "Description & storage notes", placeholder: "Where it is stored, estimated value", type: "textarea" },
     { ...DOCUMENT_URL_FIELD, placeholder: "Dropbox / Drive link to certificate of authenticity" },
   ],
   SHARE_CERTIFICATES: [
     { fieldName: "institutionName", label: "Asset description", placeholder: "e.g. Dangote Cement paper cert", required: true, type: "text" },
-    { fieldName: "usernameOrEmail", label: "Certificate number", type: "text" },
+    { fieldName: "credential", label: "Certificate number", type: "text" },
     { fieldName: "notes",           label: "Description & storage notes", placeholder: "Number of units, where the certificate is physically stored", type: "textarea" },
     { ...DOCUMENT_URL_FIELD, placeholder: "Dropbox / Drive link to a scan of the certificate" },
   ],
   SUBSCRIPTION: [
     { fieldName: "institutionName", label: "Service name", placeholder: "e.g. Netflix, Spotify, AWS", required: true, type: "text" },
     { fieldName: "accountName",     label: "Subscription label", placeholder: "e.g. Family plan, Team account", type: "text" },
-    { fieldName: "usernameOrEmail", label: "Billing email", type: "text" },
+    { fieldName: "credential", label: "Billing email", type: "text" },
     { fieldName: "notes",           label: "Cancellation instructions", placeholder: "How to cancel — direct link, phone number, or step-by-step instructions...", type: "textarea" },
   ],
   OTHER: [
     { fieldName: "institutionName", label: "Asset or account name", placeholder: "e.g. PayPal, savings club, industrial generator", required: true, type: "text" },
     { fieldName: "accountName",     label: "Label / type", type: "text" },
-    { fieldName: "usernameOrEmail", label: "Reference number or login email", type: "text" },
+    { fieldName: "credential", label: "Reference number or login email", type: "text" },
     { fieldName: "notes",           label: "Notes", placeholder: "Description, location, and where any documents are stored", type: "textarea" },
     { ...DOCUMENT_URL_FIELD, placeholder: "Dropbox / Drive link (optional)" },
   ],
@@ -164,8 +164,8 @@ export function getFieldConfig(category: AssetCategory): { fields: FieldConfig[]
 const BASE_DEFAULTS: VaultFormData = {
   institutionName: "",
   accountName: "",
-  accountNumber: "",
-  usernameOrEmail: "",
+  referenceId: "",
+  credential: "",
   accountUrl: "",
   notes: "",
   executorIntent: "UNSPECIFIED",
@@ -198,7 +198,7 @@ const intentEnum = z
   .default("UNSPECIFIED");
 
 const sharedFields = {
-  accountNumber:       opt(),
+  referenceId:       opt(),
   accountUrl:          z.string().optional().default(""),
   executorIntent:      intentEnum,
   intendedBeneficiary: opt(),
@@ -209,7 +209,7 @@ const digitalSchema = (overrides?: object) =>
   z.object({
     institutionName: req(),
     accountName:     opt(),
-    usernameOrEmail: opt(),
+    credential: opt(),
     notes:           max500,
     ...sharedFields,
     ...overrides,
@@ -219,7 +219,7 @@ const physicalSchema = (overrides?: object) =>
   z.object({
     institutionName: req(),
     accountName:     opt(),
-    usernameOrEmail: opt(),
+    credential: opt(),
     notes:           max500,
     ...sharedFields,
     ...overrides,

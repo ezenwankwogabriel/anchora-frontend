@@ -42,7 +42,7 @@ function RecordRow({ record, onDelete }: RecordRowProps) {
       >
         <div className="flex items-center gap-2">
           <p className="text-[13px] font-[500] text-text-primary">
-            {record.accountName}
+            {record.institutionName}
           </p>
           {record.category === "CRYPTO_WALLET" && record.isSelfCustodied && (
             <span className="bg-amber-100 text-amber-800 text-[10.5px] font-medium px-2 py-0.5 rounded-full flex-shrink-0">
@@ -51,7 +51,7 @@ function RecordRow({ record, onDelete }: RecordRowProps) {
           )}
         </div>
         <p className="text-[11.5px] text-text-tertiary">
-          {record.accountType ?? record.nickname ?? ""}
+          {record.accountName ?? ""}
         </p>
         {intentLabel && (
           <p className="text-[11.5px] text-text-secondary mt-[2px]">

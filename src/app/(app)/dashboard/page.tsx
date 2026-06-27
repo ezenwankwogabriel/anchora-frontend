@@ -56,7 +56,7 @@ function deriveActivity(records: VaultRecord[] | null): ActivityItem[] {
       return {
         id: r.id,
         type: wasUpdated ? ("vault_updated" as const) : ("vault_added" as const),
-        label: r.accountType ? `${r.accountName} — ${r.accountType}` : r.accountName,
+        label: r.accountName ? `${r.institutionName} — ${r.accountName}` : r.institutionName,
         timestamp: wasUpdated ? r.updatedAt : r.createdAt,
       };
     })
@@ -82,9 +82,12 @@ export default function DashboardPage() {
     (c: AssetCategory) => (records ?? []).some((r) => r.category === c)
   ).length;
 
-  const physicalCount = (records ?? []).filter(
-    (r) => PHYSICAL_ASSET_CATEGORIES.includes(r.category as (typeof PHYSICAL_ASSET_CATEGORIES)[number])
+  const physicalCovered = PHYSICAL_ASSET_CATEGORIES.filter(
+    (c) => (records ?? []).some((r) => r.category === c)
   ).length;
+
+  const totalCovered = digitalCovered + physicalCovered;
+  const totalCategories = DIGITAL_ASSET_CATEGORIES.length + PHYSICAL_ASSET_CATEGORIES.length;
 
   const [checklistDismissed, setChecklistDismissed] = useState(false);
 
@@ -169,17 +172,17 @@ export default function DashboardPage() {
               }
             />
             <HealthCard
-              label="Account coverage"
+              label="Asset coverage"
               borderAccent="navy"
-              value={error ? "—" : `${digitalCovered}/6`}
+              value={error ? "—" : `${totalCovered}/${totalCategories}`}
               subtext={
                 error ? "Could not load"
-                : digitalCovered === 6 ? "All 6 account types covered"
-                : physicalCount > 0
-                  ? `${6 - digitalCovered} types missing · +${physicalCount} physical asset${physicalCount !== 1 ? "s" : ""} recorded`
-                  : `${6 - digitalCovered} account type${6 - digitalCovered !== 1 ? "s" : ""} not yet recorded`
+                : totalCovered === totalCategories ? `All ${totalCategories} asset types covered`
+                : totalCovered > 0
+                  ? `${totalCategories - totalCovered} category type${totalCategories - totalCovered !== 1 ? "s" : ""} not yet recorded`
+                  : "No asset categories covered yet"
               }
-              status={error ? "empty" : digitalCovered === 6 ? "good" : digitalCovered > 0 ? "warning" : "critical"}
+              status={error ? "empty" : totalCovered === totalCategories ? "good" : totalCovered > 0 ? "warning" : "critical"}
             />
           </>
         )}

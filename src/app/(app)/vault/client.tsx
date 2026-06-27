@@ -95,7 +95,7 @@ export default function VaultClient() {
 
       {/* Estate summary card */}
       {!planLoading && (
-        <div className="bg-surface border border-border-color rounded-xl shadow-sm p-5 flex flex-col sm:flex-row items-start gap-4">
+        <div className="bg-surface border border-border-color rounded-xl shadow-sm p-5 flex flex-col lg:flex-row items-start gap-4">
           <div className="w-10 h-10 rounded-lg bg-navy/10 flex items-center justify-center flex-shrink-0">
             <FileText size={20} className="text-navy" />
           </div>
@@ -105,7 +105,7 @@ export default function VaultClient() {
               A structured document your executor will use to recover and manage your assets.
             </p>
           </div>
-          <div className="flex flex-col items-stretch sm:items-end gap-1.5 w-full sm:w-auto">
+          <div className="flex flex-col items-stretch lg:items-end gap-1.5 w-full lg:w-auto">
             {isPro ? (
               <>
                 <Button variant="secondary" size="sm" onClick={handleDownloadReport} disabled={downloading}>

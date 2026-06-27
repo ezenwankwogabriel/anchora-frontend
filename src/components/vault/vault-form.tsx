@@ -74,10 +74,10 @@ export function VaultForm({
 
   const defaultValues: VaultFormData = record
     ? {
-        institutionName:     record.accountName ?? "",
-        accountName:         record.nickname ?? "",
-        accountNumber:       record.encryptedFields?.accountNumber ?? "",
-        usernameOrEmail:     record.encryptedFields?.usernameOrEmail ?? "",
+        institutionName:     record.institutionName,
+        accountName:         record.accountName ?? "",
+        referenceId:         record.encryptedFields?.referenceId ?? "",
+        credential:          record.encryptedFields?.credential ?? "",
         accountUrl:          record.accountUrl ?? "",
         notes:               record.encryptedFields?.notes ?? "",
         executorIntent:      record.executorIntent ?? "UNSPECIFIED",
@@ -106,11 +106,11 @@ export function VaultForm({
       await onSubmit({
         category,
         institutionName:     values.institutionName,
-        accountName:         values.accountName     || undefined,
-        accountNumber:       values.accountNumber   || undefined,
-        usernameOrEmail:     values.usernameOrEmail || undefined,
-        accountUrl:          values.accountUrl      || undefined,
-        notes:               values.notes           || undefined,
+        accountName:         values.accountName         || undefined,
+        credential:          values.credential          || undefined,
+        referenceId:         values.referenceId         || undefined,
+        accountUrl:          values.accountUrl          || undefined,
+        notes:               values.notes               || undefined,
         executorIntent:      values.executorIntent,
         intendedBeneficiary: values.intendedBeneficiary || undefined,
         isSelfCustodied:     values.isSelfCustodied,
@@ -186,7 +186,7 @@ export function VaultForm({
     }
 
     // Default: text input
-    const textField = key as "institutionName" | "accountName" | "accountNumber" | "usernameOrEmail";
+    const textField = key as "institutionName" | "accountName" | "credential" | "referenceId";
     return (
       <FormSection key={key}>
         <FieldLabel text={field.label} required={field.required} />

@@ -65,16 +65,15 @@ export interface VaultRecord {
   id: string;
   userId: string;
   category: AssetCategory;
-  accountName: string;        // institution / platform name — shown in list views
-  accountType: string | null; // type descriptor, kept for backward compat
-  nickname: string | null;    // user's personal label (Sprint 4 accountName field)
-  accountUrl: string | null;  // document/link URL (physical categories)
+  institutionName: string;
+  accountName: string | null;
+  accountUrl: string | null;
   executorIntent: ExecutorIntent;
   intendedBeneficiary?: string;
   isSelfCustodied: boolean;
   encryptedFields: {
-    accountNumber?: string;
-    usernameOrEmail?: string;
+    credential?: string;
+    referenceId?: string;
     notes?: string;
   };
   beneficiary: {
@@ -87,16 +86,13 @@ export interface VaultRecord {
   updatedAt: string;
 }
 
-// VaultRecordInput uses Sprint 4 frontend field names.
-// The service layer maps institutionName → accountName and accountName → nickname.
 export interface VaultRecordInput {
   category: AssetCategory;
   institutionName: string;
-  accountName?: string;       // optional label → maps to nickname
-  accountType?: string;       // optional type, kept for backward compat
-  accountNumber?: string;
-  usernameOrEmail?: string;
+  accountName?: string;
   accountUrl?: string;
+  credential?: string;
+  referenceId?: string;
   notes?: string;
   executorIntent?: ExecutorIntent;
   intendedBeneficiary?: string;

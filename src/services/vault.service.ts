@@ -13,15 +13,14 @@ function toApiPayload(input: VaultRecordInput) {
   return {
     category:            input.category,
     institutionName:     input.institutionName,
-    accountName:         input.accountName      || undefined,
-    accountType:         input.accountType      || undefined,
-    accountNumber:       input.accountNumber    || undefined,
-    usernameOrEmail:     input.usernameOrEmail  || undefined,
-    accountUrl:          input.accountUrl       || undefined,
-    notes:               input.notes            || undefined,
-    executorIntent:      input.executorIntent   ?? "UNSPECIFIED",
+    accountName:         input.accountName         || undefined,
+    accountUrl:          input.accountUrl          || undefined,
+    credential:          input.credential          || undefined,
+    referenceId:         input.referenceId         || undefined,
+    notes:               input.notes               || undefined,
+    executorIntent:      input.executorIntent      ?? "UNSPECIFIED",
     intendedBeneficiary: input.intendedBeneficiary || undefined,
-    isSelfCustodied:     input.isSelfCustodied  ?? false,
+    isSelfCustodied:     input.isSelfCustodied     ?? false,
   };
 }
 
