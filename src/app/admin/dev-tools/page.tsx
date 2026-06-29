@@ -7,7 +7,7 @@ import { AdminService } from "@/services/admin.service";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { ServiceError } from "@/lib/types";
-import type { DevUserState, InactivityStatus } from "@/lib/admin-types";
+import type { DevUserState, InactivityStatus, UserPlan } from "@/lib/admin-types";
 
 const STATUSES: InactivityStatus[] = ["ACTIVE", "NOTIFIED", "RELEASING"];
 
@@ -33,10 +33,15 @@ function StateCard({ state }: { state: DevUserState }) {
           <p className="text-[14px] font-[600] text-text-primary">{state.email}</p>
           <p className="text-[11.5px] text-text-tertiary font-mono mt-0.5">{state.userId}</p>
         </div>
-        <StatusBadge
-          variant={STATUS_VARIANT[state.inactivityStatus]}
-          label={state.inactivityStatus}
-        />
+        <div className="flex items-center gap-2">
+          <span className={`text-[11.5px] font-[500] px-2 py-0.5 rounded-full ${state.plan === "PRO" ? "bg-accent text-white" : "bg-gray-100 text-gray-600"}`}>
+            {state.plan}
+          </span>
+          <StatusBadge
+            variant={STATUS_VARIANT[state.inactivityStatus]}
+            label={state.inactivityStatus}
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-x-6 gap-y-2 pt-1 border-t border-border-color">
@@ -84,6 +89,9 @@ export default function DevToolsPage() {
   // Set-stage controls
   const [selectedStatus, setSelectedStatus] = useState<InactivityStatus>("NOTIFIED");
   const [backdateDays, setBackdateDays]   = useState("");
+
+  // Set-plan controls
+  const [selectedPlan, setSelectedPlan] = useState<UserPlan>("PRO");
 
   if (process.env.NEXT_PUBLIC_DEV_TOOLS !== "true") return null;
   if (!isAuthenticated) return null;
@@ -134,6 +142,14 @@ export default function DevToolsPage() {
     if (!state) return;
     withAction("Inactivity check", () =>
       AdminService.devRunInactivityCheck(state.userId),
+    );
+  }
+
+  function handleSetPlan() {
+    if (!state) return;
+    withAction(
+      "Set plan",
+      () => AdminService.devSetPlan(state.userId, selectedPlan),
     );
   }
 
@@ -215,6 +231,28 @@ export default function DevToolsPage() {
               className="px-4 py-2 rounded-lg border border-border-color text-[13px] font-[500] text-text-primary hover:bg-bg/60 disabled:opacity-40 transition-colors"
             >
               Set status
+            </button>
+          </div>
+
+          {/* Set plan */}
+          <div className="flex flex-wrap items-end gap-3 pb-4 border-b border-border-color">
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] text-text-tertiary uppercase tracking-wide">Plan</label>
+              <select
+                value={selectedPlan}
+                onChange={(e) => setSelectedPlan(e.target.value as UserPlan)}
+                className="px-3 py-2 rounded-lg border border-border-color bg-bg text-[13px] text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/30"
+              >
+                <option value="FREE">FREE</option>
+                <option value="PRO">PRO</option>
+              </select>
+            </div>
+            <button
+              onClick={handleSetPlan}
+              disabled={loading}
+              className="px-4 py-2 rounded-lg border border-border-color text-[13px] font-[500] text-text-primary hover:bg-bg/60 disabled:opacity-40 transition-colors"
+            >
+              Set plan
             </button>
           </div>
 

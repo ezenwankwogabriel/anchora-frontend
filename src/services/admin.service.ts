@@ -71,6 +71,22 @@ export const AdminService = {
     }
   },
 
+  verifyIdentity: async (id: string): Promise<void> => {
+    try {
+      await adminHttp.post(`/admin/users/${id}/verify-identity`);
+    } catch (err) {
+      normaliseAdmin(err);
+    }
+  },
+
+  revokeIdentityVerification: async (id: string): Promise<void> => {
+    try {
+      await adminHttp.delete(`/admin/users/${id}/verify-identity`);
+    } catch (err) {
+      normaliseAdmin(err);
+    }
+  },
+
   updateUserPlan: async (id: string, plan: UserPlan): Promise<void> => {
     try {
       await adminHttp.post(`/admin/users/${id}/plan`, { plan });
@@ -221,6 +237,19 @@ export const AdminService = {
     try {
       return (
         await adminHttp.post<DevUserState>(`/admin/dev/users/${userId}/reset`)
+      ).data;
+    } catch (err) {
+      normaliseAdmin(err);
+    }
+  },
+
+  devSetPlan: async (userId: string, plan: UserPlan): Promise<DevUserState> => {
+    try {
+      return (
+        await adminHttp.post<DevUserState>(
+          `/admin/dev/users/${userId}/set-plan`,
+          { plan },
+        )
       ).data;
     } catch (err) {
       normaliseAdmin(err);

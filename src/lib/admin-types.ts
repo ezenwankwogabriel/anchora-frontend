@@ -72,11 +72,15 @@ export interface AdminUserListItem {
   plan: UserPlan;
 }
 
+export type IdentityVerificationStatus = "UNVERIFIED" | "PENDING" | "VERIFIED" | "REJECTED";
+
 export interface AdminUserDetail extends AdminUserListItem {
   emailVerifiedAt: string | null;
   mfaEnabled: boolean;
   planActivatedAt: string | null;
   planExpiresAt: string | null;
+  identityVerificationStatus: IdentityVerificationStatus;
+  identityVerifiedAt: string | null;
   releases: { id: string; status: ReleaseStatus; triggeredAt: string }[];
   executor: AdminExecutor | null;
 }
@@ -154,6 +158,7 @@ export type InactivityStatus = "ACTIVE" | "NOTIFIED" | "RELEASING";
 export interface DevUserState {
   userId: string;
   email: string;
+  plan: UserPlan;
   inactivityStatus: InactivityStatus;
   notifiedAt: string | null;
   lastActivityAt: string;
