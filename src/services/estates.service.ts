@@ -33,4 +33,24 @@ export const EstatesService = {
       normalise(err);
     }
   },
+
+  acceptInvite: async (estateId: string): Promise<{ message: string }> => {
+    try {
+      return (
+        await http.post<{ message: string }>(`/estates/${estateId}/accept`)
+      ).data;
+    } catch (err) {
+      normalise(err);
+    }
+  },
+
+  declineInvite: async (estateId: string): Promise<{ message: string }> => {
+    try {
+      return (
+        await http.post<{ message: string }>(`/estates/${estateId}/decline`)
+      ).data;
+    } catch (err) {
+      normalise(err);
+    }
+  },
 };

@@ -594,6 +594,86 @@ function SkeletonCard() {
   );
 }
 
+// ─── Pending invite card ──────────────────────────────────────────────────────
+
+function PendingInviteCard({
+  estate,
+  onAccepted,
+  onDeclined,
+}: {
+  estate: EstateItem;
+  onAccepted: (estateId: string) => void;
+  onDeclined: (estateId: string) => void;
+}) {
+  const { add: addToast } = useToastStore();
+  const [accepting, setAccepting] = useState(false);
+  const [declining, setDeclining] = useState(false);
+
+  async function handleAccept() {
+    setAccepting(true);
+    try {
+      await EstatesService.acceptInvite(estate.estateId);
+      onAccepted(estate.estateId);
+      addToast("You've accepted the executor invitation.", "success");
+    } catch {
+      addToast("Failed to accept invitation. Please try again.", "error");
+    } finally {
+      setAccepting(false);
+    }
+  }
+
+  async function handleDecline() {
+    setDeclining(true);
+    try {
+      await EstatesService.declineInvite(estate.estateId);
+      onDeclined(estate.estateId);
+      addToast("Invitation declined.", "success");
+    } catch {
+      addToast("Failed to decline invitation. Please try again.", "error");
+    } finally {
+      setDeclining(false);
+    }
+  }
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-amber-200 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 font-semibold text-sm flex-shrink-0">
+            {initials(estate.ownerName)}
+          </div>
+          <div className="min-w-0">
+            <p className="font-medium text-sm text-text-primary truncate">{estate.ownerName}</p>
+            <p className="text-xs text-text-secondary mt-0.5">
+              Invited {relativeDate(estate.designatedAt)}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleDecline}
+            disabled={accepting || declining}
+            className="text-text-secondary hover:text-red text-xs"
+          >
+            {declining && <Loader2 size={12} className="animate-spin" />}
+            Decline
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleAccept}
+            disabled={accepting || declining}
+          >
+            {accepting && <Loader2 size={12} className="animate-spin" />}
+            Accept
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function EstatesPage() {
@@ -612,6 +692,21 @@ export default function EstatesPage() {
   function handleExited(estateId: string) {
     setLocalEstates((prev) => prev.filter((e) => e.estateId !== estateId));
   }
+
+  function handleInviteActioned(estateId: string) {
+    setLocalEstates((prev) => prev.filter((e) => e.estateId !== estateId));
+  }
+
+  function handleAccepted(estateId: string) {
+    setLocalEstates((prev) =>
+      prev.map((e) =>
+        e.estateId === estateId ? { ...e, executorStatus: "ACTIVE" as const } : e,
+      ),
+    );
+  }
+
+  const pendingEstates = localEstates.filter((e) => e.executorStatus === "PENDING_INVITE");
+  const activeEstates  = localEstates.filter((e) => e.executorStatus !== "PENDING_INVITE");
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -636,13 +731,32 @@ export default function EstatesPage() {
         <VerificationBanner status={verificationStatus} />
       )}
 
+      {/* Pending invitations */}
+      {!estatesLoading && pendingEstates.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-text-tertiary uppercase tracking-[0.07em] mb-2">
+            Pending invitations
+          </p>
+          <div className="space-y-3">
+            {pendingEstates.map((estate) => (
+              <PendingInviteCard
+                key={estate.estateId}
+                estate={estate}
+                onAccepted={handleAccepted}
+                onDeclined={handleInviteActioned}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Content */}
       {estatesLoading ? (
         <div className="space-y-3">
           <SkeletonCard />
           <SkeletonCard />
         </div>
-      ) : localEstates.length === 0 ? (
+      ) : activeEstates.length === 0 && pendingEstates.length === 0 ? (
         <div className="py-12 flex flex-col items-center">
           <Users className="w-10 h-10 text-gray-300" />
           <p className="text-base font-medium text-text-secondary text-center mt-3">
@@ -652,9 +766,9 @@ export default function EstatesPage() {
             If someone designates you as their executor, their estate will appear here.
           </p>
         </div>
-      ) : (
+      ) : activeEstates.length > 0 ? (
         <div className="space-y-3">
-          {localEstates.map((estate) => (
+          {activeEstates.map((estate) => (
             <button
               key={estate.estateId}
               onClick={() => setSelectedEstate(estate)}
@@ -678,7 +792,7 @@ export default function EstatesPage() {
             </button>
           ))}
         </div>
-      )}
+      ) : null}
 
       {/* Drawer */}
       <EstateDrawer
