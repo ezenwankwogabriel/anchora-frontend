@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, FilePlus, FileEdit, Shield, Clock, CheckCircle, AlertTriangle } from "lucide-react";
+import { Plus, FilePlus, FileEdit, Shield, Clock, CheckCircle, AlertTriangle, CreditCard, X } from "lucide-react";
 import { HealthCard } from "@/components/ui/health-card";
 import { PanelCard } from "@/components/ui/panel-card";
 import { ChecklistCard, type ChecklistItem } from "@/components/ui/checklist-card";
@@ -11,10 +11,12 @@ import { SkeletonCard, SkeletonRow } from "@/components/ui/skeleton-card";
 import { Button } from "@/components/ui/button";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useAuthStore } from "@/stores/authStore";
+import { usePlan } from "@/hooks/usePlan";
 import type { AssetCategory, Executor, VaultRecord } from "@/lib/types";
 import { DIGITAL_ASSET_CATEGORIES, PHYSICAL_ASSET_CATEGORIES, ALL_VAULT_CATEGORIES } from "@/lib/schemas/vault";
 
-const DISMISSED_KEY = "onboardingDismissed";
+const DISMISSED_KEY         = "onboardingDismissed";
+const PAST_DUE_DISMISSED_KEY = "pastDueBannerDismissed";
 
 function timeAgo(iso: string): string {
   const diff   = Date.now() - new Date(iso).getTime();
@@ -74,6 +76,17 @@ function buildChecklist(hasRecords: boolean, executor: Executor | null): Checkli
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
   const { loading, records, executor, error, deleteRecord } = useDashboardData();
+  const { planData, loading: planLoading } = usePlan();
+  const [pastDueDismissed, setPastDueDismissed] = useState(false);
+
+  useEffect(() => {
+    setPastDueDismissed(localStorage.getItem(PAST_DUE_DISMISSED_KEY) === "true");
+  }, []);
+
+  const dismissPastDueBanner = () => {
+    localStorage.setItem(PAST_DUE_DISMISSED_KEY, "true");
+    setPastDueDismissed(true);
+  };
 
   const totalRecords  = records?.length ?? 0;
   const intentSet     = records?.filter((r) => r.executorIntent !== "UNSPECIFIED").length ?? 0;
@@ -187,6 +200,32 @@ export default function DashboardPage() {
           </>
         )}
       </div>
+
+      {/* Payment failed banner */}
+      {true || !planLoading && planData?.subscriptionStatus === "PAST_DUE" && !pastDueDismissed && (
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <CreditCard size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-[500] text-amber-900">Payment failed</p>
+            <p className="text-[12px] text-amber-700">
+              Your last billing attempt didn&apos;t go through. Paystack will retry automatically — update your card if needed.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <Link href="/settings?tab=Plan" className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap">
+              Manage plan →
+            </Link>
+            <button
+              type="button"
+              onClick={dismissPastDueBanner}
+              className="text-amber-500 hover:text-amber-700 transition-colors"
+              aria-label="Dismiss"
+            >
+              <X size={15} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Executor status nudge */}
       {!loading && (
