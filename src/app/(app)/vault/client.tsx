@@ -8,6 +8,7 @@ import { AssetCategoryRow } from "@/components/ui/asset-category-row";
 import { SkeletonRow } from "@/components/ui/skeleton-card";
 import { Button } from "@/components/ui/button";
 import { UpgradePrompt } from "@/components/ui/upgrade-prompt";
+import { PaywallModal } from "@/components/ui/paywall-modal";
 import { VaultService } from "@/services/vault.service";
 import { usePlan } from "@/hooks/usePlan";
 import { useToastStore } from "@/stores/toastStore";
@@ -24,7 +25,8 @@ export default function VaultClient() {
   const [error, setError]             = useState(false);
   const [downloading, setDownloading] = useState(false);
 
-  const { isPro, isFree, loading: planLoading } = usePlan();
+  const [showPaywall, setShowPaywall] = useState(false);
+  const { isPro, isFree, loading: planLoading, refetch: refetchPlan } = usePlan();
   const addToast = useToastStore((s) => s.add);
 
   useEffect(() => {
@@ -54,6 +56,7 @@ export default function VaultClient() {
 
   const recordCount = records?.length ?? 0;
   const atLimit     = isFree && recordCount >= FREE_RECORD_LIMIT;
+  console.log('at limit', atLimit, isFree)
   const remaining   = FREE_RECORD_LIMIT - recordCount;
 
   const recordsByCategory = ALL_VAULT_CATEGORIES.reduce<Record<AssetCategory, VaultRecord[]>>(
@@ -79,15 +82,24 @@ export default function VaultClient() {
           </p>
         </div>
         <div className="flex flex-col items-end gap-1">
-          <Link href="/vault/add">
-            <Button disabled={atLimit} className={atLimit ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}>
+          {atLimit ? (
+            <Button onClick={() => setShowPaywall(true)}>
               <Plus size={14} />
               Add asset
             </Button>
-          </Link>
-          {!planLoading && isFree && !atLimit && remaining > 0 && (
+          ) : (
+            <Link href="/vault/add">
+              <Button>
+                <Plus size={14} />
+                Add asset
+              </Button>
+            </Link>
+          )}
+          {!planLoading && isFree && (
             <p className="text-[11.5px] text-text-tertiary">
-              {remaining} free record{remaining !== 1 ? "s" : ""} remaining
+              {atLimit
+                ? "Free limit reached · Upgrade to add more"
+                : `${remaining} free record${remaining !== 1 ? "s" : ""} remaining`}
             </p>
           )}
         </div>
@@ -127,14 +139,6 @@ export default function VaultClient() {
         </div>
       )}
 
-      {/* Vault limit upgrade prompt */}
-      {!planLoading && atLimit && (
-        <UpgradePrompt
-          feature="Unlimited asset records"
-          description="Free plan includes up to 3 records. Upgrade to Pro to add unlimited assets across all categories."
-        />
-      )}
-
       {/* Asset list */}
       <PanelCard>
         {loading ? (
@@ -162,6 +166,11 @@ export default function VaultClient() {
         )}
       </PanelCard>
 
+      <PaywallModal
+        open={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        onUpgraded={() => { setShowPaywall(false); refetchPlan(); }}
+      />
     </div>
   );
 }
