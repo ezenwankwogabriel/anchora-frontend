@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import Script from "next/script";
 import { ToastContainer } from "@/components/ui/toast";
 import "./globals.css";
 
@@ -38,6 +39,7 @@ export default function RootLayout({
       <body className="antialiased font-sans bg-background text-foreground">
         {children}
         <ToastContainer />
+        <Script src="https://js.paystack.co/v2/inline.js" strategy="afterInteractive" />
       </body>
     </html>
   );
