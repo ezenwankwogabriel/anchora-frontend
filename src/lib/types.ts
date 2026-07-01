@@ -186,10 +186,16 @@ export interface PlanLimits {
   executorReceivesReport: boolean;
 }
 
+export type BillingCycle = "MONTHLY" | "ANNUAL";
+export type SubscriptionStatus = "NONE" | "ACTIVE" | "CANCELLED" | "PAST_DUE";
+
 export interface PlanData {
   plan: "FREE" | "PRO";
   planActivatedAt: string | null;
-  planExpiresAt: string | null;
+  billingCycle: BillingCycle | null;
+  subscriptionStatus: SubscriptionStatus;
+  currentPeriodEnd: string | null;
+  cancelledAt: string | null;
   limits: PlanLimits;
 }
 
