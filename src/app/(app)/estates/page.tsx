@@ -35,7 +35,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useEstatesStore } from "@/stores/estatesStore";
 import { EstatesService } from "@/services/estates.service";
-import type { EstateItem, IdentityVerificationStatus } from "@/lib/types/estates";
+import type {
+  EstateItem,
+  IdentityVerificationStatus,
+} from "@/lib/types/estates";
 import { useToastStore } from "@/stores/toastStore";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -48,16 +51,25 @@ function initials(name: string): string {
     .slice(0, 2)
     .toUpperCase();
 }
+function startOfDay(d: Date) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
 
 function relativeDate(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const days = Math.floor(diff / 86_400_000);
+  const date = new Date(iso);
+
+  const days = Math.floor(
+    (startOfDay(new Date()) - startOfDay(date)) / 86_400_000,
+  );
+
+  if (days === 0) return "today";
+
   const months = Math.floor(days / 30);
   const years = Math.floor(days / 365);
+
   if (years >= 1) return `${years} year${years > 1 ? "s" : ""} ago`;
   if (months >= 1) return `${months} month${months > 1 ? "s" : ""} ago`;
-  if (days >= 1) return `${days} day${days > 1 ? "s" : ""} ago`;
-  return "today";
+  return `${days} day${days > 1 ? "s" : ""} ago`;
 }
 
 // ─── Verification Banner ───────────────────────────────────────────────────────
@@ -74,8 +86,12 @@ function VerificationBanner({
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
         <ShieldAlert className="text-amber-600 w-5 h-5 flex-shrink-0 mt-0.5" />
         <div className="flex-1">
-          <p className="text-sm font-medium text-amber-900">Your identity is not verified.</p>
-          <p className="text-sm text-amber-700 mt-0.5">Verify once to be ready for any estate you&apos;re assigned to.</p>
+          <p className="text-sm font-medium text-amber-900">
+            Your identity is not verified.
+          </p>
+          <p className="text-sm text-amber-700 mt-0.5">
+            Verify once to be ready for any estate you&apos;re assigned to.
+          </p>
         </div>
         <Link
           href="/settings"
@@ -92,8 +108,12 @@ function VerificationBanner({
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
         <Clock className="text-blue-500 w-5 h-5 flex-shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-medium text-blue-900">Identity verification under review.</p>
-          <p className="text-sm text-blue-700 mt-0.5">You&apos;ll be notified when complete.</p>
+          <p className="text-sm font-medium text-blue-900">
+            Identity verification under review.
+          </p>
+          <p className="text-sm text-blue-700 mt-0.5">
+            You&apos;ll be notified when complete.
+          </p>
         </div>
       </div>
     );
@@ -104,7 +124,9 @@ function VerificationBanner({
       <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
         <XCircle className="text-red-500 w-5 h-5 flex-shrink-0 mt-0.5" />
         <div className="flex-1">
-          <p className="text-sm font-medium text-red-900">Identity verification unsuccessful.</p>
+          <p className="text-sm font-medium text-red-900">
+            Identity verification unsuccessful.
+          </p>
           <p className="text-sm text-red-700 mt-0.5">
             {rejectionReason ?? "Your documents could not be verified."}
           </p>
@@ -184,25 +206,38 @@ function StatusPill({
 
 // ─── Drawer content ───────────────────────────────────────────────────────────
 
-function DrawerDetail({ label, value }: { label: string; value: React.ReactNode }) {
+function DrawerDetail({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
   return (
     <div className="flex items-center justify-between py-2 border-b border-border-color last:border-0">
-      <span className="text-xs text-text-secondary uppercase tracking-wide font-medium">{label}</span>
+      <span className="text-xs text-text-secondary uppercase tracking-wide font-medium">
+        {label}
+      </span>
       <span className="text-sm text-text-primary font-medium">{value}</span>
     </div>
   );
 }
 
 function VerificationBadge({ status }: { status: IdentityVerificationStatus }) {
-  const map: Record<IdentityVerificationStatus, { label: string; cls: string }> = {
+  const map: Record<
+    IdentityVerificationStatus,
+    { label: string; cls: string }
+  > = {
     UNVERIFIED: { label: "Not verified", cls: "bg-amber-100 text-amber-700" },
-    PENDING:    { label: "Under review",  cls: "bg-blue-100 text-blue-700" },
-    VERIFIED:   { label: "Verified",      cls: "bg-emerald-100 text-emerald-700" },
-    REJECTED:   { label: "Rejected",      cls: "bg-red-100 text-red-700" },
+    PENDING: { label: "Under review", cls: "bg-blue-100 text-blue-700" },
+    VERIFIED: { label: "Verified", cls: "bg-emerald-100 text-emerald-700" },
+    REJECTED: { label: "Rejected", cls: "bg-red-100 text-red-700" },
   };
   const { label, cls } = map[status];
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>
+    <span
+      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}
+    >
       {label}
     </span>
   );
@@ -227,7 +262,8 @@ function EstateDrawer({
   const [downloading, setDownloading] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
-  const [downloadBeforeExitDialogOpen, setDownloadBeforeExitDialogOpen] = useState(false);
+  const [downloadBeforeExitDialogOpen, setDownloadBeforeExitDialogOpen] =
+    useState(false);
 
   if (!estate) return null;
 
@@ -295,15 +331,31 @@ function EstateDrawer({
             <SheetDescription>Estate of {estate.ownerName}</SheetDescription>
           </SheetHeader>
           <div className="mt-6 space-y-4">
-            <DrawerDetail label="Status" value={
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Designated executor</span>
-            } />
-            <DrawerDetail label="Designated on" value={new Date(estate.designatedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })} />
-            <DrawerDetail label="Your verification" value={<VerificationBadge status={verificationStatus} />} />
+            <DrawerDetail
+              label="Status"
+              value={
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                  Designated executor
+                </span>
+              }
+            />
+            <DrawerDetail
+              label="Designated on"
+              value={new Date(estate.designatedAt).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            />
+            <DrawerDetail
+              label="Your verification"
+              value={<VerificationBadge status={verificationStatus} />}
+            />
           </div>
           <div className="mt-4 bg-gray-50 rounded-xl p-4">
             <p className="text-sm text-text-secondary">
-              You will be notified by email if a release is triggered for this estate.
+              You will be notified by email if a release is triggered for this
+              estate.
             </p>
           </div>
           <div className="mt-6 pt-4 border-t border-border-color">
@@ -314,7 +366,13 @@ function EstateDrawer({
               Exit estate
             </button>
           </div>
-          <ExitDialog open={exitDialogOpen} onClose={() => setExitDialogOpen(false)} onConfirm={confirmExit} loading={exiting} ownerName={estate.ownerName} />
+          <ExitDialog
+            open={exitDialogOpen}
+            onClose={() => setExitDialogOpen(false)}
+            onConfirm={confirmExit}
+            loading={exiting}
+            ownerName={estate.ownerName}
+          />
         </SheetContent>
       </Sheet>
     );
@@ -335,19 +393,27 @@ function EstateDrawer({
             <SheetDescription>Estate of {estate.ownerName}</SheetDescription>
           </SheetHeader>
           <div className="mt-6">
-            <DrawerDetail label="Status" value={
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">Action required</span>
-            } />
+            <DrawerDetail
+              label="Status"
+              value={
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                  Action required
+                </span>
+              }
+            />
           </div>
           <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
             <AlertTriangle className="text-amber-600 w-5 h-5 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-amber-800">
-              A release has been triggered for this estate. Verify your identity to access the estate report.
+              A release has been triggered for this estate. Verify your identity
+              to access the estate report.
             </p>
           </div>
           <div className="mt-4">
             <Link href="/settings">
-              <Button className="w-full rounded-lg">Verify your identity</Button>
+              <Button className="w-full rounded-lg">
+                Verify your identity
+              </Button>
             </Link>
           </div>
           <div className="mt-6 pt-4 border-t border-border-color">
@@ -380,14 +446,21 @@ function EstateDrawer({
             <SheetDescription>Estate of {estate.ownerName}</SheetDescription>
           </SheetHeader>
           <div className="mt-6">
-            <DrawerDetail label="Status" value={
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Verification under review</span>
-            } />
+            <DrawerDetail
+              label="Status"
+              value={
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                  Verification under review
+                </span>
+              }
+            />
           </div>
           <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
             <Clock className="text-blue-500 w-5 h-5 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-blue-800">
-              Your identity documents are being reviewed. The estate report will be available once your verification is approved. You&apos;ll receive an email when it&apos;s ready.
+              Your identity documents are being reviewed. The estate report will
+              be available once your verification is approved. You&apos;ll
+              receive an email when it&apos;s ready.
             </p>
           </div>
           <div className="mt-6 pt-4 border-t border-border-color">
@@ -416,14 +489,21 @@ function EstateDrawer({
             <SheetDescription>Estate of {estate.ownerName}</SheetDescription>
           </SheetHeader>
           <div className="mt-6">
-            <DrawerDetail label="Status" value={
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Report available</span>
-            } />
+            <DrawerDetail
+              label="Status"
+              value={
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                  Report available
+                </span>
+              }
+            />
           </div>
           <div className="mt-4 border border-border-color rounded-xl p-4 flex items-center gap-3">
             <FileText className="text-accent w-8 h-8 flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-text-primary">Estate report</p>
+              <p className="text-sm font-medium text-text-primary">
+                Estate report
+              </p>
               <p className="text-xs text-text-secondary mt-0.5">
                 Released {relativeDate(release.triggeredAt)}
               </p>
@@ -435,7 +515,11 @@ function EstateDrawer({
               onClick={handleDownload}
               disabled={downloading}
             >
-              {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+              {downloading ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Download size={14} />
+              )}
               Download
             </Button>
           </div>
@@ -447,9 +531,12 @@ function EstateDrawer({
           <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
             <Info className="text-blue-500 w-4 h-4 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-semibold text-blue-900">Where to start</p>
+              <p className="text-sm font-semibold text-blue-900">
+                Where to start
+              </p>
               <p className="text-sm text-blue-800 mt-1">
-                Begin with the Legal Foundation section of the report before approaching any institution.
+                Begin with the Legal Foundation section of the report before
+                approaching any institution.
               </p>
             </div>
           </div>
@@ -465,10 +552,19 @@ function EstateDrawer({
             open={downloadBeforeExitDialogOpen}
             onClose={() => setDownloadBeforeExitDialogOpen(false)}
             onDownloadFirst={downloadThenExit}
-            onExitAnyway={() => { setDownloadBeforeExitDialogOpen(false); setExitDialogOpen(true); }}
+            onExitAnyway={() => {
+              setDownloadBeforeExitDialogOpen(false);
+              setExitDialogOpen(true);
+            }}
             downloading={downloading}
           />
-          <ExitDialog open={exitDialogOpen} onClose={() => setExitDialogOpen(false)} onConfirm={confirmExit} loading={exiting} ownerName={estate.ownerName} />
+          <ExitDialog
+            open={exitDialogOpen}
+            onClose={() => setExitDialogOpen(false)}
+            onConfirm={confirmExit}
+            loading={exiting}
+            ownerName={estate.ownerName}
+          />
         </SheetContent>
       </Sheet>
     );
@@ -484,14 +580,20 @@ function EstateDrawer({
           <SheetDescription>Estate of {estate.ownerName}</SheetDescription>
         </SheetHeader>
         <div className="mt-6">
-          <DrawerDetail label="Status" value={
-            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">Release halted</span>
-          } />
+          <DrawerDetail
+            label="Status"
+            value={
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                Release halted
+              </span>
+            }
+          />
         </div>
         <div className="mt-4 bg-gray-50 rounded-xl p-4 flex items-start gap-3">
           <Info className="text-gray-400 w-5 h-5 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-text-secondary">
-            The owner has been detected as active. The release process has been paused.
+            The owner has been detected as active. The release process has been
+            paused.
           </p>
         </div>
         <div className="mt-6 pt-4 border-t border-border-color">
@@ -502,7 +604,13 @@ function EstateDrawer({
             Exit estate
           </button>
         </div>
-        <ExitDialog open={exitDialogOpen} onClose={() => setExitDialogOpen(false)} onConfirm={confirmExit} loading={exiting} ownerName={estate.ownerName} />
+        <ExitDialog
+          open={exitDialogOpen}
+          onClose={() => setExitDialogOpen(false)}
+          onConfirm={confirmExit}
+          loading={exiting}
+          ownerName={estate.ownerName}
+        />
       </SheetContent>
     </Sheet>
   );
@@ -511,7 +619,11 @@ function EstateDrawer({
 // ─── Exit dialogs ─────────────────────────────────────────────────────────────
 
 function ExitDialog({
-  open, onClose, onConfirm, loading, ownerName,
+  open,
+  onClose,
+  onConfirm,
+  loading,
+  ownerName,
 }: {
   open: boolean;
   onClose: () => void;
@@ -525,7 +637,9 @@ function ExitDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Exit this estate?</AlertDialogTitle>
           <AlertDialogDescription>
-            You will be removed as executor for {ownerName}&apos;s estate. The owner will be notified and will need to designate a new executor. This cannot be undone.
+            You will be removed as executor for {ownerName}&apos;s estate. The
+            owner will be notified and will need to designate a new executor.
+            This cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -535,7 +649,9 @@ function ExitDialog({
             disabled={loading}
             className="bg-red-600 hover:bg-red-700 text-white"
           >
-            {loading ? <Loader2 size={14} className="animate-spin mr-1" /> : null}
+            {loading ? (
+              <Loader2 size={14} className="animate-spin mr-1" />
+            ) : null}
             Exit estate
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -545,7 +661,11 @@ function ExitDialog({
 }
 
 function ExitWithReportDialog({
-  open, onClose, onDownloadFirst, onExitAnyway, downloading,
+  open,
+  onClose,
+  onDownloadFirst,
+  onExitAnyway,
+  downloading,
 }: {
   open: boolean;
   onClose: () => void;
@@ -559,16 +679,30 @@ function ExitWithReportDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Exit this estate?</AlertDialogTitle>
           <AlertDialogDescription>
-            You have a report available for this estate. Downloading it before exiting is strongly recommended — you will lose access once you exit. This cannot be undone.
+            You have a report available for this estate. Downloading it before
+            exiting is strongly recommended — you will lose access once you
+            exit. This cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Keep role</AlertDialogCancel>
-          <Button variant="secondary" onClick={onDownloadFirst} disabled={downloading} className="flex items-center gap-1.5">
-            {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+          <Button
+            variant="secondary"
+            onClick={onDownloadFirst}
+            disabled={downloading}
+            className="flex items-center gap-1.5"
+          >
+            {downloading ? (
+              <Loader2 size={14} className="animate-spin" />
+            ) : (
+              <Download size={14} />
+            )}
             Download first
           </Button>
-          <AlertDialogAction onClick={onExitAnyway} className="bg-red-600 hover:bg-red-700 text-white">
+          <AlertDialogAction
+            onClick={onExitAnyway}
+            className="bg-red-600 hover:bg-red-700 text-white"
+          >
             Exit anyway
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -643,7 +777,9 @@ function PendingInviteCard({
             {initials(estate.ownerName)}
           </div>
           <div className="min-w-0">
-            <p className="font-medium text-sm text-text-primary truncate">{estate.ownerName}</p>
+            <p className="font-medium text-sm text-text-primary truncate">
+              {estate.ownerName}
+            </p>
             <p className="text-xs text-text-secondary mt-0.5">
               Invited {relativeDate(estate.designatedAt)}
             </p>
@@ -677,7 +813,8 @@ function PendingInviteCard({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function EstatesPage() {
-  const { estates, verificationStatus, estatesLoading, fetchEstates } = useEstatesStore();
+  const { estates, verificationStatus, estatesLoading, fetchEstates } =
+    useEstatesStore();
   const [selectedEstate, setSelectedEstate] = useState<EstateItem | null>(null);
   const [localEstates, setLocalEstates] = useState<EstateItem[]>(estates);
 
@@ -700,13 +837,19 @@ export default function EstatesPage() {
   function handleAccepted(estateId: string) {
     setLocalEstates((prev) =>
       prev.map((e) =>
-        e.estateId === estateId ? { ...e, executorStatus: "ACTIVE" as const } : e,
+        e.estateId === estateId
+          ? { ...e, executorStatus: "ACTIVE" as const }
+          : e,
       ),
     );
   }
 
-  const pendingEstates = localEstates.filter((e) => e.executorStatus === "PENDING_INVITE");
-  const activeEstates  = localEstates.filter((e) => e.executorStatus !== "PENDING_INVITE");
+  const pendingEstates = localEstates.filter(
+    (e) => e.executorStatus === "PENDING_INVITE",
+  );
+  const activeEstates = localEstates.filter(
+    (e) => e.executorStatus !== "PENDING_INVITE",
+  );
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -763,7 +906,8 @@ export default function EstatesPage() {
             No estates assigned
           </p>
           <p className="text-sm text-text-secondary text-center mt-1">
-            If someone designates you as their executor, their estate will appear here.
+            If someone designates you as their executor, their estate will
+            appear here.
           </p>
         </div>
       ) : activeEstates.length > 0 ? (
@@ -779,14 +923,19 @@ export default function EstatesPage() {
                   {initials(estate.ownerName)}
                 </div>
                 <div className="ml-3">
-                  <p className="font-medium text-sm text-text-primary">{estate.ownerName}</p>
+                  <p className="font-medium text-sm text-text-primary">
+                    {estate.ownerName}
+                  </p>
                   <p className="text-xs text-text-secondary mt-0.5">
                     Designated {relativeDate(estate.designatedAt)}
                   </p>
                 </div>
               </div>
               <div className="flex items-center ml-3">
-                <StatusPill estate={estate} verificationStatus={verificationStatus} />
+                <StatusPill
+                  estate={estate}
+                  verificationStatus={verificationStatus}
+                />
                 <ChevronRight className="w-4 h-4 text-gray-400 ml-3 flex-shrink-0" />
               </div>
             </button>
