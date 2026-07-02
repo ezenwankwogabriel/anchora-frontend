@@ -926,7 +926,7 @@ function CheckoutStatusView({
         <Loader2 size={32} className="animate-spin text-accent mb-4" />
         <p className="font-semibold text-[15px] text-text-primary">Confirming payment…</p>
         <p className="text-[13px] text-text-secondary mt-1">
-          This only takes a moment. Please don't navigate away.
+          This only takes a moment. Please don&apos;t navigate away.
         </p>
       </div>
     );
@@ -953,7 +953,7 @@ function CheckoutStatusView({
         </div>
         <p className="font-semibold text-[15px] text-text-primary mb-1">This is taking longer than usual</p>
         <p className="text-[13px] text-text-secondary mb-5 max-w-[300px]">
-          We'll send you an email once your Pro access is confirmed.
+          We&apos;ll send you an email once your Pro access is confirmed.
         </p>
         <Button variant="secondary" onClick={onDone}>Back to settings</Button>
       </div>
@@ -962,7 +962,7 @@ function CheckoutStatusView({
   // failed
   return (
     <div className="flex flex-col items-center text-center py-16">
-      <p className="font-semibold text-[15px] text-text-primary mb-1">Payment didn't go through</p>
+      <p className="font-semibold text-[15px] text-text-primary mb-1">Payment didn&apos;t go through</p>
       <p className="text-[13px] text-text-secondary mb-5">
         {error ?? "No charge was made. You can try again."}
       </p>
@@ -1015,10 +1015,10 @@ function CancellationModal({
           <>
             <p className="font-heading text-[20px] text-text-primary mb-3">Cancel your Pro subscription?</p>
             <p className="text-[13px] text-text-secondary leading-relaxed mb-5">
-              You'll keep full Pro access until your current billing period ends
+              You&apos;ll keep full Pro access until your current billing period ends
               {periodEndDate ? ` on <strong>${periodEndDate}</strong>` : ""}. After that, if you have more than 3
               asset records, records beyond the first 3 become{" "}
-              <strong>read-only</strong> — you can view and delete them, but not edit, until you're back at or under the free limit.
+              <strong>read-only</strong> — you can view and delete them, but not edit, until you&apos;re back at or under the free limit.
             </p>
             {error && (
               <p className="text-[12.5px] text-red bg-red-light border border-[#F5B0B0] rounded-md px-3 py-2 mb-4">
@@ -1042,7 +1042,7 @@ function CancellationModal({
         {step === 2 && (
           <>
             <p className="font-heading text-[20px] text-text-primary mb-3">Before you go…</p>
-            <p className="text-[13px] text-text-secondary mb-4">What's the main reason? (optional)</p>
+            <p className="text-[13px] text-text-secondary mb-4">What&apos;s the main reason? (optional)</p>
             <div className="flex flex-wrap gap-2 mb-6">
               {reasons.map((r) => (
                 <button
@@ -1096,13 +1096,11 @@ function CancellationModal({
 // Billing cycle switch confirmation modal
 function CycleChangeModal({
   targetCycle,
-  activeCycle,
   periodEndDate,
   onClose,
   onConfirmed,
 }: {
   targetCycle: BillingCycle;
-  activeCycle: BillingCycle | null;
   periodEndDate: string | null;
   onClose: () => void;
   onConfirmed: () => Promise<void>;
@@ -1382,7 +1380,6 @@ function PlanTab({
       {showCycleModal && (
         <CycleChangeModal
           targetCycle={cycleSel}
-          activeCycle={activeCycle}
           periodEndDate={periodEndDate}
           onClose={() => setShowCycleModal(false)}
           onConfirmed={async () => {

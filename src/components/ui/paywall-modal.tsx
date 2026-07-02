@@ -29,7 +29,7 @@ export function PaywallModal({ open, onClose, onUpgraded }: PaywallModalProps) {
           <Loader2 size={32} className="animate-spin text-accent mb-4" />
           <p className="font-semibold text-[15px] text-text-primary">Confirming payment…</p>
           <p className="text-[13px] text-text-secondary mt-1 max-w-[280px]">
-            This only takes a moment. Please don't close this window.
+            This only takes a moment. Please don&apos;t close this window.
           </p>
         </div>
       </Overlay>
@@ -66,7 +66,7 @@ export function PaywallModal({ open, onClose, onUpgraded }: PaywallModalProps) {
             This is taking longer than usual
           </p>
           <p className="text-[13px] text-text-secondary mb-5 max-w-[300px]">
-            We'll send you an email once your Pro access is confirmed. You can safely close this window.
+            We&apos;ll send you an email once your Pro access is confirmed. You can safely close this window.
           </p>
           <Button fullWidth onClick={handleClose}>Got it</Button>
         </div>
@@ -80,7 +80,7 @@ export function PaywallModal({ open, onClose, onUpgraded }: PaywallModalProps) {
       <Overlay onClose={handleClose}>
         <div className="flex flex-col items-center text-center py-2">
           <p className="font-semibold text-[15px] text-text-primary mb-1">
-            Payment didn't go through
+            Payment didn&apos;t go through
           </p>
           <p className="text-[13px] text-text-secondary mb-2 max-w-[300px]">
             {error ?? "No charge was made. You can try again."}
@@ -114,7 +114,7 @@ export function PaywallModal({ open, onClose, onUpgraded }: PaywallModalProps) {
           <Lock size={22} className="text-amber-600" />
         </div>
         <p className="font-heading text-[20px] text-text-primary mb-2">
-          You've reached your free plan limit
+          You&apos;ve reached your free plan limit
         </p>
         <p className="text-[13px] text-text-secondary mb-6 max-w-[300px]">
           Free plans include up to 3 asset records. Upgrade to Pro for unlimited records across all 11 categories.
