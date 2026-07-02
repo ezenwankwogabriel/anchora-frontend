@@ -114,7 +114,7 @@ export default function VaultClient() {
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-[14px] text-text-primary">Estate summary</p>
             <p className="text-[13px] text-text-secondary mt-0.5">
-              A structured document your executor will use to recover and manage your assets.
+              A preview of the document your executor will receive at release.
             </p>
           </div>
           <div className="flex flex-col items-stretch lg:items-end gap-1.5 w-full lg:w-auto">
@@ -127,7 +127,7 @@ export default function VaultClient() {
                     <><Download size={13} /> Download summary</>
                   )}
                 </Button>
-                <p className="text-[11px] text-text-tertiary">Generated as a PDF · Link expires in 24 hours</p>
+                <p className="text-[11px] text-text-tertiary">Generated as a PDF</p>
               </>
             ) : (
               <UpgradePrompt
