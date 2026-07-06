@@ -7,9 +7,15 @@ import { Loader2 } from "lucide-react";
 import { ProtectedRoute } from "@/components/layout/protected-route";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CategoryPillPicker } from "@/components/onboarding/category-pill-picker";
+import { CategoryIcon, categoryLabels } from "@/components/ui/category-icon";
+import { VaultForm } from "@/components/vault/vault-form";
 import { ExecutorService } from "@/services/executor.service";
 import { AuthService } from "@/services/auth.service";
+import { VaultService } from "@/services/vault.service";
 import { useAuthStore } from "@/stores/authStore";
+import { cn } from "@/lib/utils";
+import type { AssetCategory, VaultRecordInput } from "@/lib/types";
 
 async function finish(router: ReturnType<typeof useRouter>) {
   await AuthService.completeOnboarding();
@@ -28,7 +34,32 @@ export default function OnboardingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
+  const [categories, setCategories] = useState<AssetCategory[]>([]);
+  const [firstAssetCategory, setFirstAssetCategory] = useState<AssetCategory | null>(null);
+  const [assetApiError, setAssetApiError] = useState<string | null>(null);
+
+  const toggleCategory = (cat: AssetCategory) =>
+    setCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+    );
+
+  // Nothing to seed if the user picked no categories — skip straight to the executor step.
+  const continueFromCategories = () => setStep(categories.length > 0 ? 4 : 5);
+  const backToExecutorPrevious = () => setStep(categories.length > 0 ? 4 : 3);
+
   const skip = () => finish(router);
+
+  const createFirstAsset = async (data: VaultRecordInput) => {
+    setAssetApiError(null);
+    try {
+      await VaultService.createRecord(data);
+      setStep(5);
+    } catch {
+      setAssetApiError(
+        "Something went wrong saving that asset. You can skip and add it later from your vault."
+      );
+    }
+  };
 
   const submitExecutor = async () => {
     if (!name.trim() || !email.trim()) return;
@@ -74,7 +105,7 @@ export default function OnboardingPage() {
 
         {/* Step dots */}
         <div className="flex justify-center gap-2 mt-1 mb-10 flex-shrink-0">
-          {[0, 1, 2, 3].map((i) => (
+          {[0, 1, 2, 3, 4, 5].map((i) => (
             <div
               key={i}
               className={`h-1.5 rounded-full transition-all duration-300 ${
@@ -101,6 +132,29 @@ export default function OnboardingPage() {
               <ScreenExpectations onBack={() => setStep(1)} onNext={() => setStep(3)} />
             )}
             {step === 3 && (
+              <ScreenCategories
+                selected={categories}
+                onToggle={toggleCategory}
+                onBack={() => setStep(2)}
+                onNext={continueFromCategories}
+              />
+            )}
+            {step === 4 && (
+              <ScreenFirstAsset
+                categories={categories}
+                selectedCategory={
+                  firstAssetCategory && categories.includes(firstAssetCategory)
+                    ? firstAssetCategory
+                    : categories[0] ?? null
+                }
+                onSelectCategory={setFirstAssetCategory}
+                apiError={assetApiError}
+                onBack={() => setStep(3)}
+                onSubmit={createFirstAsset}
+                onSkip={() => setStep(5)}
+              />
+            )}
+            {step === 5 && (
               <ScreenExecutor
                 name={name}
                 email={email}
@@ -112,7 +166,7 @@ export default function OnboardingPage() {
                 onEmailChange={setEmail}
                 onPhoneChange={setPhone}
                 onRelationshipChange={setRelationship}
-                onBack={() => setStep(2)}
+                onBack={backToExecutorPrevious}
                 onSubmit={submitExecutor}
                 onSkip={skip}
               />
@@ -265,7 +319,145 @@ function ScreenExpectations({
   );
 }
 
-// ── Screen 3: Designate executor ──────────────────────────────────────────
+// ── Screen 3: Category selection ──────────────────────────────────────────
+
+function ScreenCategories({
+  selected,
+  onToggle,
+  onBack,
+  onNext,
+}: {
+  selected: AssetCategory[];
+  onToggle: (category: AssetCategory) => void;
+  onBack: () => void;
+  onNext: () => void;
+}) {
+  return (
+    <div>
+      <p className="text-[13px] text-text-tertiary uppercase tracking-wider font-semibold mb-3">
+        Tell us what you have
+      </p>
+      <h2 className="font-heading text-[28px] sm:text-[32px] leading-[1.2] text-text-primary mb-2">
+        What do you want to protect?
+      </h2>
+      <p className="text-[14px] text-text-secondary mb-8">
+        Pick everything that applies — you can add the details later. Nothing
+        here is final.
+      </p>
+
+      <div className="mb-10">
+        <CategoryPillPicker selected={selected} onToggle={onToggle} />
+      </div>
+
+      <div className="flex gap-3">
+        <Button variant="secondary" onClick={onBack}>
+          ← Back
+        </Button>
+        <Button onClick={onNext}>Continue →</Button>
+      </div>
+    </div>
+  );
+}
+
+// ── Screen 4: Add first asset ─────────────────────────────────────────────
+
+function ScreenFirstAsset({
+  categories,
+  selectedCategory,
+  onSelectCategory,
+  apiError,
+  onBack,
+  onSubmit,
+  onSkip,
+}: {
+  categories: AssetCategory[];
+  selectedCategory: AssetCategory | null;
+  onSelectCategory: (category: AssetCategory) => void;
+  apiError: string | null;
+  onBack: () => void;
+  onSubmit: (data: VaultRecordInput) => Promise<void>;
+  onSkip: () => void;
+}) {
+  if (!selectedCategory) return null;
+
+  return (
+    <div>
+      <p className="text-[13px] text-text-tertiary uppercase tracking-wider font-semibold mb-3">
+        Let&apos;s add your first asset
+      </p>
+      <h2 className="font-heading text-[28px] sm:text-[32px] leading-[1.2] text-text-primary mb-2">
+        Ready to log one?
+      </h2>
+      <p className="text-[14px] text-text-secondary mb-6">
+        Pick one of the categories you just selected — we&apos;ll walk you
+        through it.
+      </p>
+
+      {categories.length > 1 && (
+        <div className="flex flex-wrap gap-2 mb-8">
+          {categories.map((cat) => {
+            const isSelected = cat === selectedCategory;
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => onSelectCategory(cat)}
+                className={cn(
+                  "flex items-center gap-2 pl-3 pr-4 py-2 rounded-full border-[1.5px] transition-colors",
+                  isSelected
+                    ? "border-accent bg-[#EFF6FF] text-accent"
+                    : "border-border-color text-text-primary hover:border-accent hover:bg-surface-2"
+                )}
+              >
+                <CategoryIcon category={cat} size={14} className="w-6 h-6" />
+                <span className="text-[13px] font-semibold">{categoryLabels[cat]}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {categories.length === 1 && (
+        <div className="flex items-center gap-3 mb-8 pb-5 border-b border-border-color">
+          <CategoryIcon category={selectedCategory} size={16} />
+          <p className="text-[13px] font-semibold text-text-primary">
+            {categoryLabels[selectedCategory]}
+          </p>
+        </div>
+      )}
+
+      {apiError && (
+        <p className="text-[12.5px] text-red bg-red-light border border-[#F5B0B0] rounded-md px-3 py-2 mb-4">
+          {apiError}
+        </p>
+      )}
+
+      <VaultForm
+        category={selectedCategory}
+        onSubmit={onSubmit}
+        onCancel={onBack}
+        submitLabel="Save asset →"
+        hideCancel
+      />
+
+      <div className="flex gap-3 mt-4">
+        <Button variant="secondary" onClick={onBack}>
+          ← Back
+        </Button>
+      </div>
+
+      <button
+        type="button"
+        onClick={onSkip}
+        className="text-[13px] text-text-tertiary hover:text-text-secondary transition-colors cursor-pointer bg-transparent border-none font-sans mt-4"
+      >
+        Skip this step
+      </button>
+    </div>
+  );
+}
+
+// ── Screen 5: Designate executor ──────────────────────────────────────────
 
 function ScreenExecutor({
   name,
