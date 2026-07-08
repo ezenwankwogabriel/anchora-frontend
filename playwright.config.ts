@@ -4,7 +4,10 @@ import * as path from "path";
 
 dotenv.config({ path: path.resolve(__dirname, ".env.test") });
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
+const baseURL =
+  process.env.PLAYWRIGHT_BASE_URL ||
+  process.env.NEXT_PUBLIC_APP_HOST ||
+  "http://localhost:3000";
 
 export default defineConfig({
   testDir: "./e2e",
