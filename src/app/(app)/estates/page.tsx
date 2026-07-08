@@ -838,18 +838,16 @@ export default function EstatesPage() {
     setLocalEstates((prev) =>
       prev.map((e) =>
         e.estateId === estateId
-          ? { ...e, executorStatus: "ACTIVE" as const }
+          ? { ...e, acceptedAt: new Date().toISOString() }
           : e,
       ),
     );
   }
 
   const pendingEstates = localEstates.filter(
-    (e) => e.executorStatus === "PENDING_INVITE",
+    (e) => !e.acceptedAt && !e.declinedAt,
   );
-  const activeEstates = localEstates.filter(
-    (e) => e.executorStatus !== "PENDING_INVITE",
-  );
+  const activeEstates = localEstates.filter((e) => !!e.acceptedAt);
 
   return (
     <div className="space-y-6 max-w-2xl">

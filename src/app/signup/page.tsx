@@ -2,11 +2,11 @@
 
 import { Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Shield } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { AuthLayout } from "@/components/layout/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,12 +44,7 @@ function FieldError({ message }: { message?: string }) {
 }
 
 function SignupForm() {
-  const router       = useRouter();
-  const searchParams = useSearchParams();
-
-  const executorToken    = searchParams.get("token");
-  const role             = searchParams.get("role");
-  const isExecutorInvite = role === "executor" && !!executorToken;
+  const router = useRouter();
 
   const {
     register,
@@ -71,7 +66,6 @@ function SignupForm() {
         lastName: data.lastName,
         email: data.email,
         password: data.password,
-        ...(isExecutorInvite ? { executorToken, role } : {}),
       });
       router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
     } catch (err) {
@@ -92,16 +86,6 @@ function SignupForm() {
           Sign in instead
         </Link>
       </p>
-
-      {isExecutorInvite && (
-        <div className="flex items-start gap-3 bg-navy/5 border border-navy/20 rounded-xl p-4 mb-4">
-          <Shield size={16} className="text-navy flex-shrink-0 mt-[1px]" />
-          <p className="text-[13px] text-navy">
-            You&apos;ve been invited as an executor on Anchora. Create your account to confirm
-            your designation.
-          </p>
-        </div>
-      )}
 
       <SocialAuthButtons />
 

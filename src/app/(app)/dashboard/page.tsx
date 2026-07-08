@@ -66,10 +66,20 @@ function deriveActivity(records: VaultRecord[] | null): ActivityItem[] {
     .slice(0, 5);
 }
 
+type ExecutorDashboardState = "NONE" | "NOT_NOTIFIED" | "PENDING" | "DECLINED" | "ACCEPTED";
+
+function getExecutorDashboardState(executor: Executor | null): ExecutorDashboardState {
+  if (!executor) return "NONE";
+  if (executor.declinedAt) return "DECLINED";
+  if (executor.acceptedAt) return "ACCEPTED";
+  if (!executor.notifiedAt) return "NOT_NOTIFIED";
+  return "PENDING";
+}
+
 function buildChecklist(hasRecords: boolean, executor: Executor | null): ChecklistItem[] {
   return [
-    { id: "vault",    label: "Add your first financial asset", done: hasRecords,                                        href: "/vault/add" },
-    { id: "executor", label: "Designate your executor",        done: executor !== null && executor.status !== "DECLINED", href: "/executor" },
+    { id: "vault",    label: "Add your first financial asset", done: hasRecords,                             href: "/vault/add" },
+    { id: "executor", label: "Designate your executor",        done: executor !== null && !executor.declinedAt, href: "/executor" },
   ];
 }
 
@@ -123,6 +133,7 @@ export default function DashboardPage() {
   );
 
   const recentActivity = deriveActivity(records);
+  const executorState = getExecutorDashboardState(executor);
 
   return (
     <div className="space-y-6">
@@ -163,25 +174,25 @@ export default function DashboardPage() {
               label="Executor"
               borderAccent="accent"
               value={
-                executor === null                       ? "None"
-                : executor.status === "PENDING_INVITE" ? "Pending"
-                : executor.status === "ACTIVE"         ? "Active"
-                : executor.status === "DECLINED"       ? "Declined"
-                : executor.status
+                executorState === "NONE"         ? "None"
+                : executorState === "NOT_NOTIFIED" ? "Not notified"
+                : executorState === "PENDING"      ? "Pending"
+                : executorState === "DECLINED"     ? "Declined"
+                : "Accepted"
               }
               subtext={
-                executor === null                       ? "No executor designated"
-                : executor.status === "PENDING_INVITE" ? `Invitation sent to ${executor.name}`
-                : executor.status === "ACTIVE"         ? `${executor.name} is active`
-                : executor.status === "DECLINED"       ? `${executor.name} declined the invitation`
-                : executor.name
+                executorState === "NONE"         ? "No executor designated"
+                : executorState === "NOT_NOTIFIED" ? `${executor!.name} designated — not yet notified`
+                : executorState === "PENDING"      ? `Invitation sent to ${executor!.name}`
+                : executorState === "DECLINED"     ? `${executor!.name} declined the invitation`
+                : `${executor!.name} accepted`
               }
               status={
-                executor === null                       ? "critical"
-                : executor.status === "PENDING_INVITE" ? "warning"
-                : executor.status === "ACTIVE"         ? "good"
-                : executor.status === "DECLINED"       ? "critical"
-                : "warning"
+                executorState === "NONE"         ? "critical"
+                : executorState === "NOT_NOTIFIED" ? "warning"
+                : executorState === "PENDING"      ? "warning"
+                : executorState === "DECLINED"     ? "critical"
+                : "good"
               }
             />
             <HealthCard
@@ -228,52 +239,65 @@ export default function DashboardPage() {
       )}
 
       {/* Executor status nudge */}
-      {!loading && (
-        executor === null ? (
-          <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-            <Shield size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-[500] text-amber-900">No executor designated</p>
-              <p className="text-[12px] text-amber-700">Your estate report cannot be delivered without an executor.</p>
-            </div>
-            <Link href="/executor" className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap flex-shrink-0">
-              Designate now →
-            </Link>
+      {!loading && executorState === "NONE" && (
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <Shield size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-[500] text-amber-900">No executor designated</p>
+            <p className="text-[12px] text-amber-700">Your estate report cannot be delivered without an executor.</p>
           </div>
-        ) : executor.status === "PENDING_INVITE" ? (
-          <div className="flex items-start gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl px-4 py-3">
-            <Clock size={16} className="text-blue-500 flex-shrink-0 mt-[2px]" />
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-[500] text-blue-900">Executor invitation pending</p>
-              <p className="text-[12px] text-blue-700">{executor.name} has not yet accepted their invitation.</p>
-            </div>
-            <Link href="/executor" className="text-[12.5px] font-semibold text-blue-700 hover:text-blue-900 whitespace-nowrap flex-shrink-0">
-              View executor →
-            </Link>
+          <Link href="/executor" className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap flex-shrink-0">
+            Designate now →
+          </Link>
+        </div>
+      )}
+      {!loading && executorState === "NOT_NOTIFIED" && (
+        <div className="flex items-start gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl px-4 py-3">
+          <Clock size={16} className="text-blue-500 flex-shrink-0 mt-[2px]" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-[500] text-blue-900">Executor not yet notified</p>
+            <p className="text-[12px] text-blue-700">{executor!.name} won&apos;t know they&apos;ve been designated until you notify them.</p>
           </div>
-        ) : executor.status === "DECLINED" ? (
-          <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-            <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-[500] text-amber-900">Executor invitation declined</p>
-              <p className="text-[12px] text-amber-700">{executor.name} declined your invitation. Resend or designate someone else.</p>
-            </div>
-            <Link href="/executor" className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap flex-shrink-0">
-              View executor →
-            </Link>
+          <Link href="/executor" className="text-[12.5px] font-semibold text-blue-700 hover:text-blue-900 whitespace-nowrap flex-shrink-0">
+            View executor →
+          </Link>
+        </div>
+      )}
+      {!loading && executorState === "PENDING" && (
+        <div className="flex items-start gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl px-4 py-3">
+          <Clock size={16} className="text-blue-500 flex-shrink-0 mt-[2px]" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-[500] text-blue-900">Executor invitation pending</p>
+            <p className="text-[12px] text-blue-700">{executor!.name} has not yet responded.</p>
           </div>
-        ) : executor.status === "ACTIVE" ? (
-          <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
-            <CheckCircle size={16} className="text-emerald-500 flex-shrink-0 mt-[2px]" />
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-[500] text-emerald-900">Executor designated</p>
-              <p className="text-[12px] text-emerald-700">{executor.name} is active.</p>
-            </div>
-            <Link href="/executor" className="text-[12.5px] font-semibold text-emerald-700 hover:text-emerald-900 whitespace-nowrap flex-shrink-0">
-              View executor →
-            </Link>
+          <Link href="/executor" className="text-[12.5px] font-semibold text-blue-700 hover:text-blue-900 whitespace-nowrap flex-shrink-0">
+            View executor →
+          </Link>
+        </div>
+      )}
+      {!loading && executorState === "DECLINED" && (
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-[500] text-amber-900">Executor invitation declined</p>
+            <p className="text-[12px] text-amber-700">{executor!.name} declined your invitation. Notify them again or designate someone else.</p>
           </div>
-        ) : null
+          <Link href="/executor" className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap flex-shrink-0">
+            View executor →
+          </Link>
+        </div>
+      )}
+      {!loading && executorState === "ACCEPTED" && (
+        <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+          <CheckCircle size={16} className="text-emerald-500 flex-shrink-0 mt-[2px]" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-[500] text-emerald-900">Executor designated</p>
+            <p className="text-[12px] text-emerald-700">{executor!.name} accepted the role.</p>
+          </div>
+          <Link href="/executor" className="text-[12.5px] font-semibold text-emerald-700 hover:text-emerald-900 whitespace-nowrap flex-shrink-0">
+            View executor →
+          </Link>
+        </div>
       )}
 
       {/* Onboarding checklist */}

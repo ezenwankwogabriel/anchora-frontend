@@ -6,7 +6,7 @@ import { Suspense, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Shield } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { AuthLayout } from "@/components/layout/auth-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,8 +70,7 @@ function CredentialsStep({
     setError,
   } = useForm<CredentialsForm>({ resolver: zodResolver(credentialsSchema) });
 
-  const next               = searchParams.get("next");
-  const isExecutorInvite   = !!next && next.includes("/executor/accept");
+  const next = searchParams.get("next");
 
   const onSubmit = async (data: CredentialsForm) => {
     try {
@@ -110,15 +109,6 @@ function CredentialsStep({
           Create one
         </Link>
       </p>
-
-      {isExecutorInvite && (
-        <div className="flex items-start gap-3 bg-navy/5 border border-navy/20 rounded-xl p-4 mb-6">
-          <Shield size={16} className="text-navy flex-shrink-0 mt-[1px]" />
-          <p className="text-[13px] text-navy">
-            Sign in to accept your executor invitation on Anchora.
-          </p>
-        </div>
-      )}
 
       {oauthError && (
         <p className="text-[12.5px] text-red bg-red-light border border-[#F5B0B0] rounded-md px-3 py-2 mb-4">

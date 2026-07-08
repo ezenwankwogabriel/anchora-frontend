@@ -1,21 +1,18 @@
 "use client";
 
 import { Suspense, useEffect, useRef, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
-import { Loader2, ShieldCheck, XCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useSearchParams } from "next/navigation";
+import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { ExecutorService } from "@/services/executor.service";
 
 type PageState =
   | { phase: "loading" }
-  | { phase: "linked" }
+  | { phase: "verified" }
   | { phase: "invalid_token" };
 
-function AcceptContent() {
+function VerifyContent() {
   const searchParams = useSearchParams();
-  const router       = useRouter();
-  const token        = searchParams.get("token") ?? "";
+  const token = searchParams.get("token") ?? "";
 
   const [state, setState] = useState<PageState>({ phase: "loading" });
   const called = useRef(false);
@@ -29,16 +26,10 @@ function AcceptContent() {
       return;
     }
 
-    ExecutorService.accept(token)
-      .then((res) => {
-        if ((res.status === "LOGIN_REQUIRED" || res.status === "SIGNUP_REQUIRED") && res.redirectUrl) {
-          router.replace(res.redirectUrl);
-        } else {
-          setState({ phase: "linked" });
-        }
-      })
+    ExecutorService.verifyEmail(token)
+      .then(() => setState({ phase: "verified" }))
       .catch(() => setState({ phase: "invalid_token" }));
-  }, [token, router]);
+  }, [token]);
 
   if (state.phase === "loading") {
     return (
@@ -48,26 +39,22 @@ function AcceptContent() {
     );
   }
 
-  if (state.phase === "linked") {
+  if (state.phase === "verified") {
     return (
       <div className="bg-surface rounded-xl border border-border-color p-8">
         <div className="flex justify-center mb-6">
           <div className="w-14 h-14 rounded-[14px] bg-green-light flex items-center justify-center">
-            <ShieldCheck size={26} className="text-green" />
+            <CheckCircle2 size={26} className="text-green" />
           </div>
         </div>
 
         <h1 className="font-heading text-[28px] text-text-primary text-center mb-3 leading-tight">
-          You&apos;re all set
+          Email confirmed
         </h1>
-        <p className="text-[14px] text-text-secondary text-center leading-relaxed mb-8">
-          Your account has been linked as executor. You will receive a notification if an estate
-          release is triggered.
+        <p className="text-[14px] text-text-secondary text-center leading-relaxed">
+          Thanks for confirming your email address. No account or sign-up was needed — this only
+          confirms the address is reachable.
         </p>
-
-        <Link href="/dashboard">
-          <Button fullWidth>Go to your account</Button>
-        </Link>
       </div>
     );
   }
@@ -81,17 +68,17 @@ function AcceptContent() {
       </div>
 
       <h1 className="font-heading text-[28px] text-text-primary text-center mb-3 leading-tight">
-        Invalid invitation
+        Invalid or expired link
       </h1>
       <p className="text-[14px] text-text-secondary text-center leading-relaxed">
-        This invitation link is invalid or has already been used. Contact the person who designated
-        you and ask them to resend the invitation.
+        This verification link is invalid or has expired. Contact the person who designated you
+        and ask them to resend the verification email.
       </p>
     </div>
   );
 }
 
-export default function ExecutorAcceptPage() {
+export default function ExecutorVerifyPage() {
   return (
     <Suspense
       fallback={
@@ -100,7 +87,7 @@ export default function ExecutorAcceptPage() {
         </div>
       }
     >
-      <AcceptContent />
+      <VerifyContent />
     </Suspense>
   );
 }

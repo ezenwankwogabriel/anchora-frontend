@@ -8,8 +8,6 @@ export const AuthService = {
     lastName: string;
     email: string;
     password: string;
-    executorToken?: string | null;
-    role?: string | null;
   }): Promise<AuthResponse> => {
     try {
       return (await http.post<AuthResponse>("/auth/register", data)).data;

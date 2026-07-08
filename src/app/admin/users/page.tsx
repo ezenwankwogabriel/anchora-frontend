@@ -27,13 +27,16 @@ function ExecutorBadge({ executor }: { executor: AdminUserListItem["executor"] }
   if (!executor) {
     return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">None</span>;
   }
-  if (executor.status === "ACTIVE") {
-    return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Active</span>;
+  if (executor.declinedAt) {
+    return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-red-100 text-red-700">Declined</span>;
   }
-  if (executor.status === "PENDING_INVITE") {
+  if (executor.acceptedAt) {
+    return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Accepted</span>;
+  }
+  if (executor.notifiedAt) {
     return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Pending</span>;
   }
-  return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Removed</span>;
+  return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Not notified</span>;
 }
 
 function PlanBadge({ plan }: { plan: AdminUserListItem["plan"] }) {

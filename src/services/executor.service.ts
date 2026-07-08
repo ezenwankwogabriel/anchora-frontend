@@ -34,27 +34,19 @@ export const ExecutorService = {
     }
   },
 
-  resendInvite: async (): Promise<void> => {
+  notify: async (): Promise<void> => {
     try {
-      await http.post("/executor/resend-invite");
+      await http.post("/executor/notify");
     } catch (err) {
       normalise(err);
     }
   },
 
-  accept: async (token: string): Promise<{ status: "LINKED" | "LOGIN_REQUIRED" | "SIGNUP_REQUIRED"; redirectUrl?: string }> => {
+  verifyEmail: async (token: string): Promise<{ message: string }> => {
     try {
-      return (await http.post<{ status: "LINKED" | "LOGIN_REQUIRED" | "SIGNUP_REQUIRED"; redirectUrl?: string }>(
-        `/executor/accept?token=${encodeURIComponent(token)}`
+      return (await http.post<{ message: string }>(
+        `/executor/verify-email?token=${encodeURIComponent(token)}`
       )).data;
-    } catch (err) {
-      normalise(err);
-    }
-  },
-
-  decline: async (token: string): Promise<void> => {
-    try {
-      await http.post(`/executor/decline?token=${encodeURIComponent(token)}`);
     } catch (err) {
       normalise(err);
     }

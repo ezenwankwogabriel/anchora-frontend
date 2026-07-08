@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Info, Loader2, AlertTriangle } from "lucide-react";
@@ -10,13 +11,22 @@ import { FormSection } from "@/components/ui/form-section";
 import { ExecutorService } from "@/services/executor.service";
 import { useToastStore } from "@/stores/toastStore";
 import { ServiceError } from "@/lib/types";
-import { executorSchema, type ExecutorFormData } from "@/lib/schemas/executor";
-import type { Executor } from "@/lib/types";
+import { executorSchema } from "@/lib/schemas/executor";
+import type { Executor, ExecutorNotificationState } from "@/lib/types";
+
+function getNotificationState(executor: Executor): ExecutorNotificationState {
+  return !executor.notifiedAt
+    ? "NOT_NOTIFIED"
+    : executor.emailVerifiedAt
+      ? "VERIFIED"
+      : "NOTIFIED";
+}
 
 function FieldLabel({ text, required }: { text: string; required?: boolean }) {
   return (
     <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
-      {text}{required && " *"}
+      {text}
+      {required && " *"}
     </label>
   );
 }
@@ -38,7 +48,9 @@ function getInitials(name: string): string {
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-GB", {
-    day: "numeric", month: "short", year: "numeric",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
   });
 }
 
@@ -48,9 +60,15 @@ interface RemoveDialogProps {
   onConfirm: () => void;
   onCancel: () => void;
   removing: boolean;
+  wasNotified: boolean;
 }
 
-function RemoveDialog({ onConfirm, onCancel, removing }: RemoveDialogProps) {
+function RemoveDialog({
+  onConfirm,
+  onCancel,
+  removing,
+  wasNotified,
+}: RemoveDialogProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={onCancel} />
@@ -59,11 +77,14 @@ function RemoveDialog({ onConfirm, onCancel, removing }: RemoveDialogProps) {
           <div className="w-9 h-9 rounded-full bg-red-light flex items-center justify-center flex-shrink-0">
             <AlertTriangle size={16} className="text-red" />
           </div>
-          <h2 className="text-[15px] font-semibold text-text-primary">Remove executor?</h2>
+          <h2 className="text-[15px] font-semibold text-text-primary">
+            Remove executor?
+          </h2>
         </div>
         <p className="text-[13px] text-text-secondary mb-5 pl-12">
-          Your executor will be notified that they have been removed. You can designate a new
-          executor at any time.
+          {wasNotified
+            ? "Your executor will be notified that they have been removed. You can designate a new executor at any time."
+            : "Your executor was never notified about this designation, so they won't be notified of the removal either. You can designate a new executor at any time."}
         </p>
         <div className="flex gap-2 justify-end">
           <Button variant="secondary" onClick={onCancel} disabled={removing}>
@@ -85,6 +106,9 @@ interface DesignateFormProps {
   onCreated: (executor: Executor) => void;
 }
 
+const designateSchema = executorSchema.extend({ notifyNow: z.boolean() });
+type DesignateFormValues = z.infer<typeof designateSchema>;
+
 function DesignateForm({ onCreated }: DesignateFormProps) {
   const toast = useToastStore((s) => s.add);
   const {
@@ -92,19 +116,40 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
     handleSubmit,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<ExecutorFormData>({ resolver: zodResolver(executorSchema) });
+  } = useForm<DesignateFormValues>({
+    resolver: zodResolver(designateSchema),
+    defaultValues: { notifyNow: false },
+  });
 
-  const onSubmit = async (values: ExecutorFormData) => {
+  const onSubmit = async ({ notifyNow, ...values }: DesignateFormValues) => {
     try {
       const executor = await ExecutorService.create(values);
-      toast(`Invitation sent to ${values.email}`, "success");
+
+      if (notifyNow) {
+        try {
+          await ExecutorService.notify();
+          toast(`Executor designated and notified.`, "success");
+        } catch {
+          toast(
+            `Executor designated, but the notification failed to send.`,
+            "error",
+          );
+        }
+      } else {
+        toast(
+          `Executor designated. Notify them whenever you're ready.`,
+          "success",
+        );
+      }
+
       onCreated(executor);
     } catch (err) {
       if (err instanceof ServiceError && err.status === 409) {
         setError("root", { message: "An executor is already designated." });
       } else {
         setError("root", {
-          message: err instanceof ServiceError ? err.message : "Something went wrong",
+          message:
+            err instanceof ServiceError ? err.message : "Something went wrong",
         });
       }
     }
@@ -113,18 +158,22 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-heading text-[28px] text-text-primary">Designate your executor</h1>
+        <h1 className="font-heading text-[28px] text-text-primary">
+          Designate your executor
+        </h1>
         <p className="text-[13.5px] text-text-secondary mt-1">
-          Your executor is the person who will receive your estate report and manage the recovery
-          process if your vault becomes inactive. Choose someone you trust completely.
+          Your executor is the person who will receive your estate report and
+          manage the recovery process if your vault becomes inactive. Choose
+          someone you trust completely.
         </p>
       </div>
 
       <div className="flex items-start gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl p-4">
         <Info size={16} className="text-blue-500 flex-shrink-0 mt-[1px]" />
         <p className="text-[13px] text-blue-800">
-          Your executor does not need to do anything right now. They will only be contacted if a
-          release is triggered after an extended period of inactivity.
+          Saving this never sends an email on its own. Choose below if
+          you&apos;d like to notify your executor right away, or do it later
+          from this page.
         </p>
       </div>
 
@@ -138,7 +187,11 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
 
           <FormSection>
             <FieldLabel text="Email address" required />
-            <Input type="email" placeholder="executor@example.com" {...register("email")} />
+            <Input
+              type="email"
+              placeholder="executor@example.com"
+              {...register("email")}
+            />
             <FieldError message={errors.email?.message} />
           </FormSection>
 
@@ -150,9 +203,21 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
 
           <FormSection>
             <FieldLabel text="Relationship" />
-            <Input placeholder="e.g. Spouse, sibling, lawyer" {...register("relationship")} />
+            <Input
+              placeholder="e.g. Spouse, sibling, lawyer"
+              {...register("relationship")}
+            />
             <FieldError message={errors.relationship?.message} />
           </FormSection>
+
+          <label className="flex items-center gap-2 text-[13px] text-text-secondary pt-1">
+            <input
+              type="checkbox"
+              className="h-4 w-4"
+              {...register("notifyNow")}
+            />
+            Notify my executor by email now
+          </label>
 
           {errors.root && (
             <p className="text-[12.5px] text-red bg-red-light border border-[#F5B0B0] rounded-md px-3 py-2 mt-2">
@@ -163,7 +228,7 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
           <div className="pt-4">
             <Button type="submit" fullWidth disabled={isSubmitting}>
               {isSubmitting && <Loader2 size={15} className="animate-spin" />}
-              Send invitation
+              Designate executor
             </Button>
           </div>
         </div>
@@ -177,23 +242,56 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
 interface ExecutorCardProps {
   executor: Executor;
   onRemoved: () => void;
+  onUpdated: (executor: Executor) => void;
 }
 
-function ExecutorCard({ executor, onRemoved }: ExecutorCardProps) {
-  const toast = useToastStore((s) => s.add);
-  const [resending, setResending]         = useState(false);
-  const [showRemoveDialog, setShowDialog] = useState(false);
-  const [removing, setRemoving]           = useState(false);
+function getNotificationBadge(state: ExecutorNotificationState): {
+  label: string;
+  className: string;
+} {
+  switch (state) {
+    case "NOT_NOTIFIED":
+      return {
+        label: "Not yet notified",
+        className: "bg-surface-2 text-text-tertiary",
+      };
+    case "NOTIFIED":
+      return {
+        label: "Notified · email unverified",
+        className: "bg-amber-100 text-amber-800",
+      };
+    case "VERIFIED":
+      return {
+        label: "Notified · email verified",
+        className: "bg-emerald-100 text-emerald-700",
+      };
+  }
+}
 
-  const handleResend = async () => {
-    setResending(true);
+function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
+  const toast = useToastStore((s) => s.add);
+  const [notifying, setNotifying] = useState(false);
+  const [showRemoveDialog, setShowDialog] = useState(false);
+  const [removing, setRemoving] = useState(false);
+
+  const refresh = async () => {
+    const latest = await ExecutorService.get();
+    if (latest) onUpdated(latest);
+  };
+
+  // Also refreshes the verification link when unverified — there's no
+  // separate "resend verification" action, since it would do nothing this
+  // doesn't already do.
+  const handleNotify = async () => {
+    setNotifying(true);
     try {
-      await ExecutorService.resendInvite();
-      toast("Invitation resent", "success");
+      await ExecutorService.notify();
+      toast("Executor notified", "success");
+      await refresh();
     } catch {
-      toast("Failed to resend invitation", "error");
+      toast("Failed to notify executor", "error");
     } finally {
-      setResending(false);
+      setNotifying(false);
     }
   };
 
@@ -210,29 +308,35 @@ function ExecutorCard({ executor, onRemoved }: ExecutorCardProps) {
     }
   };
 
-  function getStatusBadge(status: typeof executor.status): { label: string; className: string } {
-    switch (status) {
-      case "PENDING_INVITE":
-        return { label: "Invitation pending", className: "bg-amber-100 text-amber-800" };
-      case "ACTIVE":
-        return { label: "Active", className: "bg-emerald-100 text-emerald-700" };
-      case "DECLINED":
-        return { label: "Declined", className: "bg-red-light text-red" };
-      case "REMOVED":
-        return { label: "Removed", className: "bg-surface-2 text-text-tertiary" };
-      default:
-        return { label: "Unknown", className: "bg-surface-2 text-text-tertiary" };
+  function getResponseBadge(): { label: string; className: string } | null {
+    if (executor.acceptedAt) {
+      return {
+        label: "Accepted",
+        className: "bg-emerald-100 text-emerald-700",
+      };
     }
+    if (executor.declinedAt) {
+      return { label: "Declined", className: "bg-red-light text-red" };
+    }
+    // Not yet responded — already conveyed by the notification badge.
+    return null;
   }
 
-  const isPending  = executor.status === "PENDING_INVITE";
-  const isDeclined = executor.status === "DECLINED";
-  const statusBadge = getStatusBadge(executor.status);
+  const isDeclined = !!executor.declinedAt;
+  const isAccepted = !!executor.acceptedAt;
+  const responseBadge = getResponseBadge();
+  const notificationState = getNotificationState(executor);
+  const notificationBadge = getNotificationBadge(notificationState);
+  // Once accepted (account holders) or verified (no-account executors),
+  // there's nothing left for a re-notify to accomplish.
+  const canNotify = !isAccepted && notificationState !== "VERIFIED";
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-heading text-[28px] text-text-primary">Your executor</h1>
+        <h1 className="font-heading text-[28px] text-text-primary">
+          Your executor
+        </h1>
         <p className="text-[13.5px] text-text-secondary mt-1">
           This person will receive your estate report if a release is triggered.
         </p>
@@ -240,10 +344,13 @@ function ExecutorCard({ executor, onRemoved }: ExecutorCardProps) {
 
       {isDeclined && (
         <div className="flex items-start gap-3 bg-red-light border border-[#F5B0B0] rounded-xl p-4">
-          <AlertTriangle size={16} className="text-red flex-shrink-0 mt-[1px]" />
+          <AlertTriangle
+            size={16}
+            className="text-red flex-shrink-0 mt-[1px]"
+          />
           <p className="text-[13px] text-red">
-            <strong>{executor.name}</strong> declined your executor invitation. You can resend
-            the invitation or remove them and designate someone else.
+            <strong>{executor.name}</strong> declined your executor invitation.
+            You can notify them again or remove them and designate someone else.
           </p>
         </div>
       )}
@@ -251,34 +358,66 @@ function ExecutorCard({ executor, onRemoved }: ExecutorCardProps) {
       <div className="bg-surface border border-border-color rounded-xl shadow-sm p-6">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-12 h-12 rounded-full bg-navy/10 flex items-center justify-center flex-shrink-0">
-            <span className="text-navy font-semibold text-lg">{getInitials(executor.name)}</span>
+            <span className="text-navy font-semibold text-lg">
+              {getInitials(executor.name)}
+            </span>
           </div>
           <div>
-            <p className="font-semibold text-[15px] text-text-primary">{executor.name}</p>
+            <p className="font-semibold text-[15px] text-text-primary">
+              {executor.name}
+            </p>
             <p className="text-[13px] text-text-secondary">{executor.email}</p>
             {executor.relationship && (
-              <p className="text-[13px] text-text-secondary">{executor.relationship}</p>
+              <p className="text-[13px] text-text-secondary">
+                {executor.relationship}
+              </p>
             )}
           </div>
         </div>
 
-        <div className="mb-1">
-          <span className={`text-[12px] font-medium px-2.5 py-0.5 rounded-full ${statusBadge.className}`}>
-            {statusBadge.label}
-          </span>
+        <div className="mb-1 flex flex-wrap gap-2">
+          {responseBadge && (
+            <span
+              className={`text-[12px] font-medium px-2.5 py-0.5 rounded-full ${responseBadge.className}`}
+            >
+              {responseBadge.label}
+            </span>
+          )}
+          {!isAccepted && (
+            <span
+              className={`text-[12px] font-medium px-2.5 py-0.5 rounded-full ${notificationBadge.className}`}
+            >
+              {notificationBadge.label}
+            </span>
+          )}
         </div>
 
-        <p className="text-[11.5px] text-text-tertiary mb-4">
-          Invitation sent {formatDate(executor.invitedAt)}
+        <p className="text-[11.5px] text-text-tertiary mb-1">
+          {executor.notifiedAt && `Notified ${formatDate(executor.notifiedAt)}`}
         </p>
+
+        {!isAccepted && notificationState === "NOTIFIED" && (
+          <p className="text-[11.5px] text-text-tertiary mb-4">
+            An unverified email never blocks or changes the release — it only
+            means we haven&apos;t confirmed the inbox is reachable yet.
+          </p>
+        )}
+        {(isAccepted || notificationState !== "NOTIFIED") && (
+          <div className="mb-4" />
+        )}
 
         <div className="border-t border-border-color mb-4" />
 
         <div className="flex gap-2 flex-wrap">
-          {(isPending || isDeclined) && (
-            <Button variant="secondary" size="sm" onClick={handleResend} disabled={resending}>
-              {resending && <Loader2 size={13} className="animate-spin" />}
-              Resend invitation
+          {canNotify && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleNotify}
+              disabled={notifying}
+            >
+              {notifying && <Loader2 size={13} className="animate-spin" />}
+              {executor.notifiedAt ? "Notify again" : "Notify executor"}
             </Button>
           )}
           <Button
@@ -297,6 +436,7 @@ function ExecutorCard({ executor, onRemoved }: ExecutorCardProps) {
           onConfirm={handleRemove}
           onCancel={() => setShowDialog(false)}
           removing={removing}
+          wasNotified={!!executor.notifiedAt}
         />
       )}
     </div>
@@ -306,8 +446,8 @@ function ExecutorCard({ executor, onRemoved }: ExecutorCardProps) {
 // ── Page root ─────────────────────────────────────────────────────────────────
 
 export default function ExecutorClient() {
-  const [loading, setLoading]       = useState(true);
-  const [executor, setExecutor]     = useState<Executor | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [executor, setExecutor] = useState<Executor | null>(null);
   const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
@@ -337,5 +477,11 @@ export default function ExecutorClient() {
     return <DesignateForm onCreated={(e) => setExecutor(e)} />;
   }
 
-  return <ExecutorCard executor={executor} onRemoved={() => setExecutor(null)} />;
+  return (
+    <ExecutorCard
+      executor={executor}
+      onRemoved={() => setExecutor(null)}
+      onUpdated={(e) => setExecutor(e)}
+    />
+  );
 }

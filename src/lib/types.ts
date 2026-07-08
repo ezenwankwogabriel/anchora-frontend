@@ -146,18 +146,18 @@ export interface GuardianInput {
 
 // ── Executor ──────────────────────────────────────────
 
-export type ExecutorStatus = "PENDING_INVITE" | "ACTIVE" | "DECLINED" | "REMOVED";
-
 export interface Executor {
   id: string;
   name: string;
   email: string;
   phone?: string;
   relationship?: string;
-  status: ExecutorStatus;
   invitedAt: string;
-  accountCreatedAt?: string;
   removedAt?: string;
+  notifiedAt: string | null;
+  emailVerifiedAt: string | null;
+  acceptedAt: string | null;
+  declinedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -168,6 +168,8 @@ export interface ExecutorInput {
   phone?: string;
   relationship?: string;
 }
+
+export type ExecutorNotificationState = "NOT_NOTIFIED" | "NOTIFIED" | "VERIFIED";
 
 // ── Release ───────────────────────────────────────────
 

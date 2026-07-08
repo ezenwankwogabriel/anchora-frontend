@@ -14,8 +14,6 @@ export type VerificationStatus =
 
 export type ActorType = "USER" | "EXECUTOR" | "ADMIN" | "SYSTEM";
 
-export type ExecutorStatus = "PENDING_INVITE" | "ACTIVE" | "REMOVED";
-
 export type UserPlan = "FREE" | "PRO";
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
@@ -42,9 +40,11 @@ export interface AdminExecutor {
   email: string;
   phone?: string;
   relationship?: string;
-  status: ExecutorStatus;
   invitedAt: string;
-  accountCreatedAt?: string;
+  notifiedAt: string | null;
+  acceptedAt: string | null;
+  declinedAt: string | null;
+  emailVerifiedAt: string | null;
 }
 
 export interface AdminExecutorVerification {
@@ -68,7 +68,7 @@ export interface AdminUserListItem {
   isSuspended: boolean;
   createdAt: string;
   vaultItemCount: number;
-  executor: { status: ExecutorStatus } | null;
+  executor: { notifiedAt: string | null; acceptedAt: string | null; declinedAt: string | null } | null;
   plan: UserPlan;
 }
 

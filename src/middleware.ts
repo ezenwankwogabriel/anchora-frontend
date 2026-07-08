@@ -10,8 +10,7 @@ const PUBLIC_ROUTES = [
   "/verify-email",
   "/mfa-setup",
   "/auth/callback",
-  "/executor/accept",
-  "/executor/decline",
+  "/executor/verify",
 ];
 
 export function middleware(request: NextRequest) {

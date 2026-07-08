@@ -15,7 +15,7 @@ function computeAttentionRequired(
   verificationStatus: IdentityVerificationStatus,
 ): boolean {
   return estates.some((e) => {
-    if (e.executorStatus === 'PENDING_INVITE') return true;
+    if (!e.acceptedAt && !e.declinedAt) return true;
     if (e.release?.reportAvailable) return true;
     if (
       e.release &&

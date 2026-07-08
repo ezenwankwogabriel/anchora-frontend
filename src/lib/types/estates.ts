@@ -16,7 +16,9 @@ export interface EstateItem {
   estateId: string;
   ownerName: string;
   designatedAt: string;
-  executorStatus: 'PENDING_INVITE' | 'ACTIVE' | 'REMOVED';
+  notifiedAt: string | null;
+  acceptedAt: string | null;
+  declinedAt: string | null;
   release: EstateRelease | null;
 }
 

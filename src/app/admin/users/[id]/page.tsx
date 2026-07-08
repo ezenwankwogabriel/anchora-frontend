@@ -346,21 +346,39 @@ export default function AdminUserDetailPage() {
                 label="Status"
                 value={
                   <span className={`text-[11.5px] font-[500] px-2 py-0.5 rounded-full ${
-                    user.executor.status === "ACTIVE"
+                    user.executor.declinedAt
+                      ? "bg-red-100 text-red-700"
+                      : user.executor.acceptedAt
                       ? "bg-emerald-100 text-emerald-700"
-                      : user.executor.status === "PENDING_INVITE"
+                      : user.executor.notifiedAt
                       ? "bg-amber-100 text-amber-700"
                       : "bg-gray-100 text-gray-500"
                   }`}>
-                    {user.executor.status === "PENDING_INVITE" ? "Pending invite" : user.executor.status.charAt(0) + user.executor.status.slice(1).toLowerCase()}
+                    {user.executor.declinedAt
+                      ? "Declined"
+                      : user.executor.acceptedAt
+                      ? "Accepted"
+                      : user.executor.notifiedAt
+                      ? "Pending"
+                      : "Not notified"}
                   </span>
                 }
               />
               <DetailRow label="Invited"          value={formatDate(user.executor.invitedAt)} />
               <DetailRow
-                label="Account created"
-                value={user.executor.accountCreatedAt ? formatDate(user.executor.accountCreatedAt) : "Not yet created"}
+                label="Notified"
+                value={user.executor.notifiedAt ? formatDate(user.executor.notifiedAt) : "Not yet notified"}
               />
+              <DetailRow
+                label="Email verified"
+                value={user.executor.emailVerifiedAt ? formatDate(user.executor.emailVerifiedAt) : "Not verified"}
+              />
+              {user.executor.acceptedAt && (
+                <DetailRow label="Accepted" value={formatDate(user.executor.acceptedAt)} />
+              )}
+              {user.executor.declinedAt && (
+                <DetailRow label="Declined" value={formatDate(user.executor.declinedAt)} />
+              )}
             </div>
           ) : (
             <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 p-3">
