@@ -33,7 +33,6 @@ export function usePlan() {
 
   const isPro  = planData?.plan === "PRO";
   const isFree = planData?.plan === "FREE";
-  console.log('is free', planData)
   const isCancelledPro = isPro && planData?.subscriptionStatus === "CANCELLED";
 
   return { planData, loading, isPro, isFree, isCancelledPro, refetch };

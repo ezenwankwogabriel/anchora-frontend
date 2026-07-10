@@ -56,7 +56,6 @@ export default function VaultClient() {
 
   const recordCount = records?.length ?? 0;
   const atLimit     = isFree && recordCount >= FREE_RECORD_LIMIT;
-  console.log('at limit', atLimit, isFree)
   const remaining   = FREE_RECORD_LIMIT - recordCount;
 
   const recordsByCategory = ALL_VAULT_CATEGORIES.reduce<Record<AssetCategory, VaultRecord[]>>(
