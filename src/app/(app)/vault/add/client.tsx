@@ -37,6 +37,7 @@ export function AddAssetClient({ initialCategory, recordCount }: AddAssetClientP
 
   const [step, setStep]         = useState<0 | 1>(0);
   const [category, setCategory] = useState<AssetCategory | null>(null);
+  const [stagedFiles, setStagedFiles] = useState<File[]>([]);
 
   const atLimit = isFree && (recordCount ?? 0) >= FREE_RECORD_LIMIT;
 
@@ -56,8 +57,26 @@ export function AddAssetClient({ initialCategory, recordCount }: AddAssetClientP
   };
 
   const handleSubmit = async (data: VaultRecordInput) => {
-    await VaultService.createRecord(data);
-    addToast("Asset saved to your vault.", "success");
+    const record = await VaultService.createRecord(data);
+
+    if (record && stagedFiles.length > 0) {
+      const results = await Promise.allSettled(
+        stagedFiles.map((file) => VaultService.uploadDocument(record.id, file)),
+      );
+      const failedCount = results.filter((r) => r.status === "rejected").length;
+
+      if (failedCount > 0) {
+        addToast(
+          `Asset saved, but ${failedCount} document${failedCount === 1 ? "" : "s"} failed to upload. You can retry from the asset page.`,
+          "error",
+        );
+      } else {
+        addToast("Asset and documents saved.", "success");
+      }
+    } else {
+      addToast("Asset saved to your vault.", "success");
+    }
+
     router.push("/vault");
   };
 
@@ -158,6 +177,8 @@ export function AddAssetClient({ initialCategory, recordCount }: AddAssetClientP
               onSubmit={handleSubmit}
               onCancel={() => router.push("/vault")}
               hideCancel
+              stagedFiles={stagedFiles}
+              onStagedFilesChange={setStagedFiles}
             />
           </div>
         )}

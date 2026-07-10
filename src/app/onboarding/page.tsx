@@ -49,10 +49,15 @@ export default function OnboardingPage() {
 
   const skip = () => finish(router);
 
-  const createFirstAsset = async (data: VaultRecordInput) => {
+  const createFirstAsset = async (data: VaultRecordInput, files: File[]) => {
     setAssetApiError(null);
     try {
-      await VaultService.createRecord(data);
+      const record = await VaultService.createRecord(data);
+      if (record && files.length > 0) {
+        await Promise.allSettled(
+          files.map((file) => VaultService.uploadDocument(record.id, file)),
+        );
+      }
       setStep(5);
     } catch {
       setAssetApiError(
@@ -375,9 +380,11 @@ function ScreenFirstAsset({
   onSelectCategory: (category: AssetCategory) => void;
   apiError: string | null;
   onBack: () => void;
-  onSubmit: (data: VaultRecordInput) => Promise<void>;
+  onSubmit: (data: VaultRecordInput, files: File[]) => Promise<void>;
   onSkip: () => void;
 }) {
+  const [stagedFiles, setStagedFiles] = useState<File[]>([]);
+
   if (!selectedCategory) return null;
 
   return (
@@ -434,10 +441,12 @@ function ScreenFirstAsset({
 
       <VaultForm
         category={selectedCategory}
-        onSubmit={onSubmit}
+        onSubmit={(data) => onSubmit(data, stagedFiles)}
         onCancel={onBack}
         submitLabel="Save asset →"
         hideCancel
+        stagedFiles={stagedFiles}
+        onStagedFilesChange={setStagedFiles}
       />
 
       <div className="flex gap-3 mt-4">

@@ -24,6 +24,7 @@ export function EditAssetClient({ id }: EditAssetClientProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [stagedFiles, setStagedFiles] = useState<File[]>([]);
 
   useEffect(() => {
     VaultService.getRecord(id)
@@ -34,7 +35,25 @@ export function EditAssetClient({ id }: EditAssetClientProps) {
 
   const handleSubmit = async (data: VaultRecordInput) => {
     await VaultService.updateRecord(id, data);
-    addToast("Asset updated.", "success");
+
+    if (stagedFiles.length > 0) {
+      const results = await Promise.allSettled(
+        stagedFiles.map((file) => VaultService.uploadDocument(id, file)),
+      );
+      const failedCount = results.filter((r) => r.status === "rejected").length;
+
+      if (failedCount > 0) {
+        addToast(
+          `Asset updated, but ${failedCount} document${failedCount === 1 ? "" : "s"} failed to upload. You can retry from this page.`,
+          "error",
+        );
+      } else {
+        addToast("Asset and documents updated.", "success");
+      }
+    } else {
+      addToast("Asset updated.", "success");
+    }
+
     router.push("/vault");
   };
 
@@ -107,6 +126,8 @@ export function EditAssetClient({ id }: EditAssetClientProps) {
           onSubmit={handleSubmit}
           onCancel={() => router.push("/vault")}
           hideCancel
+          stagedFiles={stagedFiles}
+          onStagedFilesChange={setStagedFiles}
         />
       </div>
 

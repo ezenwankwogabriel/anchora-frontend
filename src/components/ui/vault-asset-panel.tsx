@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Loader2 } from "lucide-react";
 import { VaultForm } from "@/components/vault/vault-form";
 import { CategoryIcon, categoryLabels } from "@/components/ui/category-icon";
@@ -20,11 +20,36 @@ interface VaultAssetPanelProps {
 export function VaultAssetPanel({ open, onClose, onSaved, onDeleted, record }: VaultAssetPanelProps) {
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting]     = useState(false);
+  const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   const addToast = useToastStore((s) => s.add);
+
+  // This panel instance is reused across different records rather than
+  // remounted — staged-but-not-yet-uploaded files must not carry over to
+  // whichever record is opened next.
+  useEffect(() => {
+    setStagedFiles([]);
+  }, [record?.id]);
 
   const handleUpdate = async (data: VaultRecordInput) => {
     const updated = await VaultService.updateRecord(record!.id, data);
-    addToast("Asset updated.", "success");
+
+    if (stagedFiles.length > 0) {
+      const results = await Promise.allSettled(
+        stagedFiles.map((file) => VaultService.uploadDocument(record!.id, file)),
+      );
+      const failedCount = results.filter((r) => r.status === "rejected").length;
+      if (failedCount > 0) {
+        addToast(
+          `Asset updated, but ${failedCount} document${failedCount === 1 ? "" : "s"} failed to upload.`,
+          "error",
+        );
+      } else {
+        addToast("Asset and documents updated.", "success");
+      }
+    } else {
+      addToast("Asset updated.", "success");
+    }
+
     onSaved(updated);
     onClose();
   };
@@ -102,6 +127,8 @@ export function VaultAssetPanel({ open, onClose, onSaved, onDeleted, record }: V
                 record={record}
                 onSubmit={handleUpdate}
                 onCancel={handleClose}
+                stagedFiles={stagedFiles}
+                onStagedFilesChange={setStagedFiles}
               />
 
               {/* Delete */}
