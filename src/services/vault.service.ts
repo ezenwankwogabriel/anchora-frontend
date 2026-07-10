@@ -1,5 +1,5 @@
 import http, { normalise } from "@/lib/axios";
-import type { VaultRecord, VaultRecordInput } from "@/lib/types";
+import type { VaultDocument, VaultRecord, VaultRecordInput } from "@/lib/types";
 
 export interface VaultCompleteness {
   overallComplete: boolean;
@@ -70,6 +70,60 @@ export const VaultService = {
   getCompleteness: async (): Promise<VaultCompleteness> => {
     try {
       return (await http.get<VaultCompleteness>("/vault/completeness")).data;
+    } catch (err) {
+      normalise(err);
+    }
+  },
+
+  getDocuments: async (recordId: string): Promise<VaultDocument[]> => {
+    try {
+      return (await http.get<VaultDocument[]>(`/vault/records/${recordId}/documents`)).data;
+    } catch (err) {
+      normalise(err);
+    }
+  },
+
+  uploadDocument: async (
+    recordId: string,
+    file: File,
+    onProgress?: (percent: number) => void,
+  ): Promise<VaultDocument> => {
+    const formData = new FormData();
+    formData.append("document", file);
+    try {
+      return (
+        await http.post<VaultDocument>(`/vault/records/${recordId}/documents`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+          onUploadProgress: (event) => {
+            if (onProgress && event.total) {
+              onProgress(Math.round((event.loaded / event.total) * 100));
+            }
+          },
+        })
+      ).data;
+    } catch (err) {
+      normalise(err);
+    }
+  },
+
+  deleteDocument: async (recordId: string, documentId: string): Promise<void> => {
+    try {
+      await http.delete(`/vault/records/${recordId}/documents/${documentId}`);
+    } catch (err) {
+      normalise(err);
+    }
+  },
+
+  getDocumentUrl: async (
+    recordId: string,
+    documentId: string,
+  ): Promise<{ url: string; filename: string }> => {
+    try {
+      return (
+        await http.get<{ url: string; filename: string }>(
+          `/vault/records/${recordId}/documents/${documentId}/url`,
+        )
+      ).data;
     } catch (err) {
       normalise(err);
     }

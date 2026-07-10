@@ -99,6 +99,15 @@ export interface VaultRecordInput {
   isSelfCustodied?: boolean;
 }
 
+export interface VaultDocument {
+  id: string;
+  vaultRecordId: string;
+  originalFilename: string;
+  mimeType: string;
+  sizeBytes: number;
+  createdAt: string;
+}
+
 // ── Beneficiaries (shared vault only) ────────────────────────────────────────
 
 export type BeneficiaryStatus =
