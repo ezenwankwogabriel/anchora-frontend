@@ -15,7 +15,7 @@ export interface VaultFormData {
 }
 
 // ── Field config (single source of truth for labels/placeholders) ──────────
-export type FieldType = "text" | "url" | "checkbox" | "textarea";
+export type FieldType = "text" | "checkbox" | "textarea";
 
 export interface FieldConfig {
   fieldName: keyof VaultFormData;
@@ -70,14 +70,13 @@ export function isPhysicalCategory(category: AssetCategory): boolean {
 }
 
 // ── Per-category field configs ─────────────────────────────────────────────
-const DOCUMENT_URL_FIELD: FieldConfig = {
-  fieldName: "accountUrl",
-  label: "Document location URL",
-  placeholder: "https://drive.google.com/...",
-  helperText: "Optional — only if you have a digital copy stored online.",
-  type: "url",
-};
-
+// The "Document location URL" field used to be rendered here as a plain
+// text input, as a second, weaker way to point at a document alongside
+// direct upload (which stores the file itself, access-controlled by
+// Anchora). Upload is now the only path for new documents — see
+// vault-document-section.tsx / vault-document-picker.tsx. Any pre-existing
+// accountUrl value on an older record is still readable/removable from the
+// edit view, just not settable via new UI.
 const FIELD_CONFIGS: Record<AssetCategory, FieldConfig[]> = {
   BANK_ACCOUNT: [
     { fieldName: "institutionName", label: "Bank name", placeholder: "e.g. GTB, Zenith, Access Bank", required: true, type: "text" },
@@ -121,25 +120,21 @@ const FIELD_CONFIGS: Record<AssetCategory, FieldConfig[]> = {
     { fieldName: "institutionName", label: "Property name / description", placeholder: "e.g. Duplex on Admiralty Way, Lekki", required: true, type: "text" },
     { fieldName: "credential", label: "Title number / survey plan ref", type: "text" },
     { fieldName: "notes",           label: "Description & storage notes", placeholder: "Address, where title documents are stored, estimated value", type: "textarea" },
-    { ...DOCUMENT_URL_FIELD, placeholder: "Dropbox / Drive link to a scanned title document" },
   ],
   VEHICLE: [
     { fieldName: "institutionName", label: "Vehicle description", placeholder: "e.g. 2019 Toyota Land Cruiser", required: true, type: "text" },
     { fieldName: "credential", label: "Plate number / chassis number", type: "text" },
     { fieldName: "notes",           label: "Description & storage notes", placeholder: "Colour, where vehicle logbook is stored", type: "textarea" },
-    { ...DOCUMENT_URL_FIELD, placeholder: "Dropbox / Drive link to proof of ownership" },
   ],
   JEWELRY_WATCHES: [
     { fieldName: "institutionName", label: "Item description", placeholder: "e.g. Rolex Datejust, gold wedding band", required: true, type: "text" },
     { fieldName: "credential", label: "Serial number (if known)", type: "text" },
     { fieldName: "notes",           label: "Description & storage notes", placeholder: "Where it is stored, estimated value", type: "textarea" },
-    { ...DOCUMENT_URL_FIELD, placeholder: "Dropbox / Drive link to certificate of authenticity" },
   ],
   SHARE_CERTIFICATES: [
     { fieldName: "institutionName", label: "Asset description", placeholder: "e.g. Dangote Cement paper cert", required: true, type: "text" },
     { fieldName: "credential", label: "Certificate number", type: "text" },
     { fieldName: "notes",           label: "Description & storage notes", placeholder: "Number of units, where the certificate is physically stored", type: "textarea" },
-    { ...DOCUMENT_URL_FIELD, placeholder: "Dropbox / Drive link to a scan of the certificate" },
   ],
   SUBSCRIPTION: [
     { fieldName: "institutionName", label: "Service name", placeholder: "e.g. Netflix, Spotify, AWS", required: true, type: "text" },
@@ -152,7 +147,6 @@ const FIELD_CONFIGS: Record<AssetCategory, FieldConfig[]> = {
     { fieldName: "accountName",     label: "Label / type", type: "text" },
     { fieldName: "credential", label: "Reference number or login email", type: "text" },
     { fieldName: "notes",           label: "Notes", placeholder: "Description, location, and where any documents are stored", type: "textarea" },
-    { ...DOCUMENT_URL_FIELD, placeholder: "Dropbox / Drive link (optional)" },
   ],
 };
 

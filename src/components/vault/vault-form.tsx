@@ -16,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { FormSection } from "@/components/ui/form-section";
 import { InfoBanner } from "@/components/ui/info-banner";
 import { CharacterCounter } from "@/components/ui/character-counter";
+import { VaultDocumentSection } from "./vault-document-section";
+import { VaultDocumentPicker } from "./vault-document-picker";
 import { ServiceError } from "@/lib/types";
 import type { VaultRecord, VaultRecordInput, AssetCategory } from "@/lib/types";
 import {
@@ -40,7 +42,8 @@ interface VaultFormProps {
   onCancel: () => void;
   submitLabel?: string;
   hideCancel?: boolean;
-  children?: React.ReactNode;
+  stagedFiles: File[];
+  onStagedFilesChange: (files: File[]) => void;
 }
 
 function FieldLabel({ text, required }: { text: string; required?: boolean }) {
@@ -67,7 +70,8 @@ export function VaultForm({
   onCancel,
   submitLabel,
   hideCancel,
-  children,
+  stagedFiles,
+  onStagedFilesChange,
 }: VaultFormProps) {
   const schema = getCategorySchema(category);
   const { fields } = getFieldConfig(category);
@@ -170,21 +174,6 @@ export function VaultForm({
       );
     }
 
-    if (field.type === "url") {
-      return (
-        <FormSection key={key}>
-          <FieldLabel text={field.label} required={field.required} />
-          <Input
-            type="url"
-            placeholder={field.placeholder}
-            {...register("accountUrl")}
-          />
-          {field.helperText && <HelperText text={field.helperText} />}
-          <FieldError message={error} />
-        </FormSection>
-      );
-    }
-
     // Default: text input
     const textField = key as "institutionName" | "accountName" | "credential" | "referenceId";
     return (
@@ -222,7 +211,17 @@ export function VaultForm({
         <FieldError message={errors.executorIntent?.message} />
       </FormSection>
 
-      {children}
+      {record ? (
+        <VaultDocumentSection
+          recordId={record.id}
+          stagedFiles={stagedFiles}
+          onStagedFilesChange={onStagedFilesChange}
+          documentUrl={watch("accountUrl")}
+          onDocumentUrlChange={(url) => setValue("accountUrl", url)}
+        />
+      ) : (
+        <VaultDocumentPicker files={stagedFiles} onChange={onStagedFilesChange} />
+      )}
 
       {errors.root && (
         <p className="text-[12.5px] text-red bg-red-light border border-[#F5B0B0] rounded-md px-3 py-2 mb-4">
