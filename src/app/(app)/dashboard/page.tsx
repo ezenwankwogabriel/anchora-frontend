@@ -66,14 +66,126 @@ function deriveActivity(records: VaultRecord[] | null): ActivityItem[] {
     .slice(0, 5);
 }
 
-type ExecutorDashboardState = "NONE" | "NOT_NOTIFIED" | "PENDING" | "DECLINED" | "ACCEPTED";
+type ExecutorDashboardState =
+  | "NONE"
+  | "NOT_NOTIFIED"
+  | "PENDING"
+  | "VERIFIED"
+  | "DECLINED"
+  | "ACCEPTED";
 
+function assertNever(value: never): never {
+  throw new Error(`Unhandled executor dashboard state: ${String(value)}`);
+}
+
+// Precedence mirrors the executor page's own state derivation
+// (src/app/(app)/executor/client.tsx): declined/accepted are terminal
+// responses; emailVerifiedAt is a separate terminal state for
+// account-less executors, who have no accept/decline step to complete.
 function getExecutorDashboardState(executor: Executor | null): ExecutorDashboardState {
   if (!executor) return "NONE";
   if (executor.declinedAt) return "DECLINED";
   if (executor.acceptedAt) return "ACCEPTED";
+  if (executor.emailVerifiedAt) return "VERIFIED";
   if (!executor.notifiedAt) return "NOT_NOTIFIED";
   return "PENDING";
+}
+
+const EXECUTOR_HEALTH_CARD: Record<
+  ExecutorDashboardState,
+  { value: string; subtext: (name: string) => string; status: "critical" | "warning" | "good" }
+> = {
+  NONE:         { value: "None",         subtext: () => "No executor designated",                status: "critical" },
+  NOT_NOTIFIED: { value: "Not notified", subtext: (name) => `${name} designated — not yet notified`, status: "warning" },
+  PENDING:      { value: "Pending",      subtext: (name) => `Invitation sent to ${name}`,          status: "warning" },
+  VERIFIED:     { value: "Verified",     subtext: (name) => `${name}'s email is verified`,          status: "good" },
+  DECLINED:     { value: "Declined",     subtext: (name) => `${name} declined the invitation`,      status: "critical" },
+  ACCEPTED:     { value: "Accepted",     subtext: (name) => `${name} accepted`,                     status: "good" },
+};
+
+function renderExecutorNudge(state: ExecutorDashboardState, executor: Executor | null) {
+  switch (state) {
+    case "NONE":
+      return (
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <Shield size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-[500] text-amber-900">No executor designated</p>
+            <p className="text-[12px] text-amber-700">Your estate report cannot be delivered without an executor.</p>
+          </div>
+          <Link href="/executor" className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap flex-shrink-0">
+            Designate now →
+          </Link>
+        </div>
+      );
+    case "NOT_NOTIFIED":
+      return (
+        <div className="flex items-start gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl px-4 py-3">
+          <Clock size={16} className="text-blue-500 flex-shrink-0 mt-[2px]" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-[500] text-blue-900">Executor not yet notified</p>
+            <p className="text-[12px] text-blue-700">{executor!.name} won&apos;t know they&apos;ve been designated until you notify them.</p>
+          </div>
+          <Link href="/executor" className="text-[12.5px] font-semibold text-blue-700 hover:text-blue-900 whitespace-nowrap flex-shrink-0">
+            View executor →
+          </Link>
+        </div>
+      );
+    case "PENDING":
+      return (
+        <div className="flex items-start gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl px-4 py-3">
+          <Clock size={16} className="text-blue-500 flex-shrink-0 mt-[2px]" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-[500] text-blue-900">Executor invitation pending</p>
+            <p className="text-[12px] text-blue-700">{executor!.name} has not yet responded.</p>
+          </div>
+          <Link href="/executor" className="text-[12.5px] font-semibold text-blue-700 hover:text-blue-900 whitespace-nowrap flex-shrink-0">
+            View executor →
+          </Link>
+        </div>
+      );
+    case "VERIFIED":
+      return (
+        <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+          <CheckCircle size={16} className="text-emerald-500 flex-shrink-0 mt-[2px]" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-[500] text-emerald-900">Executor email verified</p>
+            <p className="text-[12px] text-emerald-700">{executor!.name} has confirmed their email.</p>
+          </div>
+          <Link href="/executor" className="text-[12.5px] font-semibold text-emerald-700 hover:text-emerald-900 whitespace-nowrap flex-shrink-0">
+            View executor →
+          </Link>
+        </div>
+      );
+    case "DECLINED":
+      return (
+        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-[500] text-amber-900">Executor invitation declined</p>
+            <p className="text-[12px] text-amber-700">{executor!.name} declined your invitation. Notify them again or designate someone else.</p>
+          </div>
+          <Link href="/executor" className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap flex-shrink-0">
+            View executor →
+          </Link>
+        </div>
+      );
+    case "ACCEPTED":
+      return (
+        <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+          <CheckCircle size={16} className="text-emerald-500 flex-shrink-0 mt-[2px]" />
+          <div className="flex-1 min-w-0">
+            <p className="text-[13px] font-[500] text-emerald-900">Executor designated</p>
+            <p className="text-[12px] text-emerald-700">{executor!.name} accepted the role.</p>
+          </div>
+          <Link href="/executor" className="text-[12.5px] font-semibold text-emerald-700 hover:text-emerald-900 whitespace-nowrap flex-shrink-0">
+            View executor →
+          </Link>
+        </div>
+      );
+    default:
+      return assertNever(state);
+  }
 }
 
 function buildChecklist(hasRecords: boolean, executor: Executor | null): ChecklistItem[] {
@@ -173,27 +285,9 @@ export default function DashboardPage() {
             <HealthCard
               label="Executor"
               borderAccent="accent"
-              value={
-                executorState === "NONE"         ? "None"
-                : executorState === "NOT_NOTIFIED" ? "Not notified"
-                : executorState === "PENDING"      ? "Pending"
-                : executorState === "DECLINED"     ? "Declined"
-                : "Accepted"
-              }
-              subtext={
-                executorState === "NONE"         ? "No executor designated"
-                : executorState === "NOT_NOTIFIED" ? `${executor!.name} designated — not yet notified`
-                : executorState === "PENDING"      ? `Invitation sent to ${executor!.name}`
-                : executorState === "DECLINED"     ? `${executor!.name} declined the invitation`
-                : `${executor!.name} accepted`
-              }
-              status={
-                executorState === "NONE"         ? "critical"
-                : executorState === "NOT_NOTIFIED" ? "warning"
-                : executorState === "PENDING"      ? "warning"
-                : executorState === "DECLINED"     ? "critical"
-                : "good"
-              }
+              value={EXECUTOR_HEALTH_CARD[executorState].value}
+              subtext={EXECUTOR_HEALTH_CARD[executorState].subtext(executor?.name ?? "")}
+              status={EXECUTOR_HEALTH_CARD[executorState].status}
             />
             <HealthCard
               label="Asset coverage"
@@ -239,66 +333,7 @@ export default function DashboardPage() {
       )}
 
       {/* Executor status nudge */}
-      {!loading && executorState === "NONE" && (
-        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-          <Shield size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-amber-900">No executor designated</p>
-            <p className="text-[12px] text-amber-700">Your estate report cannot be delivered without an executor.</p>
-          </div>
-          <Link href="/executor" className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap flex-shrink-0">
-            Designate now →
-          </Link>
-        </div>
-      )}
-      {!loading && executorState === "NOT_NOTIFIED" && (
-        <div className="flex items-start gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl px-4 py-3">
-          <Clock size={16} className="text-blue-500 flex-shrink-0 mt-[2px]" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-blue-900">Executor not yet notified</p>
-            <p className="text-[12px] text-blue-700">{executor!.name} won&apos;t know they&apos;ve been designated until you notify them.</p>
-          </div>
-          <Link href="/executor" className="text-[12.5px] font-semibold text-blue-700 hover:text-blue-900 whitespace-nowrap flex-shrink-0">
-            View executor →
-          </Link>
-        </div>
-      )}
-      {!loading && executorState === "PENDING" && (
-        <div className="flex items-start gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl px-4 py-3">
-          <Clock size={16} className="text-blue-500 flex-shrink-0 mt-[2px]" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-blue-900">Executor invitation pending</p>
-            <p className="text-[12px] text-blue-700">{executor!.name} has not yet responded.</p>
-          </div>
-          <Link href="/executor" className="text-[12.5px] font-semibold text-blue-700 hover:text-blue-900 whitespace-nowrap flex-shrink-0">
-            View executor →
-          </Link>
-        </div>
-      )}
-      {!loading && executorState === "DECLINED" && (
-        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-          <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-amber-900">Executor invitation declined</p>
-            <p className="text-[12px] text-amber-700">{executor!.name} declined your invitation. Notify them again or designate someone else.</p>
-          </div>
-          <Link href="/executor" className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap flex-shrink-0">
-            View executor →
-          </Link>
-        </div>
-      )}
-      {!loading && executorState === "ACCEPTED" && (
-        <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
-          <CheckCircle size={16} className="text-emerald-500 flex-shrink-0 mt-[2px]" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-emerald-900">Executor designated</p>
-            <p className="text-[12px] text-emerald-700">{executor!.name} accepted the role.</p>
-          </div>
-          <Link href="/executor" className="text-[12.5px] font-semibold text-emerald-700 hover:text-emerald-900 whitespace-nowrap flex-shrink-0">
-            View executor →
-          </Link>
-        </div>
-      )}
+      {!loading && renderExecutorNudge(executorState, executor)}
 
       {/* Onboarding checklist */}
       {!checklistDismissed && !loading && (
