@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Upload, FileText, X } from "lucide-react";
 import { useToastStore } from "@/stores/toastStore";
 import { usePlan } from "@/hooks/usePlan";
+import { cn } from "@/lib/utils";
 
 const ACCEPTED_MIMES = "image/jpeg,image/png,application/pdf";
 const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10MB — courtesy check, server is the real gate
@@ -18,13 +19,14 @@ function formatBytes(bytes: number): string {
 interface VaultDocumentPickerProps {
   files: File[];
   onChange: (files: File[]) => void;
+  accented?: boolean;
 }
 
 // Staged, not-yet-uploaded documents for the create-asset flow — the record
 // doesn't exist yet, so nothing is sent to the backend here. The parent
 // uploads these files right after the record is created, as part of the
 // same "Save asset" action.
-export function VaultDocumentPicker({ files, onChange }: VaultDocumentPickerProps) {
+export function VaultDocumentPicker({ files, onChange, accented }: VaultDocumentPickerProps) {
   const addToast = useToastStore((s) => s.add);
   const { isFree } = usePlan();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -51,8 +53,14 @@ export function VaultDocumentPicker({ files, onChange }: VaultDocumentPickerProp
   };
 
   return (
-    <div className="mt-6">
-      <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
+    <div className={accented ? "bg-surface border border-border-color rounded-lg p-4" : "mt-6"}>
+      <label
+        className={
+          accented
+            ? "block text-[13px] font-medium text-text-primary mb-[10px]"
+            : "block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]"
+        }
+      >
         Documents
       </label>
 
@@ -85,9 +93,16 @@ export function VaultDocumentPicker({ files, onChange }: VaultDocumentPickerProp
       {!atLimit && (
         <>
           <div
-            className={`border-2 border-dashed rounded-xl p-5 bg-gray-50 text-center cursor-pointer transition-colors ${
-              dragOver ? "border-navy bg-navy/5" : "border-gray-300 hover:border-navy"
-            }`}
+            className={cn(
+              "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
+              accented
+                ? dragOver
+                  ? "border-[#3B82F6] bg-[#3B82F6]/5"
+                  : "border-blue-300 bg-[#F8FAFF] hover:border-[#3B82F6]"
+                : dragOver
+                  ? "border-navy bg-navy/5"
+                  : "border-gray-300 bg-gray-50 hover:border-navy",
+            )}
             onClick={() => inputRef.current?.click()}
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
@@ -98,7 +113,7 @@ export function VaultDocumentPicker({ files, onChange }: VaultDocumentPickerProp
               if (file) addFile(file);
             }}
           >
-            <Upload size={20} className="text-gray-400 mx-auto" />
+            <Upload size={20} className={cn("mx-auto", accented ? "text-[#3B82F6]" : "text-gray-400")} />
             <p className="text-[12.5px] text-text-secondary mt-1.5">
               Click to upload or drag and drop
             </p>

@@ -9,6 +9,7 @@ const zodResolver = _zodResolver as unknown as (
 ) => Resolver<VaultFormData>;
 
 import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -44,9 +45,39 @@ interface VaultFormProps {
   hideCancel?: boolean;
   stagedFiles: File[];
   onStagedFilesChange: (files: File[]) => void;
+  // Opts into the grouped visual hierarchy (asset-details card, tinted
+  // executor-guidance zone, required-field accent) used by the Add/Edit
+  // Asset screens. Left off by default so other VaultForm consumers
+  // (onboarding) keep the original flat layout.
+  sectioned?: boolean;
 }
 
-function FieldLabel({ text, required }: { text: string; required?: boolean }) {
+interface FieldLabelProps {
+  text: string;
+  required?: boolean;
+  // Sectioned-layout label treatments, matching the approved design:
+  // the required field's label reads dark + medium weight, optional
+  // fields read gray + normal weight, and the executor-guidance
+  // fields (always present, not user-required) read dark + normal
+  // weight. Omitted entirely for the legacy flat layout.
+  tone?: "required" | "optional" | "guidance";
+}
+
+function FieldLabel({ text, required, tone }: FieldLabelProps) {
+  if (tone) {
+    return (
+      <label
+        className={cn(
+          "block text-[13px] mb-[6px]",
+          tone === "required" && "font-medium text-text-primary",
+          tone === "optional" && "font-normal text-text-secondary",
+          tone === "guidance" && "font-normal text-text-primary",
+        )}
+      >
+        {text}{required && " *"}
+      </label>
+    );
+  }
   return (
     <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
       {text}{required && " *"}
@@ -72,6 +103,7 @@ export function VaultForm({
   hideCancel,
   stagedFiles,
   onStagedFilesChange,
+  sectioned,
 }: VaultFormProps) {
   const schema = getCategorySchema(category);
   const { fields } = getFieldConfig(category);
@@ -129,6 +161,7 @@ export function VaultForm({
   const renderField = (field: FieldConfig) => {
     const key = field.fieldName;
     const error = errors[key as keyof typeof errors]?.message as string | undefined;
+    const tone = sectioned ? (field.required ? "required" : "optional") : undefined;
 
     if (field.type === "checkbox") {
       return (
@@ -161,7 +194,7 @@ export function VaultForm({
     if (field.type === "textarea") {
       return (
         <FormSection key={key}>
-          <FieldLabel text={field.label} required={field.required} />
+          <FieldLabel text={field.label} required={field.required} tone={tone} />
           <Textarea
             placeholder={field.placeholder}
             rows={4}
@@ -178,7 +211,7 @@ export function VaultForm({
     const textField = key as "institutionName" | "accountName" | "credential" | "referenceId";
     return (
       <FormSection key={key}>
-        <FieldLabel text={field.label} required={field.required} />
+        <FieldLabel text={field.label} required={field.required} tone={tone} />
         <Input placeholder={field.placeholder} {...register(textField)} />
         {field.helperText && <HelperText text={field.helperText} />}
         <FieldError message={error} />
@@ -186,13 +219,14 @@ export function VaultForm({
     );
   };
 
-  return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} noValidate>
-      {fields.map(renderField)}
+  const requiredFields = fields.filter((f) => f.required);
+  const optionalFields = fields.filter((f) => !f.required);
+  const assetDetailFields = fields.map(renderField);
 
-      {/* ── Estate intent fields ─────────────────────────────────────── */}
-      <FormSection divider>
-        <FieldLabel text="Who should receive this asset?" />
+  const executorGuidanceFields = (
+    <>
+      <FormSection divider={!sectioned}>
+        <FieldLabel text="Who should receive this asset?" tone={sectioned ? "guidance" : undefined} />
         <Input
           placeholder="e.g. Amaka, my eldest daughter"
           {...register("intendedBeneficiary")}
@@ -202,7 +236,7 @@ export function VaultForm({
       </FormSection>
 
       <FormSection>
-        <FieldLabel text="What should happen to this asset?" />
+        <FieldLabel text="What should happen to this asset?" tone={sectioned ? "guidance" : undefined} />
         <Select {...register("executorIntent")}>
           {INTENT_OPTIONS.map(({ value, label }) => (
             <option key={value} value={value}>{label}</option>
@@ -210,6 +244,38 @@ export function VaultForm({
         </Select>
         <FieldError message={errors.executorIntent?.message} />
       </FormSection>
+    </>
+  );
+
+  return (
+    <form onSubmit={handleSubmit(handleFormSubmit)} noValidate>
+      {sectioned ? (
+        <>
+          {requiredFields.length > 0 && (
+            <div className="bg-surface border border-border-color border-l-[3px] border-l-accent rounded-lg rounded-l-none p-4 mb-3 [&>*:last-child]:mb-0">
+              {requiredFields.map(renderField)}
+            </div>
+          )}
+          {optionalFields.length > 0 && (
+            <div className="bg-surface border border-border-color rounded-lg p-4 mb-3 [&>*:last-child]:mb-0">
+              {optionalFields.map(renderField)}
+            </div>
+          )}
+        </>
+      ) : (
+        assetDetailFields
+      )}
+
+      {sectioned ? (
+        <div className="bg-[#3B82F6]/5 border border-[#3B82F6]/15 rounded-lg p-4 mb-3 [&>*:last-child]:mb-0">
+          <p className="text-[12px] font-medium uppercase tracking-[0.03em] text-accent mb-[10px]">
+            Executor guidance
+          </p>
+          {executorGuidanceFields}
+        </div>
+      ) : (
+        executorGuidanceFields
+      )}
 
       {record ? (
         <VaultDocumentSection
@@ -220,7 +286,11 @@ export function VaultForm({
           onDocumentUrlChange={(url) => setValue("accountUrl", url)}
         />
       ) : (
-        <VaultDocumentPicker files={stagedFiles} onChange={onStagedFilesChange} />
+        <VaultDocumentPicker
+          files={stagedFiles}
+          onChange={onStagedFilesChange}
+          accented={sectioned}
+        />
       )}
 
       {errors.root && (

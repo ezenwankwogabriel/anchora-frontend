@@ -98,8 +98,8 @@ export function VaultDocumentSection({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mt-6">
-      <p className="font-semibold text-[15px] text-text-primary">Documents</p>
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <p className="font-medium text-[13px] text-text-primary">Documents</p>
       <p className="text-[13px] text-text-secondary mt-1">
         Attach a photo or scan of the source document for this asset.
       </p>
@@ -218,15 +218,17 @@ export function VaultDocumentSection({
       ) : (
         <>
           <div
-            className={`mt-4 border-2 border-dashed rounded-xl p-6 bg-gray-50 text-center cursor-pointer transition-colors ${
-              dragOver ? "border-navy bg-navy/5" : "border-gray-300 hover:border-navy"
+            className={`mt-4 border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+              dragOver
+                ? "border-[#3B82F6] bg-[#3B82F6]/5"
+                : "border-blue-300 bg-[#F8FAFF] hover:border-[#3B82F6]"
             }`}
             onClick={() => inputRef.current?.click()}
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
           >
-            <Upload size={24} className="text-gray-400 mx-auto" />
+            <Upload size={24} className="text-[#3B82F6] mx-auto" />
             <p className="text-[13px] text-text-secondary mt-2">
               Click to upload or drag and drop
             </p>

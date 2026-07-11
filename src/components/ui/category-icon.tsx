@@ -49,15 +49,16 @@ interface CategoryIconProps {
   category: AssetCategory;
   size?: number;
   className?: string;
+  solid?: boolean;
 }
 
-export function CategoryIcon({ category, size = 16, className }: CategoryIconProps) {
+export function CategoryIcon({ category, size = 16, className, solid }: CategoryIconProps) {
   const Icon = iconMap[category];
   return (
     <div
       className={cn(
         "w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0",
-        colorMap[category],
+        solid ? "bg-[#10B981] text-white" : colorMap[category],
         className
       )}
     >

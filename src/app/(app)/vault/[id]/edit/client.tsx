@@ -128,6 +128,7 @@ export function EditAssetClient({ id }: EditAssetClientProps) {
           hideCancel
           stagedFiles={stagedFiles}
           onStagedFilesChange={setStagedFiles}
+          sectioned
         />
       </div>
 

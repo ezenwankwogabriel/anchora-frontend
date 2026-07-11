@@ -162,13 +162,13 @@ export function AddAssetClient({ initialCategory, recordCount }: AddAssetClientP
         {/* Step 1 — asset details */}
         {category && step === 1 && (
           <div>
-            <div className="flex items-center gap-3 mb-6 pb-5 border-b border-border-color">
-              <CategoryIcon category={category} size={16} />
+            <div className="flex items-center gap-3 mb-5 py-[14px] px-4 rounded-lg bg-[#10B981]/5 border border-[#D1FAE5]">
+              <CategoryIcon category={category} size={20} solid className="w-10 h-10 rounded-lg" />
               <div>
-                <p className="text-[13px] font-semibold text-text-primary">
+                <p className="font-heading text-[20px] text-text-primary leading-[1.1]">
                   {categoryLabels[category]}
                 </p>
-                <p className="text-[11.5px] text-text-tertiary">Fill in the details below</p>
+                <p className="text-[13px] text-text-secondary mt-[2px]">Fill in the details below</p>
               </div>
             </div>
 
@@ -179,6 +179,7 @@ export function AddAssetClient({ initialCategory, recordCount }: AddAssetClientP
               hideCancel
               stagedFiles={stagedFiles}
               onStagedFilesChange={setStagedFiles}
+              sectioned
             />
           </div>
         )}
