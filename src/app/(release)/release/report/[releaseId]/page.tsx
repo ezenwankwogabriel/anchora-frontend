@@ -116,7 +116,7 @@ export default function EstateReportPage() {
         <FileText size={48} className="text-navy mx-auto" />
         <h2 className="font-heading text-xl text-text-primary mt-3">Estate report</h2>
         <p className="text-[13px] text-text-secondary mt-2 max-w-sm mx-auto">
-          This document contains all registered assets and guidance on recovering each one through
+          This document contains all registered assets and discovery guidance for each one through
           the appropriate legal and institutional channels.
         </p>
         <Button className="mt-6 px-8" onClick={() => window.open(url, "_blank")}>

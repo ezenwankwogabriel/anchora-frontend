@@ -163,7 +163,7 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
         </h1>
         <p className="text-[13.5px] text-text-secondary mt-1">
           Your trusted contact is the person who will receive your estate report and
-          manage the recovery process if your vault becomes inactive. Choose
+          manage the discovery process if your vault becomes inactive. Choose
           someone you trust completely.
         </p>
       </div>
