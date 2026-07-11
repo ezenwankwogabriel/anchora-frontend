@@ -95,7 +95,7 @@ const EXECUTOR_HEALTH_CARD: Record<
   ExecutorDashboardState,
   { value: string; subtext: (name: string) => string; status: "critical" | "warning" | "good" }
 > = {
-  NONE:         { value: "None",         subtext: () => "No executor designated",                status: "critical" },
+  NONE:         { value: "None",         subtext: () => "No trusted contact designated",           status: "critical" },
   NOT_NOTIFIED: { value: "Not notified", subtext: (name) => `${name} designated — not yet notified`, status: "warning" },
   PENDING:      { value: "Pending",      subtext: (name) => `Invitation sent to ${name}`,          status: "warning" },
   VERIFIED:     { value: "Verified",     subtext: (name) => `${name}'s email is verified`,          status: "good" },
@@ -110,8 +110,8 @@ function renderExecutorNudge(state: ExecutorDashboardState, executor: Executor |
         <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
           <Shield size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-amber-900">No executor designated</p>
-            <p className="text-[12px] text-amber-700">Your estate report cannot be delivered without an executor.</p>
+            <p className="text-[13px] font-[500] text-amber-900">No trusted contact designated</p>
+            <p className="text-[12px] text-amber-700">Your estate report cannot be delivered without a trusted contact.</p>
           </div>
           <Link href="/executor" className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap flex-shrink-0">
             Designate now →
@@ -123,11 +123,11 @@ function renderExecutorNudge(state: ExecutorDashboardState, executor: Executor |
         <div className="flex items-start gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl px-4 py-3">
           <Clock size={16} className="text-blue-500 flex-shrink-0 mt-[2px]" />
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-blue-900">Executor not yet notified</p>
+            <p className="text-[13px] font-[500] text-blue-900">Trusted contact not yet notified</p>
             <p className="text-[12px] text-blue-700">{executor!.name} won&apos;t know they&apos;ve been designated until you notify them.</p>
           </div>
           <Link href="/executor" className="text-[12.5px] font-semibold text-blue-700 hover:text-blue-900 whitespace-nowrap flex-shrink-0">
-            View executor →
+            View trusted contact →
           </Link>
         </div>
       );
@@ -136,11 +136,11 @@ function renderExecutorNudge(state: ExecutorDashboardState, executor: Executor |
         <div className="flex items-start gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl px-4 py-3">
           <Clock size={16} className="text-blue-500 flex-shrink-0 mt-[2px]" />
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-blue-900">Executor invitation pending</p>
+            <p className="text-[13px] font-[500] text-blue-900">Trusted contact invitation pending</p>
             <p className="text-[12px] text-blue-700">{executor!.name} has not yet responded.</p>
           </div>
           <Link href="/executor" className="text-[12.5px] font-semibold text-blue-700 hover:text-blue-900 whitespace-nowrap flex-shrink-0">
-            View executor →
+            View trusted contact →
           </Link>
         </div>
       );
@@ -149,11 +149,11 @@ function renderExecutorNudge(state: ExecutorDashboardState, executor: Executor |
         <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
           <CheckCircle size={16} className="text-emerald-500 flex-shrink-0 mt-[2px]" />
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-emerald-900">Executor email verified</p>
+            <p className="text-[13px] font-[500] text-emerald-900">Trusted contact email verified</p>
             <p className="text-[12px] text-emerald-700">{executor!.name} has confirmed their email.</p>
           </div>
           <Link href="/executor" className="text-[12.5px] font-semibold text-emerald-700 hover:text-emerald-900 whitespace-nowrap flex-shrink-0">
-            View executor →
+            View trusted contact →
           </Link>
         </div>
       );
@@ -162,11 +162,11 @@ function renderExecutorNudge(state: ExecutorDashboardState, executor: Executor |
         <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
           <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-amber-900">Executor invitation declined</p>
+            <p className="text-[13px] font-[500] text-amber-900">Trusted contact invitation declined</p>
             <p className="text-[12px] text-amber-700">{executor!.name} declined your invitation. Notify them again or designate someone else.</p>
           </div>
           <Link href="/executor" className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap flex-shrink-0">
-            View executor →
+            View trusted contact →
           </Link>
         </div>
       );
@@ -175,11 +175,11 @@ function renderExecutorNudge(state: ExecutorDashboardState, executor: Executor |
         <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
           <CheckCircle size={16} className="text-emerald-500 flex-shrink-0 mt-[2px]" />
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-emerald-900">Executor designated</p>
+            <p className="text-[13px] font-[500] text-emerald-900">Trusted contact designated</p>
             <p className="text-[12px] text-emerald-700">{executor!.name} accepted the role.</p>
           </div>
           <Link href="/executor" className="text-[12.5px] font-semibold text-emerald-700 hover:text-emerald-900 whitespace-nowrap flex-shrink-0">
-            View executor →
+            View trusted contact →
           </Link>
         </div>
       );
@@ -191,7 +191,7 @@ function renderExecutorNudge(state: ExecutorDashboardState, executor: Executor |
 function buildChecklist(hasRecords: boolean, executor: Executor | null): ChecklistItem[] {
   return [
     { id: "vault",    label: "Add your first financial asset", done: hasRecords,                             href: "/vault/add" },
-    { id: "executor", label: "Designate your executor",        done: executor !== null && !executor.declinedAt, href: "/executor" },
+    { id: "executor", label: "Designate your trusted contact", done: executor !== null && !executor.declinedAt, href: "/executor" },
   ];
 }
 
@@ -283,7 +283,7 @@ export default function DashboardPage() {
               }
             />
             <HealthCard
-              label="Executor"
+              label="Trusted Contact"
               borderAccent="accent"
               value={EXECUTOR_HEALTH_CARD[executorState].value}
               subtext={EXECUTOR_HEALTH_CARD[executorState].subtext(executor?.name ?? "")}

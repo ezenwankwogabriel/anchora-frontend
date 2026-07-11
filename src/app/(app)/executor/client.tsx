@@ -78,17 +78,17 @@ function RemoveDialog({
             <AlertTriangle size={16} className="text-red" />
           </div>
           <h2 className="text-[15px] font-semibold text-text-primary">
-            Remove executor?
+            Remove trusted contact?
           </h2>
         </div>
         <p className="text-[13px] text-text-secondary mb-5 pl-12">
           {wasNotified
-            ? "Your executor will be notified that they have been removed. You can designate a new executor at any time."
-            : "Your executor was never notified about this designation, so they won't be notified of the removal either. You can designate a new executor at any time."}
+            ? "Your trusted contact will be notified that they have been removed. You can designate a new trusted contact at any time."
+            : "Your trusted contact was never notified about this designation, so they won't be notified of the removal either. You can designate a new trusted contact at any time."}
         </p>
         <div className="flex gap-2 justify-end">
           <Button variant="secondary" onClick={onCancel} disabled={removing}>
-            Keep executor
+            Keep trusted contact
           </Button>
           <Button variant="danger" onClick={onConfirm} disabled={removing}>
             {removing && <Loader2 size={13} className="animate-spin" />}
@@ -128,16 +128,16 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
       if (notifyNow) {
         try {
           await ExecutorService.notify();
-          toast(`Executor designated and notified.`, "success");
+          toast(`Trusted contact designated and notified.`, "success");
         } catch {
           toast(
-            `Executor designated, but the notification failed to send.`,
+            `Trusted contact designated, but the notification failed to send.`,
             "error",
           );
         }
       } else {
         toast(
-          `Executor designated. Notify them whenever you're ready.`,
+          `Trusted contact designated. Notify them whenever you're ready.`,
           "success",
         );
       }
@@ -145,7 +145,7 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
       onCreated(executor);
     } catch (err) {
       if (err instanceof ServiceError && err.status === 409) {
-        setError("root", { message: "An executor is already designated." });
+        setError("root", { message: "A trusted contact is already designated." });
       } else {
         setError("root", {
           message:
@@ -159,10 +159,10 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
     <div className="space-y-6">
       <div>
         <h1 className="font-heading text-[28px] text-text-primary">
-          Designate your executor
+          Designate your trusted contact
         </h1>
         <p className="text-[13.5px] text-text-secondary mt-1">
-          Your executor is the person who will receive your estate report and
+          Your trusted contact is the person who will receive your estate report and
           manage the recovery process if your vault becomes inactive. Choose
           someone you trust completely.
         </p>
@@ -172,7 +172,7 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
         <Info size={16} className="text-blue-500 flex-shrink-0 mt-[1px]" />
         <p className="text-[13px] text-blue-800">
           Saving this never sends an email on its own. Choose below if
-          you&apos;d like to notify your executor right away, or do it later
+          you&apos;d like to notify your trusted contact right away, or do it later
           from this page.
         </p>
       </div>
@@ -189,7 +189,7 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
             <FieldLabel text="Email address" required />
             <Input
               type="email"
-              placeholder="executor@example.com"
+              placeholder="trustedcontact@example.com"
               {...register("email")}
             />
             <FieldError message={errors.email?.message} />
@@ -216,7 +216,7 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
               className="h-4 w-4"
               {...register("notifyNow")}
             />
-            Notify my executor by email now
+            Notify my trusted contact by email now
           </label>
 
           {errors.root && (
@@ -228,7 +228,7 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
           <div className="pt-4">
             <Button type="submit" fullWidth disabled={isSubmitting}>
               {isSubmitting && <Loader2 size={15} className="animate-spin" />}
-              Designate executor
+              Designate trusted contact
             </Button>
           </div>
         </div>
@@ -286,10 +286,10 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
     setNotifying(true);
     try {
       await ExecutorService.notify();
-      toast("Executor notified", "success");
+      toast("Trusted contact notified", "success");
       await refresh();
     } catch {
-      toast("Failed to notify executor", "error");
+      toast("Failed to notify trusted contact", "error");
     } finally {
       setNotifying(false);
     }
@@ -299,11 +299,11 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
     setRemoving(true);
     try {
       await ExecutorService.remove();
-      toast("Executor removed", "success");
+      toast("Trusted contact removed", "success");
       setShowDialog(false);
       onRemoved();
     } catch {
-      toast("Failed to remove executor", "error");
+      toast("Failed to remove trusted contact", "error");
       setRemoving(false);
     }
   };
@@ -335,7 +335,7 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
     <div className="space-y-6">
       <div>
         <h1 className="font-heading text-[28px] text-text-primary">
-          Your executor
+          Your trusted contact
         </h1>
         <p className="text-[13.5px] text-text-secondary mt-1">
           This person will receive your estate report if a release is triggered.
@@ -349,7 +349,7 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
             className="text-red flex-shrink-0 mt-[1px]"
           />
           <p className="text-[13px] text-red">
-            <strong>{executor.name}</strong> declined your executor invitation.
+            <strong>{executor.name}</strong> declined your trusted contact invitation.
             You can notify them again or remove them and designate someone else.
           </p>
         </div>
@@ -417,7 +417,7 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
               disabled={notifying}
             >
               {notifying && <Loader2 size={13} className="animate-spin" />}
-              {executor.notifiedAt ? "Notify again" : "Notify executor"}
+              {executor.notifiedAt ? "Notify again" : "Notify trusted contact"}
             </Button>
           )}
           <Button
@@ -426,7 +426,7 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
             onClick={() => setShowDialog(true)}
             className="text-red-600 hover:bg-red-50"
           >
-            Remove executor
+            Remove trusted contact
           </Button>
         </div>
       </div>
@@ -468,7 +468,7 @@ export default function ExecutorClient() {
   if (fetchError) {
     return (
       <p className="text-[13px] text-red py-6">
-        Failed to load executor information. Please refresh.
+        Failed to load trusted contact information. Please refresh.
       </p>
     );
   }

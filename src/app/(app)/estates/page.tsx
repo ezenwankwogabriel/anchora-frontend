@@ -335,7 +335,7 @@ function EstateDrawer({
               label="Status"
               value={
                 <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                  Designated executor
+                  Designated trusted contact
                 </span>
               }
             />
@@ -637,8 +637,8 @@ function ExitDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Exit this estate?</AlertDialogTitle>
           <AlertDialogDescription>
-            You will be removed as executor for {ownerName}&apos;s estate. The
-            owner will be notified and will need to designate a new executor.
+            You will be removed as trusted contact for {ownerName}&apos;s estate. The
+            owner will be notified and will need to designate a new trusted contact.
             This cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -748,7 +748,7 @@ function PendingInviteCard({
     try {
       await EstatesService.acceptInvite(estate.estateId);
       onAccepted(estate.estateId);
-      addToast("You've accepted the executor invitation.", "success");
+      addToast("You've accepted the trusted contact invitation.", "success");
     } catch {
       addToast("Failed to accept invitation. Please try again.", "error");
     } finally {
@@ -863,7 +863,7 @@ export default function EstatesPage() {
           )}
         </div>
         <p className="text-secondary text-sm mt-1">
-          Estates you have been designated to manage as executor.
+          Estates you have been designated to manage as trusted contact.
         </p>
       </div>
 
@@ -904,7 +904,7 @@ export default function EstatesPage() {
             No estates assigned
           </p>
           <p className="text-sm text-text-secondary text-center mt-1">
-            If someone designates you as their executor, their estate will
+            If someone designates you as their trusted contact, their estate will
             appear here.
           </p>
         </div>

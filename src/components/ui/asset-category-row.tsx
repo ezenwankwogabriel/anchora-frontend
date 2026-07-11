@@ -71,8 +71,8 @@ function RecordRow({ record, onDelete }: RecordRowProps) {
           "w-2 h-2 rounded-full flex-shrink-0 mr-2",
           hasIntent ? "bg-emerald-500" : "bg-amber-400"
         )}
-        aria-label={hasIntent ? "Executor intent set" : "Executor intent not specified"}
-        title={hasIntent ? "Executor intent set" : "Executor intent not specified"}
+        aria-label={hasIntent ? "Trusted contact intent set" : "Trusted contact intent not specified"}
+        title={hasIntent ? "Trusted contact intent set" : "Trusted contact intent not specified"}
       />
 
       {confirming ? (

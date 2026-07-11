@@ -80,7 +80,7 @@ export default function OnboardingPage() {
       await finish(router);
     } catch {
       setApiError(
-        "Something went wrong. You can skip and designate an executor from your dashboard."
+        "Something went wrong. You can skip and designate a trusted contact from your dashboard."
       );
       setSubmitting(false);
     }
@@ -228,7 +228,7 @@ const HOW_STEPS = [
   {
     icon: <UsersIcon />,
     title: "Designate",
-    desc: "Choose a trusted executor who will manage your estate on behalf of your loved ones.",
+    desc: "Choose a trusted contact who will manage your estate on behalf of your loved ones.",
   },
   {
     icon: <ShieldIcon />,
@@ -508,7 +508,7 @@ function ScreenExecutor({
         Who should manage your estate?
       </h2>
       <p className="text-[14px] text-text-secondary mb-8">
-        Designate a trusted executor — a lawyer, family member, or close friend — who will
+        Designate a trusted contact — a lawyer, family member, or close friend — who will
         receive your estate report and coordinate distribution on your behalf.
       </p>
 
@@ -574,7 +574,7 @@ function ScreenExecutor({
         </Button>
         <Button onClick={onSubmit} disabled={!valid || submitting}>
           {submitting && <Loader2 size={15} className="animate-spin" />}
-          Designate executor →
+          Designate trusted contact →
         </Button>
       </div>
 

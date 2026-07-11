@@ -86,7 +86,7 @@ export default function VerifyIdentityPage() {
       <h1 className="font-heading text-2xl text-text-primary">Verify your identity</h1>
       <p className="text-[13.5px] text-text-secondary mt-2">
         To access the estate report, confirm your identity. This ensures only the designated
-        executor can access it.
+        trusted contact can access it.
       </p>
 
       {/* Progress */}

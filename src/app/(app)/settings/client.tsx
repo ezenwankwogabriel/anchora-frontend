@@ -794,7 +794,7 @@ function InactivityRemindersSection({ isFree, planLoading }: { isFree: boolean; 
         {isFree && <ProBadge />}
       </div>
       <p className="text-sm text-text-secondary mb-4">
-        If Anchora doesn&apos;t detect any activity from you within your chosen window, your executor
+        If Anchora doesn&apos;t detect any activity from you within your chosen window, your trusted contact
         will be notified to begin the estate release process. We&apos;ll send you reminders throughout
         so you can check in and reset the clock.
       </p>
@@ -807,7 +807,7 @@ function InactivityRemindersSection({ isFree, planLoading }: { isFree: boolean; 
         <div className="p-5">
           <p className="text-[13px] font-semibold text-text-primary mb-0.5">Inactivity window</p>
           <p className="text-[12px] text-text-secondary mb-3">
-            How long before your executor is notified after your last activity.
+            How long before your trusted contact is notified after your last activity.
           </p>
           <div className="flex flex-wrap gap-2">
             {INACTIVITY_OPTIONS.map(({ value, label, recommended }) => (
@@ -869,7 +869,7 @@ function InactivityRemindersSection({ isFree, planLoading }: { isFree: boolean; 
           </div>
           {reminderFrequency === 0 && (
             <p className="text-xs text-amber mt-2">
-              You won&apos;t receive reminders before your executor is notified.
+              You won&apos;t receive reminders before your trusted contact is notified.
             </p>
           )}
         </div>
@@ -939,7 +939,7 @@ function CheckoutStatusView({
         </div>
         <p className="font-heading text-[22px] text-text-primary mb-1">Welcome to Pro</p>
         <p className="text-[13px] text-text-secondary mb-6 max-w-[320px]">
-          You now have unlimited records, an executor estate report, downloadable estate summary, configurable inactivity window, and priority support.
+          You now have unlimited records, a trusted contact estate report, downloadable estate summary, configurable inactivity window, and priority support.
         </p>
         <Button onClick={onDone}>Go to vault</Button>
       </div>
@@ -1292,9 +1292,9 @@ function PlanTab({
           <ul className="mt-4 space-y-2">
             <PlanFeature included text="Up to 3 asset records" />
             <PlanFeature included text="All 11 asset categories" />
-            <PlanFeature included text="Designate one executor" />
+            <PlanFeature included text="Designate one trusted contact" />
             <PlanFeature included text="Inactivity monitoring" />
-            <PlanFeature included={false} text="Executor receives estate report" />
+            <PlanFeature included={false} text="Trusted contact receives estate report" />
             <PlanFeature included={false} text="Downloadable estate summary" />
             <PlanFeature included={false} text="Configurable inactivity window" />
             <PlanFeature included={false} text="Unlimited asset records" />
@@ -1331,9 +1331,9 @@ function PlanTab({
           <ul className="mt-4 space-y-2">
             <PlanFeature included text="Unlimited asset records" />
             <PlanFeature included text="All 11 asset categories" />
-            <PlanFeature included text="Designate one executor" />
+            <PlanFeature included text="Designate one trusted contact" />
             <PlanFeature included text="Full inactivity monitoring" />
-            <PlanFeature included text="Executor receives estate report" />
+            <PlanFeature included text="Trusted contact receives estate report" />
             <PlanFeature included text="Downloadable estate summary" />
             <PlanFeature included text="Configurable inactivity window (6–24 mo)" />
             <PlanFeature included text="Priority email support" />

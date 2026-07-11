@@ -45,21 +45,12 @@ interface VaultFormProps {
   hideCancel?: boolean;
   stagedFiles: File[];
   onStagedFilesChange: (files: File[]) => void;
-  // Opts into the grouped visual hierarchy (asset-details card, tinted
-  // executor-guidance zone, required-field accent) used by the Add/Edit
-  // Asset screens. Left off by default so other VaultForm consumers
-  // (onboarding) keep the original flat layout.
   sectioned?: boolean;
 }
 
 interface FieldLabelProps {
   text: string;
   required?: boolean;
-  // Sectioned-layout label treatments, matching the approved design:
-  // the required field's label reads dark + medium weight, optional
-  // fields read gray + normal weight, and the executor-guidance
-  // fields (always present, not user-required) read dark + normal
-  // weight. Omitted entirely for the legacy flat layout.
   tone?: "required" | "optional" | "guidance";
 }
 
@@ -231,7 +222,7 @@ export function VaultForm({
           placeholder="e.g. Amaka, my eldest daughter"
           {...register("intendedBeneficiary")}
         />
-        <HelperText text="A note for your executor — not a legal instruction." />
+        <HelperText text="A note for your trusted contact — not a legal instruction." />
         <FieldError message={errors.intendedBeneficiary?.message} />
       </FormSection>
 
@@ -269,7 +260,7 @@ export function VaultForm({
       {sectioned ? (
         <div className="bg-[#3B82F6]/5 border border-[#3B82F6]/15 rounded-lg p-4 mb-3 [&>*:last-child]:mb-0">
           <p className="text-[12px] font-medium uppercase tracking-[0.03em] text-accent mb-[10px]">
-            Executor guidance
+            Trusted contact guidance
           </p>
           {executorGuidanceFields}
         </div>

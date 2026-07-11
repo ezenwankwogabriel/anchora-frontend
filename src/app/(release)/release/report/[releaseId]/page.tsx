@@ -99,7 +99,7 @@ export default function EstateReportPage() {
           <div className="flex-1">
             <p className="font-semibold text-[14px] text-text-primary">Identity verified</p>
             <p className="text-[13px] text-text-secondary mt-1">
-              You have been verified as the designated executor for this estate.
+              You have been verified as the designated trusted contact for this estate.
             </p>
           </div>
         </div>

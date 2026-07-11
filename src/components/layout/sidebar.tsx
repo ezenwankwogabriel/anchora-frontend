@@ -22,7 +22,7 @@ import { AuthService } from "@/services/auth.service";
 const navItems = [
   { label: "Dashboard",  href: "/dashboard",  icon: LayoutDashboard, dot: false },
   { label: "Vault",      href: "/vault",       icon: Archive,         dot: false },
-  { label: "Executor",   href: "/executor",    icon: Shield,          dot: false },
+  { label: "Trusted Contact", href: "/executor", icon: Shield,        dot: false },
   { label: "Estates",    href: "/estates",     icon: Users,           dot: true  },
   { label: "Settings",   href: "/settings",    icon: Settings,        dot: false },
 ];

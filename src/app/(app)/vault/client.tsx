@@ -113,7 +113,7 @@ export default function VaultClient() {
           <div className="flex-1 min-w-0">
             <p className="font-semibold text-[14px] text-text-primary">Estate summary</p>
             <p className="text-[13px] text-text-secondary mt-0.5">
-              A preview of the document your executor will receive at release.
+              A preview of the document your trusted contact will receive at release.
             </p>
           </div>
           <div className="flex flex-col items-stretch lg:items-end gap-1.5 w-full lg:w-auto">
@@ -131,7 +131,7 @@ export default function VaultClient() {
             ) : (
               <UpgradePrompt
                 feature="Estate summary download"
-                description="Download a structured PDF estate document to share with your lawyer or review with your executor. Available on Pro."
+                description="Download a structured PDF estate document to share with your lawyer or review with your trusted contact. Available on Pro."
               />
             )}
           </div>

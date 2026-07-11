@@ -46,7 +46,7 @@ export function PaywallModal({ open, onClose, onUpgraded }: PaywallModalProps) {
           </div>
           <p className="font-heading text-[20px] text-text-primary mb-1">Welcome to Pro</p>
           <p className="text-[13px] text-text-secondary mb-5 max-w-[300px]">
-            You now have unlimited records, an executor estate report, downloadable estate summary, and configurable inactivity window.
+            You now have unlimited records, a trusted contact estate report, downloadable estate summary, and configurable inactivity window.
           </p>
           <Button fullWidth onClick={handleClose}>Go to vault</Button>
         </div>
