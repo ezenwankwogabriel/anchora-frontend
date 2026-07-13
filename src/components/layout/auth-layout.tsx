@@ -21,12 +21,11 @@ const DEFAULT_TAGLINE = (
 );
 
 const DEFAULT_SUBTEXT =
-  "Register your accounts. Designate who gets access. Anchora ensures nothing is lost if something happens to you.";
+  "Document what you have. Designate your trusted contact. Anchora guides them through finding it when the time comes.";
 
 const DEFAULT_TRUST: TrustItem[] = [
-  { text: "AES-256 encryption — your data is never readable by us" },
-  { text: "Distributed trust model — no single point of failure" },
-  { text: "Your beneficiaries are verified before receiving anything" },
+  { text: "AES-256 encryption, with strict access controls" },
+  { text: "Your trusted contact is verified during guided discovery" },
 ];
 
 const DEFAULT_FOOTER =

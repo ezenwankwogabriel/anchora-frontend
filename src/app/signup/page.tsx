@@ -137,7 +137,14 @@ function SignupForm() {
             <input type="checkbox" className="mt-[2px] flex-shrink-0 accent-accent" {...register("termsAccepted")} />
             <span>
               I accept the{" "}
-              <Link href="#" className="text-accent hover:underline">Terms of Service</Link>
+              <Link
+                href="https://www.anchora.com.ng/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-accent hover:underline"
+              >
+                Terms of Service
+              </Link>
             </span>
           </label>
           <FieldError message={errors.termsAccepted?.message} />
@@ -145,7 +152,14 @@ function SignupForm() {
             <input type="checkbox" className="mt-[2px] flex-shrink-0 accent-accent" {...register("privacyAccepted")} />
             <span>
               I accept the{" "}
-              <Link href="#" className="text-accent hover:underline">Privacy Policy</Link>
+              <Link
+                href="https://www.anchora.com.ng/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-accent hover:underline"
+              >
+                Privacy Policy
+              </Link>
             </span>
           </label>
           <FieldError message={errors.privacyAccepted?.message} />
