@@ -4,14 +4,6 @@ export type AccountStatus = "ACTIVE" | "SUSPENDED" | "PENDING_DELETION" | "DELET
 
 export type ReleaseStatus = "PENDING" | "ACTIVE" | "COMPLETED" | "CANCELLED";
 
-export type VerificationStatus =
-  | "PENDING"
-  | "SUBMITTED"
-  | "APPROVED"
-  | "REJECTED"
-  | "RESUBMITTED"
-  | "PERMANENTLY_REJECTED";
-
 export type ActorType = "USER" | "EXECUTOR" | "ADMIN" | "SYSTEM";
 
 export type UserPlan = "FREE" | "PRO";
@@ -47,14 +39,10 @@ export interface AdminExecutor {
   emailVerifiedAt: string | null;
 }
 
-export interface AdminExecutorVerification {
+export interface AdminReleaseExecutor {
   id: string;
   name: string;
   email: string;
-  verificationStatus: VerificationStatus;
-  submittedAt: string | null;
-  reviewedAt: string | null;
-  rejectionReason: string | null;
 }
 
 // ── Users ─────────────────────────────────────────────────────────────────────
@@ -72,15 +60,15 @@ export interface AdminUserListItem {
   plan: UserPlan;
 }
 
-export type IdentityVerificationStatus = "UNVERIFIED" | "PENDING" | "VERIFIED" | "REJECTED";
+export type GovIdVerificationStatus = "UNVERIFIED" | "VERIFIED" | "FAILED";
 
 export interface AdminUserDetail extends AdminUserListItem {
   emailVerifiedAt: string | null;
   mfaEnabled: boolean;
   planActivatedAt: string | null;
   planExpiresAt: string | null;
-  identityVerificationStatus: IdentityVerificationStatus;
-  identityVerifiedAt: string | null;
+  govIdVerificationStatus: GovIdVerificationStatus;
+  govIdVerifiedAt: string | null;
   releases: { id: string; status: ReleaseStatus; triggeredAt: string }[];
   executor: AdminExecutor | null;
 }
@@ -102,7 +90,7 @@ export interface AdminRelease {
 export interface AdminReleaseDetail extends AdminRelease {
   cancelReason: string | null;
   emptyVault: boolean;
-  executor: AdminExecutorVerification | null;
+  executor: AdminReleaseExecutor | null;
 }
 
 // ── Audit Logs ────────────────────────────────────────────────────────────────

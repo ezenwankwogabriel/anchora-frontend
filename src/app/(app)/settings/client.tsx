@@ -993,7 +993,12 @@ function IdentityStatusBadge({ status }: { status: GovIdVerificationStatus }) {
   );
 }
 
-function IdentityVerificationTab() {
+function IdentityVerificationTab({
+  isFree, planLoading,
+}: {
+  isFree: boolean;
+  planLoading: boolean;
+}) {
   const { identity, loading, refetch } = useIdentityStatus();
   const {
     phase, error, capturedImage, videoRef,
@@ -1001,7 +1006,7 @@ function IdentityVerificationTab() {
   } = useNinVerification(refetch);
   const [nin, setNin] = useState("");
 
-  if (loading) return null;
+  if (loading || planLoading) return null;
 
   const status = identity?.status ?? "UNVERIFIED";
   const ninValid = /^\d{11}$/.test(nin);
@@ -1010,6 +1015,7 @@ function IdentityVerificationTab() {
     phase === "captured" || phase === "submitting";
 
   return (
+    <>
     <Section
       title="Identity Verification"
       description="A one-time identity check via NIN + selfie, using Dojah."
@@ -1101,6 +1107,7 @@ function IdentityVerificationTab() {
           <div className="flex items-center gap-2 mb-3">
             <span className="text-[13.5px] font-medium text-text-primary">Verification status</span>
             <IdentityStatusBadge status={status} />
+            {isFree && <ProBadge />}
           </div>
 
           <p className="text-[13px] text-text-secondary leading-relaxed mb-4 max-w-[560px]">
@@ -1108,12 +1115,21 @@ function IdentityVerificationTab() {
             you can access any records that have been released to you.
           </p>
 
-          <Button onClick={startCamera}>
-            {status === "FAILED" ? "Retry verification" : "Verify identity"}
-          </Button>
+          <div className={cn(isFree && "pointer-events-none opacity-60")}>
+            <Button onClick={startCamera}>
+              {status === "FAILED" ? "Retry verification" : "Verify identity"}
+            </Button>
+          </div>
         </div>
       )}
     </Section>
+    {isFree && (
+      <UpgradePrompt
+        feature="Identity verification"
+        description="Verify your NIN with a live selfie so your Trusted Contact can access records released to you. Available on Pro."
+      />
+    )}
+    </>
   );
 }
 
@@ -1562,7 +1578,9 @@ export function SettingsClient({ initialTab }: { initialTab?: string }) {
             {false && <MfaSection />}
           </>
         )}
-        {tab === "Identity Verification" && <IdentityVerificationTab />}
+        {tab === "Identity Verification" && (
+          <IdentityVerificationTab isFree={isFree} planLoading={planLoading} />
+        )}
         {tab === "Notifications" && <InactivityRemindersSection isFree={isFree} planLoading={planLoading} />}
         {tab === "Plan" && <PlanTab planData={planData} loading={planLoading} onPlanUpdated={refetchPlan} />}
         {tab === "Account" && <DangerZone />}

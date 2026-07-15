@@ -1,6 +1,3 @@
-export type { IdentityVerificationStatus } from './types/estates';
-import type { IdentityVerificationStatus } from './types/estates';
-
 export interface User {
   id: string;
   firstName: string;
@@ -12,8 +9,8 @@ export interface User {
   reminderFrequencyDays?: number;
   inactivityWindowMonths?: number;
   onboardingCompletedAt: string | null;
-  identityVerificationStatus?: IdentityVerificationStatus;
-  identityVerifiedAt?: string | null;
+  govIdVerificationStatus?: GovIdVerificationStatus;
+  govIdVerifiedAt?: string | null;
 }
 
 export type AuthResponse =
@@ -180,12 +177,6 @@ export interface ExecutorInput {
 
 export type ExecutorNotificationState = "NOT_NOTIFIED" | "NOTIFIED" | "VERIFIED";
 
-// ── Release ───────────────────────────────────────────
-
-export type ReleaseReport =
-  | { reportUrl: string; ownerFirstName: string; expiresInSeconds: number; reportGeneratedAt: string; accessExpiresAt: string }
-  | { message: string; ownerFirstName: string };
-
 // ── Errors ────────────────────────────────────────────────────────────────
 
 // ── Plan ──────────────────────────────────────────────────────────────────────
@@ -212,9 +203,8 @@ export interface PlanData {
 
 // Account-level government-ID verification (NIN + selfie, via Dojah),
 // required once before an account can access any records released to it —
-// separate from the per-release `IdentityVerificationStatus` (manual
-// ID+selfie, admin-reviewed) that also gates report access for that
-// specific release. Synchronous check: no PENDING state.
+// the single verification mechanism for every use case. Synchronous check:
+// no PENDING state.
 export type GovIdVerificationStatus = "UNVERIFIED" | "VERIFIED" | "FAILED";
 
 export interface IdentityStatus {

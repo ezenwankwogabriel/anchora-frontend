@@ -1,10 +1,11 @@
 import { create } from 'zustand';
 import { EstatesService } from '@/services/estates.service';
-import type { EstateItem, IdentityVerificationStatus } from '@/lib/types/estates';
+import type { EstateItem } from '@/lib/types/estates';
+import type { GovIdVerificationStatus } from '@/lib/types';
 
 interface EstatesStore {
   estates: EstateItem[];
-  verificationStatus: IdentityVerificationStatus;
+  verificationStatus: GovIdVerificationStatus;
   estatesLoading: boolean;
   hasAttentionRequired: boolean;
   fetchEstates: () => Promise<void>;
@@ -12,7 +13,7 @@ interface EstatesStore {
 
 function computeAttentionRequired(
   estates: EstateItem[],
-  verificationStatus: IdentityVerificationStatus,
+  verificationStatus: GovIdVerificationStatus,
 ): boolean {
   return estates.some((e) => {
     if (!e.acceptedAt && !e.declinedAt) return true;
@@ -21,7 +22,7 @@ function computeAttentionRequired(
       e.release &&
       e.release.status !== 'COMPLETED' &&
       !e.release.reportAvailable &&
-      (verificationStatus === 'UNVERIFIED' || verificationStatus === 'REJECTED')
+      (verificationStatus === 'UNVERIFIED' || verificationStatus === 'FAILED')
     ) {
       return true;
     }

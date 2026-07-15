@@ -1,8 +1,4 @@
-export type IdentityVerificationStatus =
-  | 'UNVERIFIED'
-  | 'PENDING'
-  | 'VERIFIED'
-  | 'REJECTED';
+import type { GovIdVerificationStatus } from '../types';
 
 export interface EstateRelease {
   id: string;
@@ -24,5 +20,5 @@ export interface EstateItem {
 
 export interface EstatesResponse {
   estates: EstateItem[];
-  verificationStatus: IdentityVerificationStatus;
+  verificationStatus: GovIdVerificationStatus;
 }

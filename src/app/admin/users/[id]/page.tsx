@@ -136,8 +136,6 @@ export default function AdminUserDetailPage() {
   const [planOverride, setPlanOverride]   = useState<UserPlan>("FREE");
   const [planLoading, setPlanLoading]     = useState(false);
   const [planFeedback, setPlanFeedback]   = useState<{ ok: boolean; msg: string } | null>(null);
-  const [idvLoading, setIdvLoading]       = useState(false);
-  const [idvFeedback, setIdvFeedback]     = useState<{ ok: boolean; msg: string } | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -161,36 +159,6 @@ export default function AdminUserDetailPage() {
       setPlanFeedback({ ok: false, msg: err instanceof ServiceError ? err.message : "Failed to update plan." });
     } finally {
       setPlanLoading(false);
-    }
-  };
-
-  const handleVerifyIdentity = async () => {
-    if (!user) return;
-    setIdvLoading(true);
-    setIdvFeedback(null);
-    try {
-      await AdminService.verifyIdentity(userId);
-      setUser((u) => u ? { ...u, identityVerificationStatus: "VERIFIED", identityVerifiedAt: new Date().toISOString() } : u);
-      setIdvFeedback({ ok: true, msg: "Identity marked as verified." });
-    } catch (err) {
-      setIdvFeedback({ ok: false, msg: err instanceof ServiceError ? err.message : "Action failed." });
-    } finally {
-      setIdvLoading(false);
-    }
-  };
-
-  const handleRevokeIdentity = async () => {
-    if (!user) return;
-    setIdvLoading(true);
-    setIdvFeedback(null);
-    try {
-      await AdminService.revokeIdentityVerification(userId);
-      setUser((u) => u ? { ...u, identityVerificationStatus: "UNVERIFIED", identityVerifiedAt: null } : u);
-      setIdvFeedback({ ok: true, msg: "Identity verification revoked." });
-    } catch (err) {
-      setIdvFeedback({ ok: false, msg: err instanceof ServiceError ? err.message : "Action failed." });
-    } finally {
-      setIdvLoading(false);
     }
   };
 
@@ -396,52 +364,22 @@ export default function AdminUserDetailPage() {
             label="Status"
             value={
               <span className={`text-[11.5px] font-[500] px-2 py-0.5 rounded-full ${
-                user.identityVerificationStatus === "VERIFIED"
+                user.govIdVerificationStatus === "VERIFIED"
                   ? "bg-emerald-100 text-emerald-700"
-                  : user.identityVerificationStatus === "PENDING"
-                  ? "bg-amber-100 text-amber-700"
-                  : user.identityVerificationStatus === "REJECTED"
+                  : user.govIdVerificationStatus === "FAILED"
                   ? "bg-red-100 text-red-700"
                   : "bg-gray-100 text-gray-500"
               }`}>
-                {user.identityVerificationStatus}
+                {user.govIdVerificationStatus}
               </span>
             }
           />
-          {user.identityVerifiedAt && (
-            <DetailRow label="Verified at" value={formatDate(user.identityVerifiedAt)} />
+          {user.govIdVerifiedAt && (
+            <DetailRow label="Verified at" value={formatDate(user.govIdVerifiedAt)} />
           )}
-          {canAct && (
-            <div className="mt-4 pt-4 border-t border-border-color space-y-2">
-              {user.identityVerificationStatus !== "VERIFIED" ? (
-                <Button
-                  size="sm"
-                  onClick={handleVerifyIdentity}
-                  disabled={idvLoading}
-                  fullWidth
-                >
-                  {idvLoading && <Loader2 size={13} className="animate-spin" />}
-                  Mark as verified
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={handleRevokeIdentity}
-                  disabled={idvLoading}
-                  fullWidth
-                >
-                  {idvLoading && <Loader2 size={13} className="animate-spin" />}
-                  Revoke verification
-                </Button>
-              )}
-              {idvFeedback && (
-                <p className={`text-[12px] ${idvFeedback.ok ? "text-green-700" : "text-red"}`}>
-                  {idvFeedback.msg}
-                </p>
-              )}
-            </div>
-          )}
+          <p className="text-[12px] text-text-tertiary mt-3 pt-3 border-t border-border-color">
+            Set only by a real NIN + selfie match via Dojah — no admin override.
+          </p>
         </div>
 
         {/* Plan */}

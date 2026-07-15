@@ -388,6 +388,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/release/documents/view": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ReleaseController_viewDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/release/report/{releaseId}": {
         parameters: {
             query?: never;
@@ -398,54 +414,6 @@ export interface paths {
         get: operations["ReleaseController_getReport"];
         put?: never;
         post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/release/verify/{executorReleaseId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["ReleaseController_submitVerification"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/release/verify/{executorReleaseId}/approve": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["ReleaseController_approve"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/release/verify/{executorReleaseId}/reject": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["ReleaseController_reject"];
         delete?: never;
         options?: never;
         head?: never;
@@ -575,6 +543,54 @@ export interface paths {
         put?: never;
         post?: never;
         delete: operations["VaultController_removeRecordBeneficiary"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/vault/records/{recordId}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VaultController_listDocuments"];
+        put?: never;
+        post: operations["VaultController_uploadDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/vault/records/{recordId}/documents/{documentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["VaultController_deleteDocument"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/vault/records/{recordId}/documents/{documentId}/url": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["VaultController_getDocumentUrl"];
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -868,22 +884,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/admin/users/{id}/verify-identity": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["AdminUsersController_verifyIdentity"];
-        delete: operations["AdminUsersController_revokeIdentityVerification"];
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/admin/releases": {
         parameters: {
             query?: never;
@@ -1172,22 +1172,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/estates/report/{releaseId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["EstatesController_getReport"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/estates/{estateId}/exit": {
         parameters: {
             query?: never;
@@ -1348,6 +1332,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/identity/verify-nin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["IdentityController_verifyNin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/identity/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["IdentityController_getStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1361,7 +1377,6 @@ export interface components {
         UpdateMeDto: Record<string, never>;
         ChangePasswordDto: Record<string, never>;
         DeleteAccountDto: Record<string, never>;
-        RejectVerificationDto: Record<string, never>;
         CreateExecutorDto: Record<string, never>;
         UpdateExecutorDto: Record<string, never>;
         CreateAssetRecordDto: Record<string, never>;
@@ -1461,8 +1476,8 @@ export interface components {
             planActivatedAt: Record<string, never> | null;
             planExpiresAt: Record<string, never> | null;
             vaultItemCount: number;
-            identityVerificationStatus: string;
-            identityVerifiedAt: Record<string, never> | null;
+            govIdVerificationStatus: string;
+            govIdVerifiedAt: Record<string, never> | null;
             releases: components["schemas"]["UserReleaseDto"][];
             executor: components["schemas"]["UserExecutorDto"] | null;
         };
@@ -1498,12 +1513,6 @@ export interface components {
             id: string;
             name: string;
             email: string;
-            verificationStatus: string;
-            smileJobId: Record<string, never> | null;
-            submittedAt: Record<string, never> | null;
-            reviewedAt: Record<string, never> | null;
-            rejectionReason: Record<string, never> | null;
-            reportAccessGrantedAt: Record<string, never> | null;
         };
         ReleaseReportDto: {
             id: string;
@@ -1554,6 +1563,7 @@ export interface components {
         InitializeSubscriptionDto: Record<string, never>;
         ChangeCycleDto: Record<string, never>;
         DevSetPlanDto: Record<string, never>;
+        VerifyNinDto: Record<string, never>;
     };
     responses: never;
     parameters: never;
@@ -2049,6 +2059,25 @@ export interface operations {
             };
         };
     };
+    ReleaseController_viewDocument: {
+        parameters: {
+            query: {
+                token: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ReleaseController_getReport: {
         parameters: {
             query?: never;
@@ -2059,67 +2088,6 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ReleaseController_submitVerification: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                executorReleaseId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ReleaseController_approve: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                executorReleaseId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    ReleaseController_reject: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                executorReleaseId: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["RejectVerificationDto"];
-            };
-        };
         responses: {
             200: {
                 headers: {
@@ -2412,6 +2380,84 @@ export interface operations {
         requestBody?: never;
         responses: {
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    VaultController_listDocuments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recordId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    VaultController_uploadDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recordId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    VaultController_deleteDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recordId: string;
+                documentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    VaultController_getDocumentUrl: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                recordId: string;
+                documentId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2874,44 +2920,6 @@ export interface operations {
             };
         };
     };
-    AdminUsersController_verifyIdentity: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    AdminUsersController_revokeIdentityVerification: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     AdminReleasesController_listReleases: {
         parameters: {
             query?: never;
@@ -3304,25 +3312,6 @@ export interface operations {
             };
         };
     };
-    EstatesController_getReport: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                releaseId: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     EstatesController_exitEstate: {
         parameters: {
             query?: never;
@@ -3504,6 +3493,44 @@ export interface operations {
                 "application/json": components["schemas"]["DevSetPlanDto"];
             };
         };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    IdentityController_verifyNin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyNinDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    IdentityController_getStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
         responses: {
             200: {
                 headers: {

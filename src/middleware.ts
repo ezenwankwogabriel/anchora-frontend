@@ -27,9 +27,6 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // ── Release routes — guarded by useReleaseAuth hook, not middleware ─────────
-  if (pathname.startsWith("/release/")) return NextResponse.next();
-
   // ── Public routes ───────────────────────────────────────────────────────────
   if (PUBLIC_ROUTES.some((r) => pathname.startsWith(r))) {
     return NextResponse.next();

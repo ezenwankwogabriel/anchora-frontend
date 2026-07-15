@@ -71,22 +71,6 @@ export const AdminService = {
     }
   },
 
-  verifyIdentity: async (id: string): Promise<void> => {
-    try {
-      await adminHttp.post(`/admin/users/${id}/verify-identity`);
-    } catch (err) {
-      normaliseAdmin(err);
-    }
-  },
-
-  revokeIdentityVerification: async (id: string): Promise<void> => {
-    try {
-      await adminHttp.delete(`/admin/users/${id}/verify-identity`);
-    } catch (err) {
-      normaliseAdmin(err);
-    }
-  },
-
   updateUserPlan: async (id: string, plan: UserPlan): Promise<void> => {
     try {
       await adminHttp.post(`/admin/users/${id}/plan`, { plan });

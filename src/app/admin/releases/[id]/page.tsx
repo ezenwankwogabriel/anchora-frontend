@@ -11,7 +11,6 @@ import { ServiceError } from "@/lib/types";
 import type {
   AdminReleaseDetail,
   ReleaseStatus,
-  VerificationStatus,
 } from "@/lib/admin-types";
 
 function releaseVariant(status: ReleaseStatus) {
@@ -20,17 +19,6 @@ function releaseVariant(status: ReleaseStatus) {
     case "ACTIVE":    return "info"    as const;
     case "COMPLETED": return "success" as const;
     case "CANCELLED": return "error"   as const;
-  }
-}
-
-function verificationVariant(status: VerificationStatus) {
-  switch (status) {
-    case "PENDING":              return "warning" as const;
-    case "SUBMITTED":            return "info"    as const;
-    case "RESUBMITTED":          return "info"    as const;
-    case "APPROVED":             return "success" as const;
-    case "REJECTED":             return "error"   as const;
-    case "PERMANENTLY_REJECTED": return "error"   as const;
   }
 }
 
@@ -217,11 +205,11 @@ export default function AdminReleaseDetailPage() {
           </div>
         </div>
 
-        {/* Executor verification */}
+        {/* Trusted contact */}
         <div className="lg:col-span-2 bg-surface border border-border-color rounded-xl p-5">
-          <h2 className="text-[14px] font-semibold text-text-primary mb-3">Executor verification</h2>
+          <h2 className="text-[14px] font-semibold text-text-primary mb-3">Trusted contact</h2>
           {!release.executor ? (
-            <p className="text-[13px] text-text-tertiary">No executor verification record on this release.</p>
+            <p className="text-[13px] text-text-tertiary">No trusted contact on this release.</p>
           ) : (
             <div className="space-y-3 text-[13px]">
               <div className="flex justify-between">
@@ -232,27 +220,10 @@ export default function AdminReleaseDetailPage() {
                 <span className="text-text-tertiary">Email</span>
                 <span className="text-text-secondary">{release.executor.email}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-text-tertiary">Status</span>
-                <StatusBadge
-                  variant={verificationVariant(release.executor.verificationStatus)}
-                  label={release.executor.verificationStatus.replace(/_/g, " ")}
-                />
-              </div>
-              <div className="flex justify-between">
-                <span className="text-text-tertiary">Submitted</span>
-                <span className="text-text-primary">{formatDate(release.executor.submittedAt)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-text-tertiary">Reviewed</span>
-                <span className="text-text-primary">{formatDate(release.executor.reviewedAt)}</span>
-              </div>
-              {release.executor.rejectionReason && (
-                <div className="pt-2 border-t border-border-color">
-                  <p className="text-text-tertiary mb-1">Rejection reason</p>
-                  <p className="text-text-primary">{release.executor.rejectionReason}</p>
-                </div>
-              )}
+              <p className="text-[12.5px] text-text-tertiary pt-2 border-t border-border-color">
+                Report download requires this account to have completed identity
+                verification — checked at download time, not tracked per-release.
+              </p>
             </div>
           )}
         </div>

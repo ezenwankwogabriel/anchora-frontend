@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   ShieldAlert,
   ShieldCheck,
-  Clock,
   XCircle,
   Users,
   ChevronRight,
@@ -35,10 +34,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useEstatesStore } from "@/stores/estatesStore";
 import { EstatesService } from "@/services/estates.service";
-import type {
-  EstateItem,
-  IdentityVerificationStatus,
-} from "@/lib/types/estates";
+import type { EstateItem } from "@/lib/types/estates";
+import type { GovIdVerificationStatus } from "@/lib/types";
 import { useToastStore } from "@/stores/toastStore";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -78,7 +75,7 @@ function VerificationBanner({
   status,
   rejectionReason,
 }: {
-  status: IdentityVerificationStatus;
+  status: GovIdVerificationStatus;
   rejectionReason?: string | null;
 }) {
   if (status === "UNVERIFIED") {
@@ -103,39 +100,23 @@ function VerificationBanner({
     );
   }
 
-  if (status === "PENDING") {
-    return (
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
-        <Clock className="text-blue-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-        <div>
-          <p className="text-sm font-medium text-blue-900">
-            Identity verification under review.
-          </p>
-          <p className="text-sm text-blue-700 mt-0.5">
-            You&apos;ll be notified when complete.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (status === "REJECTED") {
+  if (status === "FAILED") {
     return (
       <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
         <XCircle className="text-red-500 w-5 h-5 flex-shrink-0 mt-0.5" />
         <div className="flex-1">
           <p className="text-sm font-medium text-red-900">
-            Identity verification unsuccessful.
+            We couldn&apos;t verify your identity.
           </p>
           <p className="text-sm text-red-700 mt-0.5">
-            {rejectionReason ?? "Your documents could not be verified."}
+            {rejectionReason ?? "You can try again."}
           </p>
         </div>
         <Link
           href="/settings"
           className="text-red-700 text-sm font-medium underline hover:no-underline whitespace-nowrap flex-shrink-0"
         >
-          Resubmit documents
+          Retry verification
         </Link>
       </div>
     );
@@ -151,7 +132,7 @@ function StatusPill({
   verificationStatus,
 }: {
   estate: EstateItem;
-  verificationStatus: IdentityVerificationStatus;
+  verificationStatus: GovIdVerificationStatus;
 }) {
   const { release } = estate;
 
@@ -188,14 +169,6 @@ function StatusPill({
     );
   }
 
-  if (verificationStatus === "PENDING") {
-    return (
-      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-        Verification in review
-      </span>
-    );
-  }
-
   return (
     <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
       Action required
@@ -223,15 +196,14 @@ function DrawerDetail({
   );
 }
 
-function VerificationBadge({ status }: { status: IdentityVerificationStatus }) {
+function VerificationBadge({ status }: { status: GovIdVerificationStatus }) {
   const map: Record<
-    IdentityVerificationStatus,
+    GovIdVerificationStatus,
     { label: string; cls: string }
   > = {
     UNVERIFIED: { label: "Not verified", cls: "bg-amber-100 text-amber-700" },
-    PENDING: { label: "Under review", cls: "bg-blue-100 text-blue-700" },
     VERIFIED: { label: "Verified", cls: "bg-emerald-100 text-emerald-700" },
-    REJECTED: { label: "Rejected", cls: "bg-red-100 text-red-700" },
+    FAILED: { label: "Unsuccessful", cls: "bg-red-100 text-red-700" },
   };
   const { label, cls } = map[status];
   return (
@@ -253,7 +225,7 @@ function EstateDrawer({
   onExited,
 }: {
   estate: EstateItem | null;
-  verificationStatus: IdentityVerificationStatus;
+  verificationStatus: GovIdVerificationStatus;
   open: boolean;
   onClose: () => void;
   onExited: (estateId: string) => void;
@@ -378,12 +350,12 @@ function EstateDrawer({
     );
   }
 
-  // ── State 2: Release triggered, unverified/rejected ──
+  // ── State 2: Release triggered, unverified/failed ──
 
   if (
     release.status !== "CANCELLED" &&
     !release.reportAvailable &&
-    (verificationStatus === "UNVERIFIED" || verificationStatus === "REJECTED")
+    (verificationStatus === "UNVERIFIED" || verificationStatus === "FAILED")
   ) {
     return (
       <Sheet open={open} onOpenChange={onClose}>
@@ -431,54 +403,7 @@ function EstateDrawer({
     );
   }
 
-  // ── State 3: Release triggered, pending verification ──
-
-  if (
-    release.status !== "CANCELLED" &&
-    !release.reportAvailable &&
-    verificationStatus === "PENDING"
-  ) {
-    return (
-      <Sheet open={open} onOpenChange={onClose}>
-        <SheetContent className="max-w-md w-full">
-          <SheetHeader>
-            <SheetTitle>{estate.ownerName}</SheetTitle>
-            <SheetDescription>Estate of {estate.ownerName}</SheetDescription>
-          </SheetHeader>
-          <div className="mt-6">
-            <DrawerDetail
-              label="Status"
-              value={
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-                  Verification under review
-                </span>
-              }
-            />
-          </div>
-          <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
-            <Clock className="text-blue-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-blue-800">
-              Your identity documents are being reviewed. The estate report will
-              be available once your verification is approved. You&apos;ll
-              receive an email when it&apos;s ready.
-            </p>
-          </div>
-          <div className="mt-6 pt-4 border-t border-border-color">
-            <div title={exitDisabledTooltip}>
-              <button
-                disabled={!canExit}
-                className="w-full rounded-lg py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-              >
-                Exit estate
-              </button>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
-  // ── State 4: Report available ──
+  // ── State 3: Report available ──
 
   if (release.reportAvailable) {
     return (
