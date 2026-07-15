@@ -210,14 +210,15 @@ export interface PlanData {
   limits: PlanLimits;
 }
 
-// Account-level QoreID verification, required once before an account can
-// access any records released to it — separate from the per-release
-// `IdentityVerificationStatus` (manual ID+selfie, admin-reviewed) that also
-// gates report access for that specific release.
-export type QoreIdVerificationStatus = "UNVERIFIED" | "PENDING" | "VERIFIED" | "FAILED";
+// Account-level government-ID verification (NIN + selfie, via Dojah),
+// required once before an account can access any records released to it —
+// separate from the per-release `IdentityVerificationStatus` (manual
+// ID+selfie, admin-reviewed) that also gates report access for that
+// specific release. Synchronous check: no PENDING state.
+export type GovIdVerificationStatus = "UNVERIFIED" | "VERIFIED" | "FAILED";
 
 export interface IdentityStatus {
-  status: QoreIdVerificationStatus;
+  status: GovIdVerificationStatus;
   verifiedAt: string | null;
 }
 

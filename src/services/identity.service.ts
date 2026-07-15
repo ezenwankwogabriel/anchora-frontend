@@ -1,14 +1,13 @@
 import http, { normalise } from "@/lib/axios";
 import type { IdentityStatus } from "@/lib/types";
 
-interface CreateSessionResponse {
-  sessionToken: string;
-}
-
 export const IdentityService = {
-  createSession: async (): Promise<CreateSessionResponse> => {
+  // selfieImage: base64 JPEG without the data:image/...;base64, prefix.
+  verifyNin: async (nin: string, selfieImage: string): Promise<IdentityStatus> => {
     try {
-      return (await http.post<CreateSessionResponse>("/identity/session")).data;
+      return (
+        await http.post<IdentityStatus>("/identity/verify-nin", { nin, selfieImage })
+      ).data;
     } catch (err) {
       normalise(err);
     }

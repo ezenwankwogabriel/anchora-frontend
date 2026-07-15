@@ -22,10 +22,10 @@ import { UpgradePrompt } from "@/components/ui/upgrade-prompt";
 import { usePlan } from "@/hooks/usePlan";
 import { usePaystackCheckout } from "@/hooks/usePaystackCheckout";
 import { useIdentityStatus } from "@/hooks/useIdentityStatus";
-import { useIdentityVerification } from "@/hooks/useIdentityVerification";
+import { useNinVerification } from "@/hooks/useNinVerification";
 import { SubscriptionService } from "@/services/subscription.service";
 import { CheckCircle2, X, ArrowRight, Mail } from "lucide-react";
-import type { BillingCycle, QoreIdVerificationStatus } from "@/lib/types";
+import type { BillingCycle, GovIdVerificationStatus } from "@/lib/types";
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
@@ -978,14 +978,13 @@ function CheckoutStatusView({
 
 // ── Identity Verification ─────────────────────────────────────────────────────
 
-const IDENTITY_STATUS_BADGE: Record<QoreIdVerificationStatus, { label: string; cls: string }> = {
+const IDENTITY_STATUS_BADGE: Record<GovIdVerificationStatus, { label: string; cls: string }> = {
   UNVERIFIED: { label: "Not verified", cls: "bg-amber-100 text-amber-700" },
-  PENDING:    { label: "Under review", cls: "bg-blue-100 text-blue-700" },
   VERIFIED:   { label: "Verified",     cls: "bg-emerald-100 text-emerald-700" },
   FAILED:     { label: "Unsuccessful", cls: "bg-red-100 text-red-700" },
 };
 
-function IdentityStatusBadge({ status }: { status: QoreIdVerificationStatus }) {
+function IdentityStatusBadge({ status }: { status: GovIdVerificationStatus }) {
   const { label, cls } = IDENTITY_STATUS_BADGE[status];
   return (
     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cls}`}>
@@ -994,97 +993,109 @@ function IdentityStatusBadge({ status }: { status: QoreIdVerificationStatus }) {
   );
 }
 
-// Inline status view while a verification attempt is in flight
-function IdentityCheckoutStatusView({
-  phase, error, onRetry, onDone,
-}: {
-  phase: "confirming" | "success" | "failed" | "timeout";
-  error: string | null;
-  onRetry: () => void;
-  onDone: () => void;
-}) {
-  if (phase === "confirming") {
-    return (
-      <div className="flex flex-col items-center text-center py-16">
-        <Loader2 size={32} className="animate-spin text-accent mb-4" />
-        <p className="font-semibold text-[15px] text-text-primary">Confirming verification…</p>
-        <p className="text-[13px] text-text-secondary mt-1">
-          This only takes a moment. Please don&apos;t navigate away.
-        </p>
-      </div>
-    );
-  }
-  if (phase === "success") {
-    return (
-      <div className="flex flex-col items-center text-center py-16">
-        <div className="w-14 h-14 rounded-full bg-green/10 flex items-center justify-center mb-4">
-          <CheckCircle2 size={28} className="text-green" />
-        </div>
-        <p className="font-heading text-[22px] text-text-primary mb-1">Identity verified</p>
-        <p className="text-[13px] text-text-secondary mb-6 max-w-[320px]">
-          You&apos;ll now be able to access any estate records released to you.
-        </p>
-        <Button onClick={onDone}>Done</Button>
-      </div>
-    );
-  }
-  if (phase === "timeout") {
-    return (
-      <div className="flex flex-col items-center text-center py-16">
-        <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mb-4">
-          <Mail size={26} className="text-amber-600" />
-        </div>
-        <p className="font-semibold text-[15px] text-text-primary mb-1">This is taking longer than usual</p>
-        <p className="text-[13px] text-text-secondary mb-5 max-w-[300px]">
-          We&apos;ll send you an email once your verification is confirmed.
-        </p>
-        <Button variant="secondary" onClick={onDone}>Back to settings</Button>
-      </div>
-    );
-  }
-  // failed
-  return (
-    <div className="flex flex-col items-center text-center py-16">
-      <p className="font-semibold text-[15px] text-text-primary mb-1">Verification unsuccessful</p>
-      <p className="text-[13px] text-text-secondary mb-5">
-        {error ?? "We couldn't verify your identity. You can try again."}
-      </p>
-      <div className="flex gap-3">
-        <Button onClick={onRetry}>Try again</Button>
-        <Button variant="ghost" onClick={onDone}>Cancel</Button>
-      </div>
-    </div>
-  );
-}
-
 function IdentityVerificationTab() {
   const { identity, loading, refetch } = useIdentityStatus();
-  const { start, phase, error, reset } = useIdentityVerification(refetch);
+  const {
+    phase, error, capturedImage, videoRef,
+    startCamera, capture, retake, submit, reset,
+  } = useNinVerification(refetch);
+  const [nin, setNin] = useState("");
 
   if (loading) return null;
 
   const status = identity?.status ?? "UNVERIFIED";
-  const showStatusView =
-    phase === "confirming" || phase === "success" || phase === "failed" || phase === "timeout";
-  const busy = phase === "initializing" || phase === "processing";
-
-  const buttonLabel =
-    status === "FAILED" ? "Retry verification"
-    : status === "PENDING" ? "Resume verification"
-    : "Verify identity";
+  const ninValid = /^\d{11}$/.test(nin);
+  const inCaptureFlow =
+    phase === "camera-loading" || phase === "camera-ready" ||
+    phase === "captured" || phase === "submitting";
 
   return (
     <Section
       title="Identity Verification"
-      description="A one-time identity check via QoreID."
+      description="A one-time identity check via NIN + selfie, using Dojah."
     >
-      {showStatusView ? (
-        <IdentityCheckoutStatusView
-          phase={phase}
-          error={error}
-          onRetry={() => { reset(); start(); }}
-          onDone={() => reset()}
-        />
+      {status === "VERIFIED" ? (
+        <p className="text-[12.5px] text-text-tertiary">
+          {identity?.verifiedAt
+            ? `Verified ${new Date(identity.verifiedAt).toLocaleDateString("en-GB", {
+                day: "numeric", month: "long", year: "numeric",
+              })}`
+            : "Verified"}
+        </p>
+      ) : phase === "success" ? (
+        <div className="flex flex-col items-center text-center py-16">
+          <div className="w-14 h-14 rounded-full bg-green/10 flex items-center justify-center mb-4">
+            <CheckCircle2 size={28} className="text-green" />
+          </div>
+          <p className="font-heading text-[22px] text-text-primary mb-1">Identity verified</p>
+          <p className="text-[13px] text-text-secondary max-w-[320px]">
+            You&apos;ll now be able to access any estate records released to you.
+          </p>
+        </div>
+      ) : phase === "failed" ? (
+        <div className="flex flex-col items-center text-center py-16">
+          <p className="font-semibold text-[15px] text-text-primary mb-1">Verification unsuccessful</p>
+          <p className="text-[13px] text-text-secondary mb-5 max-w-[320px]">
+            {error ?? "We couldn't verify your identity. You can try again."}
+          </p>
+          <Button onClick={reset}>Try again</Button>
+        </div>
+      ) : inCaptureFlow ? (
+        <div>
+          <div className="mb-4 max-w-[280px]">
+            <FieldLabel text="NIN" required />
+            <Input
+              value={nin}
+              onChange={(e) => setNin(e.target.value.replace(/\D/g, "").slice(0, 11))}
+              placeholder="12345678901"
+              disabled={phase === "submitting"}
+            />
+          </div>
+
+          <div className="relative w-full max-w-[320px] aspect-[3/4] bg-black rounded-xl overflow-hidden mb-4">
+            {capturedImage ? (
+              // eslint-disable-next-line @next/next/no-img-element -- ephemeral base64 selfie preview, not a static asset
+              <img
+                src={`data:image/jpeg;base64,${capturedImage}`}
+                alt="Captured selfie"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <video ref={videoRef} muted playsInline className="w-full h-full object-cover" />
+            )}
+            {phase === "camera-loading" && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                <Loader2 size={24} className="animate-spin text-white" />
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-3 items-center">
+            {phase === "camera-ready" && (
+              <>
+                <Button onClick={capture}>Capture selfie</Button>
+                <Button variant="ghost" onClick={reset}>Cancel</Button>
+              </>
+            )}
+            {phase === "captured" && (
+              <>
+                <Button onClick={() => submit(nin)} disabled={!ninValid}>
+                  Submit for verification
+                </Button>
+                <Button variant="ghost" onClick={retake}>Retake</Button>
+              </>
+            )}
+            {phase === "submitting" && (
+              <Button disabled>
+                <Loader2 size={15} className="animate-spin" />
+                Verifying…
+              </Button>
+            )}
+          </div>
+          {phase === "captured" && nin.length > 0 && !ninValid && (
+            <p className="text-[12px] text-red mt-2">NIN must be exactly 11 digits.</p>
+          )}
+        </div>
       ) : (
         <div>
           <div className="flex items-center gap-2 mb-3">
@@ -1093,37 +1104,13 @@ function IdentityVerificationTab() {
           </div>
 
           <p className="text-[13px] text-text-secondary leading-relaxed mb-4 max-w-[560px]">
-            Verify your identity once with QoreID — you&apos;ll need this before you can access any
-            records that have been released to you.
+            Verify your identity once with your NIN and a live selfie — you&apos;ll need this before
+            you can access any records that have been released to you.
           </p>
 
-          {status === "VERIFIED" ? (
-            <p className="text-[12.5px] text-text-tertiary">
-              {identity?.verifiedAt
-                ? `Verified ${new Date(identity.verifiedAt).toLocaleDateString("en-GB", {
-                    day: "numeric", month: "long", year: "numeric",
-                  })}`
-                : "Verified"}
-            </p>
-          ) : (
-            <>
-              <Button onClick={start} disabled={busy}>
-                {busy && <Loader2 size={15} className="animate-spin" />}
-                {buttonLabel}
-              </Button>
-              {status === "FAILED" && (
-                <p className="text-[12px] text-red mt-3">
-                  Your last verification attempt was unsuccessful. You can try again.
-                </p>
-              )}
-              {status === "PENDING" && (
-                <p className="text-[12px] text-text-tertiary mt-3">
-                  We&apos;re waiting on confirmation from QoreID. This can take a few minutes — you can
-                  also restart if you didn&apos;t finish the last attempt.
-                </p>
-              )}
-            </>
-          )}
+          <Button onClick={startCamera}>
+            {status === "FAILED" ? "Retry verification" : "Verify identity"}
+          </Button>
         </div>
       )}
     </Section>
