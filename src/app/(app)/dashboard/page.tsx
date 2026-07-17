@@ -208,7 +208,8 @@ function renderExecutorNudge(state: ExecutorDashboardState, executor: Executor |
 }
 
 // If the user selected categories during onboarding, show one "Add" item
-// per category still missing a record — each opens the quick-entry flow.
+// per category still missing a record — each opens the standard add flow,
+// preselected to that category.
 // Once a category gets a record, its item just drops off the list rather
 // than lingering as a checked-off row; the "Asset coverage" health card
 // above already covers that job once everything here is done. Falls back
@@ -231,7 +232,7 @@ function buildChecklist(
             label: `Add your ${categoryLabels[cat]}`,
             description: CATEGORY_CHECKLIST_COPY[cat],
             done: false,
-            href: `/vault/add?category=${cat}&quick=1`,
+            href: `/vault/add?category=${cat}`,
           }))
       : [
           {

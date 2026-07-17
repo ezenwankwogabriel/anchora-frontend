@@ -39,11 +39,6 @@ interface VaultFormProps {
   hideCancel?: boolean;
   stagedFiles: File[];
   onStagedFilesChange: (files: File[]) => void;
-  // Renders only the core fields, with no "Add more details" section at
-  // all — used by the dashboard checklist's low-friction quick-add flow.
-  // Credential, "who should receive this", and documents stay reachable
-  // via the normal edit flow afterward.
-  quickEntry?: boolean;
 }
 
 type FieldTone = "required" | "optional" | "guidance";
@@ -115,7 +110,6 @@ export function VaultForm({
   hideCancel,
   stagedFiles,
   onStagedFilesChange,
-  quickEntry,
 }: VaultFormProps) {
   const schema = getCategorySchema(category);
   const { fields } = getFieldConfig(category);
@@ -245,54 +239,50 @@ export function VaultForm({
         {coreFields.map((f) => renderField(f, f.required ? "required" : "optional"))}
       </div>
 
-      {!quickEntry && (
-        <>
-          <button
-            type="button"
-            onClick={() => setDetailsOpen((open) => !open)}
-            className="flex items-center gap-1.5 text-[13px] font-semibold text-accent cursor-pointer bg-transparent border-none px-0 py-2 mb-2 font-sans"
-          >
-            {detailsOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-            {detailsOpen ? "Hide more details" : "Add more details"}
-          </button>
+      <button
+        type="button"
+        onClick={() => setDetailsOpen((open) => !open)}
+        className="flex items-center gap-1.5 text-[13px] font-semibold text-accent cursor-pointer bg-transparent border-none px-0 py-2 mb-2 font-sans"
+      >
+        {detailsOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+        {detailsOpen ? "Hide more details" : "Add more details"}
+      </button>
 
-          {detailsOpen && (
-            <div className="bg-surface border border-border-color rounded-lg p-4 mb-3 [&>*:last-child]:mb-0">
-              {advancedFields.map((f) => renderField(f, "guidance"))}
+      {detailsOpen && (
+        <div className="bg-surface border border-border-color rounded-lg p-4 mb-3 [&>*:last-child]:mb-0">
+          {advancedFields.map((f) => renderField(f, "guidance"))}
 
-              <FormSection>
-                <FieldLabel text="Who should receive this asset?" tone="guidance" />
-                <Input
-                  placeholder="e.g. Amaka, my eldest daughter"
-                  {...register("intendedBeneficiary")}
-                />
-                <HelperText text="A note for your trusted contact — not a legal instruction." />
-                <FieldError message={errors.intendedBeneficiary?.message} />
-              </FormSection>
-            </div>
-          )}
+          <FormSection>
+            <FieldLabel text="Who should receive this asset?" tone="guidance" />
+            <Input
+              placeholder="e.g. Amaka, my eldest daughter"
+              {...register("intendedBeneficiary")}
+            />
+            <HelperText text="A note for your trusted contact — not a legal instruction." />
+            <FieldError message={errors.intendedBeneficiary?.message} />
+          </FormSection>
+        </div>
+      )}
 
-          {record ? (
-            <div className={detailsOpen ? undefined : "hidden"}>
-              <VaultDocumentSection
-                recordId={record.id}
-                stagedFiles={stagedFiles}
-                onStagedFilesChange={onStagedFilesChange}
-                documentUrl={watch("accountUrl")}
-                onDocumentUrlChange={(url) => setValue("accountUrl", url)}
-                onDocumentsLoaded={handleDocumentsLoaded}
-              />
-            </div>
-          ) : (
-            detailsOpen && (
-              <VaultDocumentPicker
-                files={stagedFiles}
-                onChange={onStagedFilesChange}
-                accented
-              />
-            )
-          )}
-        </>
+      {record ? (
+        <div className={detailsOpen ? undefined : "hidden"}>
+          <VaultDocumentSection
+            recordId={record.id}
+            stagedFiles={stagedFiles}
+            onStagedFilesChange={onStagedFilesChange}
+            documentUrl={watch("accountUrl")}
+            onDocumentUrlChange={(url) => setValue("accountUrl", url)}
+            onDocumentsLoaded={handleDocumentsLoaded}
+          />
+        </div>
+      ) : (
+        detailsOpen && (
+          <VaultDocumentPicker
+            files={stagedFiles}
+            onChange={onStagedFilesChange}
+            accented
+          />
+        )
       )}
 
       {errors.root && (
