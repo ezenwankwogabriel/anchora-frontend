@@ -17,8 +17,12 @@ import { useAuthStore } from "@/stores/authStore";
 import { cn } from "@/lib/utils";
 import type { AssetCategory, VaultRecordInput } from "@/lib/types";
 
-async function finish(router: ReturnType<typeof useRouter>) {
-  await AuthService.completeOnboarding();
+async function finish(
+  router: ReturnType<typeof useRouter>,
+  categories: AssetCategory[],
+) {
+  await AuthService.completeOnboarding(categories);
+  useAuthStore.getState().updateUser({ onboardingSelectedCategories: categories });
   router.push("/dashboard");
 }
 
@@ -47,7 +51,7 @@ export default function OnboardingPage() {
   const continueFromCategories = () => setStep(categories.length > 0 ? 4 : 5);
   const backToExecutorPrevious = () => setStep(categories.length > 0 ? 4 : 3);
 
-  const skip = () => finish(router);
+  const skip = () => finish(router, categories);
 
   const createFirstAsset = async (data: VaultRecordInput, files: File[]) => {
     setAssetApiError(null);
@@ -77,7 +81,7 @@ export default function OnboardingPage() {
         phone: phone.trim() || undefined,
         relationship: relationship.trim() || undefined,
       });
-      await finish(router);
+      await finish(router, categories);
     } catch {
       setApiError(
         "Something went wrong. You can skip and designate a trusted contact from your dashboard."

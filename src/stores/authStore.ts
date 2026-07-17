@@ -13,6 +13,7 @@ interface AuthStore {
   sessionId: string | null;
   isAuthenticated: boolean;
   setAuth: (user: User, accessToken: string, refreshToken: string, sessionId: string) => void;
+  updateUser: (patch: Partial<User>) => void;
   clearAuth: () => void;
 }
 
@@ -44,7 +45,7 @@ function loadFromStorage() {
 
 const stored = loadFromStorage();
 
-export const useAuthStore = create<AuthStore>((set) => ({
+export const useAuthStore = create<AuthStore>((set, get) => ({
   user:            stored.user,
   accessToken:     stored.accessToken,
   refreshToken:    stored.refreshToken,
@@ -57,6 +58,13 @@ export const useAuthStore = create<AuthStore>((set) => ({
     localStorage.setItem(LS_USER,    JSON.stringify(user));
     setCookie("anchora_auth", 1);
     set({ user, accessToken, refreshToken, sessionId, isAuthenticated: true });
+  },
+  updateUser: (patch) => {
+    const current = get().user;
+    if (!current) return;
+    const user = { ...current, ...patch };
+    localStorage.setItem(LS_USER, JSON.stringify(user));
+    set({ user });
   },
   clearAuth: () => {
     localStorage.removeItem(LS_TOKEN);

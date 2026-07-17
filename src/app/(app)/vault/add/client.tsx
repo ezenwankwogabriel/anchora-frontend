@@ -28,9 +28,10 @@ const STEP_LABELS = ["Select type", "Enter details"] as const;
 
 interface AddAssetClientProps {
   initialCategory?: string;
+  quickEntry?: boolean;
 }
 
-export function AddAssetClient({ initialCategory, recordCount }: AddAssetClientProps & { recordCount?: number }) {
+export function AddAssetClient({ initialCategory, quickEntry, recordCount }: AddAssetClientProps & { recordCount?: number }) {
   const router   = useRouter();
   const addToast = useToastStore((s) => s.add);
   const { isFree, loading: planLoading } = usePlan();
@@ -77,7 +78,7 @@ export function AddAssetClient({ initialCategory, recordCount }: AddAssetClientP
       addToast("Asset saved to your vault.", "success");
     }
 
-    router.push("/vault");
+    router.push(quickEntry ? "/dashboard" : "/vault");
   };
 
   if (!planLoading && atLimit) {
@@ -168,7 +169,11 @@ export function AddAssetClient({ initialCategory, recordCount }: AddAssetClientP
                 <p className="font-heading text-[20px] text-text-primary leading-[1.1]">
                   {categoryLabels[category]}
                 </p>
-                <p className="text-[13px] text-text-secondary mt-[2px]">Fill in the details below</p>
+                <p className="text-[13px] text-text-secondary mt-[2px]">
+                  {quickEntry
+                    ? "Add the basics now — you can fill in more details anytime from Edit."
+                    : "Fill in the details below"}
+                </p>
               </div>
             </div>
 
@@ -179,6 +184,7 @@ export function AddAssetClient({ initialCategory, recordCount }: AddAssetClientP
               hideCancel
               stagedFiles={stagedFiles}
               onStagedFilesChange={setStagedFiles}
+              quickEntry={quickEntry}
             />
           </div>
         )}

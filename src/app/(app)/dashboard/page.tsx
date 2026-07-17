@@ -12,8 +12,27 @@ import { Button } from "@/components/ui/button";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useAuthStore } from "@/stores/authStore";
 import { usePlan } from "@/hooks/usePlan";
+import { categoryLabels } from "@/components/ui/category-icon";
 import type { AssetCategory, Executor, VaultRecord } from "@/lib/types";
 import { DIGITAL_ASSET_CATEGORIES, PHYSICAL_ASSET_CATEGORIES, ALL_VAULT_CATEGORIES } from "@/lib/schemas/vault";
+
+// One-liners for the dashboard checklist's per-category "Add" items —
+// deliberately short, low-friction phrasing (see CATEGORY_CHECKLIST_COPY
+// usage in buildChecklist below). SUBSCRIPTION is legacy and never
+// selectable during onboarding, so it has no entry here.
+const CATEGORY_CHECKLIST_COPY: Partial<Record<AssetCategory, string>> = {
+  BANK_ACCOUNT:        "Record where you bank so your Trusted Contact knows where to start.",
+  INVESTMENT_PLATFORM: "Log your brokerage or investment app so it isn't overlooked.",
+  CRYPTO_WALLET:       "Document your exchange or wallet details so it's not lost.",
+  PENSION_PORTAL:      "Log your PFA details so your Trusted Contact knows where to look.",
+  INSURANCE_POLICY:    "Note your provider and policy so a claim isn't missed.",
+  FOREIGN_ACCOUNT:     "Record accounts held abroad so nothing gets left behind.",
+  REAL_ESTATE:         "Note the property and where its title documents are kept.",
+  VEHICLE:             "Log the vehicle and where its logbook is stored.",
+  JEWELRY_WATCHES:     "Describe the item and where it's kept, for anything of lasting value.",
+  SHARE_CERTIFICATES:  "Note the certificate and where it's physically stored.",
+  OTHER:               "Log anything else worth knowing about, so it isn't forgotten.",
+};
 
 const DISMISSED_KEY         = "onboardingDismissed";
 const PAST_DUE_DISMISSED_KEY = "pastDueBannerDismissed";
@@ -188,9 +207,43 @@ function renderExecutorNudge(state: ExecutorDashboardState, executor: Executor |
   }
 }
 
-function buildChecklist(hasRecords: boolean, executor: Executor | null): ChecklistItem[] {
+// If the user selected categories during onboarding, show one "Add" item
+// per category still missing a record — each opens the quick-entry flow.
+// Once a category gets a record, its item just drops off the list rather
+// than lingering as a checked-off row; the "Asset coverage" health card
+// above already covers that job once everything here is done. Falls back
+// to the old generic single item for accounts with no recorded selection
+// (pre-existing users, or onboarding categories step was skipped).
+function buildChecklist(
+  records: VaultRecord[] | null,
+  executor: Executor | null,
+  selectedCategories: AssetCategory[] | undefined,
+): ChecklistItem[] {
+  const covered = new Set((records ?? []).map((r) => r.category));
+  const selected = selectedCategories ?? [];
+
+  const categoryItems: ChecklistItem[] =
+    selected.length > 0
+      ? ALL_VAULT_CATEGORIES
+          .filter((cat) => selected.includes(cat) && !covered.has(cat))
+          .map((cat) => ({
+            id: `category-${cat}`,
+            label: `Add your ${categoryLabels[cat]}`,
+            description: CATEGORY_CHECKLIST_COPY[cat],
+            done: false,
+            href: `/vault/add?category=${cat}&quick=1`,
+          }))
+      : [
+          {
+            id: "vault",
+            label: "Add your first financial asset",
+            done: (records?.length ?? 0) > 0,
+            href: "/vault/add",
+          },
+        ];
+
   return [
-    { id: "vault",    label: "Add your first financial asset", done: hasRecords,                             href: "/vault/add" },
+    ...categoryItems,
     { id: "executor", label: "Designate your trusted contact", done: executor !== null && !executor.declinedAt, href: "/executor" },
   ];
 }
@@ -338,7 +391,7 @@ export default function DashboardPage() {
       {/* Onboarding checklist */}
       {!checklistDismissed && !loading && (
         <ChecklistCard
-          items={buildChecklist((records?.length ?? 0) > 0, executor)}
+          items={buildChecklist(records, executor, user?.onboardingSelectedCategories)}
           onDismiss={dismissChecklist}
         />
       )}
