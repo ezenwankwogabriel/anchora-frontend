@@ -19,20 +19,8 @@ interface RecordRowProps {
   onDelete: (id: string) => void;
 }
 
-const INTENT_LABELS: Record<string, string> = {
-  LIQUIDATE: "Liquidate and distribute",
-  TRANSFER:  "Transfer to intended person",
-  HOLD:      "Hold",
-};
-
 function RecordRow({ record, onDelete }: RecordRowProps) {
   const [confirming, setConfirming] = useState(false);
-
-  const intentLabel = record.executorIntent && record.executorIntent !== "UNSPECIFIED"
-    ? INTENT_LABELS[record.executorIntent]
-    : null;
-
-  const hasIntent = record.executorIntent && record.executorIntent !== "UNSPECIFIED";
 
   return (
     <div className="flex items-center py-[10px] pl-10 pr-2 border-b border-border-color last:border-0">
@@ -53,27 +41,12 @@ function RecordRow({ record, onDelete }: RecordRowProps) {
         <p className="text-[11.5px] text-text-tertiary">
           {record.accountName ?? ""}
         </p>
-        {intentLabel && (
-          <p className="text-[11.5px] text-text-secondary mt-[2px]">
-            Intent: {intentLabel}
-          </p>
-        )}
         {record.intendedBeneficiary && (
-          <p className="text-[11.5px] text-text-secondary">
+          <p className="text-[11.5px] text-text-secondary mt-[2px]">
             For: {record.intendedBeneficiary}
           </p>
         )}
       </Link>
-
-      {/* Completeness dot */}
-      <div
-        className={cn(
-          "w-2 h-2 rounded-full flex-shrink-0 mr-2",
-          hasIntent ? "bg-emerald-500" : "bg-amber-400"
-        )}
-        aria-label={hasIntent ? "Trusted contact intent set" : "Trusted contact intent not specified"}
-        title={hasIntent ? "Trusted contact intent set" : "Trusted contact intent not specified"}
-      />
 
       {confirming ? (
         <div className="flex items-center gap-2 flex-shrink-0">

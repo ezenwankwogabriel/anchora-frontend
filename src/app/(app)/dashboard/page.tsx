@@ -264,9 +264,6 @@ export default function DashboardPage() {
     setPastDueDismissed(true);
   };
 
-  const totalRecords  = records?.length ?? 0;
-  const intentSet     = records?.filter((r) => r.executorIntent !== "UNSPECIFIED").length ?? 0;
-
   const digitalCovered = DIGITAL_ASSET_CATEGORIES.filter(
     (c: AssetCategory) => (records ?? []).some((r) => r.category === c)
   ).length;
@@ -314,28 +311,11 @@ export default function DashboardPage() {
       </div>
 
       {/* Health cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         {loading ? (
-          <><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
+          <><SkeletonCard /><SkeletonCard /></>
         ) : (
           <>
-            <HealthCard
-              label="Assets with intent"
-              borderAccent="green"
-              value={error ? "—" : `${intentSet} / ${totalRecords}`}
-              subtext={
-                error ? "Could not load"
-                : totalRecords === 0 ? "No assets yet"
-                : intentSet === totalRecords ? "All assets documented"
-                : `${totalRecords - intentSet} still unspecified`
-              }
-              status={
-                error ? "empty"
-                : totalRecords > 0 && intentSet === totalRecords ? "good"
-                : intentSet > 0 ? "warning"
-                : "critical"
-              }
-            />
             <HealthCard
               label="Trusted Contact"
               borderAccent="accent"
