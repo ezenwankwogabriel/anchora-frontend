@@ -33,6 +33,10 @@ interface VaultDocumentSectionProps {
   // rather than silently hidden, with the option to clear it.
   documentUrl?: string;
   onDocumentUrlChange?: (url: string) => void;
+  // Fired once, after the existing-documents fetch resolves, so a parent
+  // that keeps this section collapsed by default (e.g. inside an "Add more
+  // details" disclosure) can auto-expand when there's something to show.
+  onDocumentsLoaded?: (hasDocuments: boolean) => void;
 }
 
 export function VaultDocumentSection({
@@ -41,6 +45,7 @@ export function VaultDocumentSection({
   onStagedFilesChange,
   documentUrl,
   onDocumentUrlChange,
+  onDocumentsLoaded,
 }: VaultDocumentSectionProps) {
   const addToast = useToastStore((s) => s.add);
   const { isFree } = usePlan();
@@ -53,8 +58,14 @@ export function VaultDocumentSection({
 
   useEffect(() => {
     VaultService.getDocuments(recordId)
-      .then((data) => setDocuments(data ?? []))
+      .then((data) => {
+        setDocuments(data ?? []);
+        onDocumentsLoaded?.((data ?? []).length > 0);
+      })
       .finally(() => setLoading(false));
+    // onDocumentsLoaded is a callback the parent should keep stable; only
+    // recordId should re-trigger this fetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recordId]);
 
   const limit = isFree ? FREE_DOCUMENT_LIMIT : PRO_DOCUMENT_LIMIT;

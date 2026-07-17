@@ -179,7 +179,6 @@ export function AddAssetClient({ initialCategory, recordCount }: AddAssetClientP
               hideCancel
               stagedFiles={stagedFiles}
               onStagedFilesChange={setStagedFiles}
-              sectioned
             />
           </div>
         )}

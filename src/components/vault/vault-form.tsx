@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver as _zodResolver } from "@hookform/resolvers/zod";
 
@@ -8,10 +9,9 @@ const zodResolver = _zodResolver as unknown as (
   schema: ReturnType<typeof getCategorySchema>
 ) => Resolver<VaultFormData>;
 
-import { Loader2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { FormSection } from "@/components/ui/form-section";
@@ -24,17 +24,11 @@ import type { VaultRecord, VaultRecordInput, AssetCategory } from "@/lib/types";
 import {
   getCategorySchema,
   getFieldConfig,
+  isPhysicalCategory,
   CATEGORY_DEFAULTS,
   type VaultFormData,
   type FieldConfig,
 } from "@/lib/schemas/vault";
-
-const INTENT_OPTIONS = [
-  { value: "UNSPECIFIED", label: "Not specified" },
-  { value: "LIQUIDATE",   label: "Liquidate and distribute" },
-  { value: "TRANSFER",    label: "Transfer to intended person" },
-  { value: "HOLD",        label: "Hold until further instruction" },
-] as const;
 
 interface VaultFormProps {
   category: AssetCategory;
@@ -45,32 +39,26 @@ interface VaultFormProps {
   hideCancel?: boolean;
   stagedFiles: File[];
   onStagedFilesChange: (files: File[]) => void;
-  sectioned?: boolean;
 }
+
+type FieldTone = "required" | "optional" | "guidance";
 
 interface FieldLabelProps {
   text: string;
   required?: boolean;
-  tone?: "required" | "optional" | "guidance";
+  tone: FieldTone;
 }
 
 function FieldLabel({ text, required, tone }: FieldLabelProps) {
-  if (tone) {
-    return (
-      <label
-        className={cn(
-          "block text-[13px] mb-[6px]",
-          tone === "required" && "font-medium text-text-primary",
-          tone === "optional" && "font-normal text-text-secondary",
-          tone === "guidance" && "font-normal text-text-primary",
-        )}
-      >
-        {text}{required && " *"}
-      </label>
-    );
-  }
   return (
-    <label className="block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]">
+    <label
+      className={cn(
+        "block text-[13px] mb-[6px]",
+        tone === "required" && "font-medium text-text-primary",
+        tone === "optional" && "font-normal text-text-secondary",
+        tone === "guidance" && "font-normal text-text-primary",
+      )}
+    >
       {text}{required && " *"}
     </label>
   );
@@ -85,6 +73,34 @@ function HelperText({ text }: { text: string }) {
   return <p className="text-[11.5px] text-text-tertiary mt-[5px]">{text}</p>;
 }
 
+// Fields that always sit in the core, always-visible section regardless of
+// category. "credential" is core only for physical assets — there it holds
+// a reference number (title/plate/serial/certificate) rather than a login,
+// so it plays the same role as "Account number" does for digital assets.
+const ALWAYS_CORE_FIELDS = new Set<keyof VaultFormData>([
+  "institutionName",
+  "accountName",
+  "referenceId",
+  "notes",
+]);
+
+function isCoreField(field: FieldConfig, category: AssetCategory): boolean {
+  if (ALWAYS_CORE_FIELDS.has(field.fieldName)) return true;
+  if (field.fieldName === "credential") return isPhysicalCategory(category);
+  return false;
+}
+
+// The "Add more details" section starts expanded on an existing record only
+// if it already has something worth showing in it.
+function hasExistingAdvancedValues(record?: VaultRecord): boolean {
+  if (!record) return false;
+  return Boolean(
+    record.encryptedFields?.credential?.trim() ||
+    record.intendedBeneficiary?.trim() ||
+    record.accountUrl?.trim(),
+  );
+}
+
 export function VaultForm({
   category,
   record,
@@ -94,7 +110,6 @@ export function VaultForm({
   hideCancel,
   stagedFiles,
   onStagedFilesChange,
-  sectioned,
 }: VaultFormProps) {
   const schema = getCategorySchema(category);
   const { fields } = getFieldConfig(category);
@@ -125,6 +140,8 @@ export function VaultForm({
     defaultValues,
   });
 
+  const [detailsOpen, setDetailsOpen] = useState(() => hasExistingAdvancedValues(record));
+
   const isSelfCustodied = watch("isSelfCustodied");
   const notesValue      = watch("notes") ?? "";
 
@@ -149,10 +166,9 @@ export function VaultForm({
     }
   };
 
-  const renderField = (field: FieldConfig) => {
+  const renderField = (field: FieldConfig, tone: FieldTone) => {
     const key = field.fieldName;
     const error = errors[key as keyof typeof errors]?.message as string | undefined;
-    const tone = sectioned ? (field.required ? "required" : "optional") : undefined;
 
     if (field.type === "checkbox") {
       return (
@@ -210,78 +226,63 @@ export function VaultForm({
     );
   };
 
-  const requiredFields = fields.filter((f) => f.required);
-  const optionalFields = fields.filter((f) => !f.required);
-  const assetDetailFields = fields.map(renderField);
+  const coreFields     = fields.filter((f) => isCoreField(f, category));
+  const advancedFields = fields.filter((f) => !isCoreField(f, category));
 
-  const executorGuidanceFields = (
-    <>
-      <FormSection divider={!sectioned}>
-        <FieldLabel text="Who should receive this asset?" tone={sectioned ? "guidance" : undefined} />
-        <Input
-          placeholder="e.g. Amaka, my eldest daughter"
-          {...register("intendedBeneficiary")}
-        />
-        <HelperText text="A note for your trusted contact — not a legal instruction." />
-        <FieldError message={errors.intendedBeneficiary?.message} />
-      </FormSection>
-
-      <FormSection>
-        <FieldLabel text="What should happen to this asset?" tone={sectioned ? "guidance" : undefined} />
-        <Select {...register("executorIntent")}>
-          {INTENT_OPTIONS.map(({ value, label }) => (
-            <option key={value} value={value}>{label}</option>
-          ))}
-        </Select>
-        <FieldError message={errors.executorIntent?.message} />
-      </FormSection>
-    </>
-  );
+  const handleDocumentsLoaded = (hasDocuments: boolean) => {
+    if (hasDocuments) setDetailsOpen(true);
+  };
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} noValidate>
-      {sectioned ? (
-        <>
-          {requiredFields.length > 0 && (
-            <div className="bg-surface border border-border-color border-l-[3px] border-l-accent rounded-lg rounded-l-none p-4 mb-3 [&>*:last-child]:mb-0">
-              {requiredFields.map(renderField)}
-            </div>
-          )}
-          {optionalFields.length > 0 && (
-            <div className="bg-surface border border-border-color rounded-lg p-4 mb-3 [&>*:last-child]:mb-0">
-              {optionalFields.map(renderField)}
-            </div>
-          )}
-        </>
-      ) : (
-        assetDetailFields
-      )}
+      <div className="bg-surface border border-border-color rounded-lg p-4 mb-3 [&>*:last-child]:mb-0">
+        {coreFields.map((f) => renderField(f, f.required ? "required" : "optional"))}
+      </div>
 
-      {sectioned ? (
-        <div className="bg-[#3B82F6]/5 border border-[#3B82F6]/15 rounded-lg p-4 mb-3 [&>*:last-child]:mb-0">
-          <p className="text-[12px] font-medium uppercase tracking-[0.03em] text-accent mb-[10px]">
-            Trusted contact guidance
-          </p>
-          {executorGuidanceFields}
+      <button
+        type="button"
+        onClick={() => setDetailsOpen((open) => !open)}
+        className="flex items-center gap-1.5 text-[13px] font-semibold text-accent cursor-pointer bg-transparent border-none px-0 py-2 mb-2 font-sans"
+      >
+        {detailsOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+        {detailsOpen ? "Hide more details" : "Add more details"}
+      </button>
+
+      {detailsOpen && (
+        <div className="bg-surface border border-border-color rounded-lg p-4 mb-3 [&>*:last-child]:mb-0">
+          {advancedFields.map((f) => renderField(f, "guidance"))}
+
+          <FormSection>
+            <FieldLabel text="Who should receive this asset?" tone="guidance" />
+            <Input
+              placeholder="e.g. Amaka, my eldest daughter"
+              {...register("intendedBeneficiary")}
+            />
+            <HelperText text="A note for your trusted contact — not a legal instruction." />
+            <FieldError message={errors.intendedBeneficiary?.message} />
+          </FormSection>
         </div>
-      ) : (
-        executorGuidanceFields
       )}
 
       {record ? (
-        <VaultDocumentSection
-          recordId={record.id}
-          stagedFiles={stagedFiles}
-          onStagedFilesChange={onStagedFilesChange}
-          documentUrl={watch("accountUrl")}
-          onDocumentUrlChange={(url) => setValue("accountUrl", url)}
-        />
+        <div className={detailsOpen ? undefined : "hidden"}>
+          <VaultDocumentSection
+            recordId={record.id}
+            stagedFiles={stagedFiles}
+            onStagedFilesChange={onStagedFilesChange}
+            documentUrl={watch("accountUrl")}
+            onDocumentUrlChange={(url) => setValue("accountUrl", url)}
+            onDocumentsLoaded={handleDocumentsLoaded}
+          />
+        </div>
       ) : (
-        <VaultDocumentPicker
-          files={stagedFiles}
-          onChange={onStagedFilesChange}
-          accented={sectioned}
-        />
+        detailsOpen && (
+          <VaultDocumentPicker
+            files={stagedFiles}
+            onChange={onStagedFilesChange}
+            accented
+          />
+        )
       )}
 
       {errors.root && (
