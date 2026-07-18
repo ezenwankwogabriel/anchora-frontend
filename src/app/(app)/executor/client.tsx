@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Info, Loader2, AlertTriangle, Square, Mail, CheckCircle2 } from "lucide-react";
+import { Info, Loader2, AlertTriangle, Send, Mail, CheckCircle2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -297,13 +297,13 @@ function getStatusPresentation(executor: Executor): StatusPresentation {
       iconClassName: "bg-amber-100 text-amber-800",
       title: "Notified, not yet confirmed",
       description:
-        "An unverified email never blocks or changes the release — it only means we haven't confirmed the inbox is reachable yet.",
+        "An unverified email never blocks or changes the release. It only means we haven't confirmed the inbox is reachable yet.",
       ctaLabel: "Notify again",
     };
   }
 
   return {
-    Icon: Square,
+    Icon: Send,
     iconClassName: "bg-amber-100 text-amber-800",
     title: "Hasn't been told yet",
     description: `Letting ${name} know doesn't share any account details, just that you've chosen them for this role.`,
@@ -403,14 +403,16 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
         </div>
 
         {status.ctaLabel && (
-          <Button fullWidth onClick={handleNotify} disabled={notifying}>
-            {notifying ? (
-              <Loader2 size={15} className="animate-spin" />
-            ) : (
-              <StatusIcon size={15} />
-            )}
-            {status.ctaLabel}
-          </Button>
+          <div className="flex justify-center">
+            <Button onClick={handleNotify} disabled={notifying}>
+              {notifying ? (
+                <Loader2 size={15} className="animate-spin" />
+              ) : (
+                <StatusIcon size={15} />
+              )}
+              {status.ctaLabel}
+            </Button>
+          </div>
         )}
 
         <button
