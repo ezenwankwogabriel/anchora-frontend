@@ -21,21 +21,25 @@ function FacebookIcon() {
 
 const BASE_BTN = "flex items-center justify-center gap-2.5 w-full py-[10px] px-4 rounded-lg border border-border-color bg-surface hover:bg-surface-2 transition-colors text-[13.5px] font-[500] text-text-primary no-underline";
 
+const FACEBOOK_LOGIN_ENABLED = false;
+
 export function SocialAuthButtons() {
   return (
     <div className="mb-5">
       {/* On mobile: side-by-side compact buttons. On sm+: stacked full-label buttons. */}
-      <div className="grid grid-cols-2 sm:grid-cols-1 gap-2 sm:gap-3">
+      <div className={`grid ${FACEBOOK_LOGIN_ENABLED ? "grid-cols-2" : "grid-cols-1"} sm:grid-cols-1 gap-2 sm:gap-3`}>
         <a href="/api/auth/google" className={BASE_BTN}>
           <GoogleIcon />
           <span className="sm:hidden">Google</span>
           <span className="hidden sm:inline">Continue with Google</span>
         </a>
-        <a href="/api/auth/facebook" className={BASE_BTN}>
-          <FacebookIcon />
-          <span className="sm:hidden">Facebook</span>
-          <span className="hidden sm:inline">Continue with Facebook</span>
-        </a>
+        {FACEBOOK_LOGIN_ENABLED && (
+          <a href="/api/auth/facebook" className={BASE_BTN}>
+            <FacebookIcon />
+            <span className="sm:hidden">Facebook</span>
+            <span className="hidden sm:inline">Continue with Facebook</span>
+          </a>
+        )}
       </div>
 
       <div className="flex items-center gap-3 mt-4">

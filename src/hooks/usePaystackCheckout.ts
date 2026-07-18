@@ -30,6 +30,11 @@ declare global {
 const POLL_INTERVAL_MS = 2_000;
 const MAX_POLL_ATTEMPTS = 20; // 40 s total
 
+// Paystack account is still in test mode / pending verification — checkout is
+// hidden behind this flag so we can onboard users on the free plan in the
+// meantime. Flip NEXT_PUBLIC_ENABLE_PRO_CHECKOUT=true once verification clears.
+export const PRO_CHECKOUT_ENABLED = process.env.NEXT_PUBLIC_ENABLE_PRO_CHECKOUT === "true";
+
 export function usePaystackCheckout(onSuccess?: () => void) {
   const [phase, setPhase] = useState<CheckoutPhase>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +66,12 @@ export function usePaystackCheckout(onSuccess?: () => void) {
 
   const start = useCallback(
     async (billingCycle: BillingCycle) => {
+      if (!PRO_CHECKOUT_ENABLED) {
+        setPhase("failed");
+        setError("Pro checkout isn't available yet — check back soon.");
+        return;
+      }
+
       setPhase("initializing");
       setError(null);
 
