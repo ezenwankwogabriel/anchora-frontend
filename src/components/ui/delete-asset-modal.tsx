@@ -63,7 +63,7 @@ export function DeleteAssetModal({
 
         <p className="text-[13px] text-text-secondary leading-relaxed mb-5">
           This record will be permanently deleted and cannot be recovered. If a
-          release has already been sent to your beneficiaries, it will not remove
+          release has already been sent to your Trusted Contact, it will not remove
           the record from their report.
         </p>
 

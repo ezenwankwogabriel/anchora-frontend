@@ -271,7 +271,7 @@ export default function DesignSystemPage() {
             <CardContent>
               <PageHeader
                 title="Beneficiaries"
-                subtitle="Manage who receives access to your vault"
+                subtitle="Manage your Trusted Contact"
                 actions={
                   <>
                     <Button variant="secondary" size="sm">

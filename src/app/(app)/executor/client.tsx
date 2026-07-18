@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Info, Loader2, AlertTriangle } from "lucide-react";
+import { Info, Loader2, AlertTriangle, Square, Mail, CheckCircle2 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormSection } from "@/components/ui/form-section";
@@ -162,7 +163,7 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
           Designate your trusted contact
         </h1>
         <p className="text-[13.5px] text-text-secondary mt-1">
-          Your trusted contact is the person who will receive your estate report and
+          Your trusted contact is the person who will receive your release summary and
           manage the discovery process if your vault becomes inactive. Choose
           someone you trust completely.
         </p>
@@ -245,27 +246,69 @@ interface ExecutorCardProps {
   onUpdated: (executor: Executor) => void;
 }
 
-function getNotificationBadge(state: ExecutorNotificationState): {
-  label: string;
-  className: string;
-} {
-  switch (state) {
-    case "NOT_NOTIFIED":
-      return {
-        label: "Not yet notified",
-        className: "bg-surface-2 text-text-tertiary",
-      };
-    case "NOTIFIED":
-      return {
-        label: "Notified · email unverified",
-        className: "bg-amber-100 text-amber-800",
-      };
-    case "VERIFIED":
-      return {
-        label: "Notified · email verified",
-        className: "bg-emerald-100 text-emerald-700",
-      };
+interface StatusPresentation {
+  Icon: LucideIcon;
+  iconClassName: string;
+  title: string;
+  description: string;
+  ctaLabel?: string;
+}
+
+// One unified status descriptor per state, rather than separate badges,
+// banners, and footnotes — mirrors the "declined"/"verified"/"accepted"
+// distinctions the app already tracks, just consolidated into a single
+// icon + title + description block.
+function getStatusPresentation(executor: Executor): StatusPresentation {
+  const name = executor.name;
+
+  if (executor.acceptedAt) {
+    return {
+      Icon: CheckCircle2,
+      iconClassName: "bg-emerald-100 text-emerald-700",
+      title: "Accepted",
+      description: `${name} has confirmed and can access your release summary if a release is triggered.`,
+    };
   }
+
+  if (executor.declinedAt) {
+    return {
+      Icon: AlertTriangle,
+      iconClassName: "bg-red-light text-red",
+      title: "Declined your invitation",
+      description: `${name} declined to be your trusted contact. You can notify them again or remove them and choose someone else.`,
+      ctaLabel: "Notify again",
+    };
+  }
+
+  const notificationState = getNotificationState(executor);
+
+  if (notificationState === "VERIFIED") {
+    return {
+      Icon: CheckCircle2,
+      iconClassName: "bg-[#EFF6FF] text-blue-600",
+      title: "Confirmed, hasn't joined yet",
+      description: `${name} confirmed their email. They just need to create an Anchora account to formally accept this role.`,
+    };
+  }
+
+  if (notificationState === "NOTIFIED") {
+    return {
+      Icon: Mail,
+      iconClassName: "bg-amber-100 text-amber-800",
+      title: "Notified, not yet confirmed",
+      description:
+        "An unverified email never blocks or changes the release — it only means we haven't confirmed the inbox is reachable yet.",
+      ctaLabel: "Notify again",
+    };
+  }
+
+  return {
+    Icon: Square,
+    iconClassName: "bg-amber-100 text-amber-800",
+    title: "Hasn't been told yet",
+    description: `Letting ${name} know doesn't share any account details, just that you've chosen them for this role.`,
+    ctaLabel: `Let ${name} know`,
+  };
 }
 
 function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
@@ -308,28 +351,8 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
     }
   };
 
-  function getResponseBadge(): { label: string; className: string } | null {
-    if (executor.acceptedAt) {
-      return {
-        label: "Accepted",
-        className: "bg-emerald-100 text-emerald-700",
-      };
-    }
-    if (executor.declinedAt) {
-      return { label: "Declined", className: "bg-red-light text-red" };
-    }
-    // Not yet responded — already conveyed by the notification badge.
-    return null;
-  }
-
-  const isDeclined = !!executor.declinedAt;
-  const isAccepted = !!executor.acceptedAt;
-  const responseBadge = getResponseBadge();
-  const notificationState = getNotificationState(executor);
-  const notificationBadge = getNotificationBadge(notificationState);
-  // Once accepted (account holders) or verified (no-account executors),
-  // there's nothing left for a re-notify to accomplish.
-  const canNotify = !isAccepted && notificationState !== "VERIFIED";
+  const status = getStatusPresentation(executor);
+  const StatusIcon = status.Icon;
 
   return (
     <div className="space-y-6">
@@ -338,27 +361,14 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
           Your trusted contact
         </h1>
         <p className="text-[13.5px] text-text-secondary mt-1">
-          This person will receive your estate report if a release is triggered.
+          This person will receive your release summary if a release is triggered.
         </p>
       </div>
 
-      {isDeclined && (
-        <div className="flex items-start gap-3 bg-red-light border border-[#F5B0B0] rounded-xl p-4">
-          <AlertTriangle
-            size={16}
-            className="text-red flex-shrink-0 mt-[1px]"
-          />
-          <p className="text-[13px] text-red">
-            <strong>{executor.name}</strong> declined your trusted contact invitation.
-            You can notify them again or remove them and designate someone else.
-          </p>
-        </div>
-      )}
-
       <div className="bg-surface border border-border-color rounded-xl shadow-sm p-6">
-        <div className="flex items-center gap-4 mb-4">
-          <div className="w-12 h-12 rounded-full bg-navy/10 flex items-center justify-center flex-shrink-0">
-            <span className="text-navy font-semibold text-lg">
+        <div className="flex items-center gap-4 pb-5 mb-5 border-b border-border-color">
+          <div className="w-12 h-12 rounded-full bg-navy flex items-center justify-center flex-shrink-0">
+            <span className="text-white font-semibold text-lg">
               {getInitials(executor.name)}
             </span>
           </div>
@@ -366,69 +376,50 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
             <p className="font-semibold text-[15px] text-text-primary">
               {executor.name}
             </p>
-            <p className="text-[13px] text-text-secondary">{executor.email}</p>
-            {executor.relationship && (
-              <p className="text-[13px] text-text-secondary">
-                {executor.relationship}
-              </p>
-            )}
+            <p className="text-[13px] text-text-secondary">
+              {executor.relationship ? `${executor.relationship} · ` : ""}
+              {executor.email}
+            </p>
           </div>
         </div>
 
-        <div className="mb-1 flex flex-wrap gap-2">
-          {responseBadge && (
-            <span
-              className={`text-[12px] font-medium px-2.5 py-0.5 rounded-full ${responseBadge.className}`}
-            >
-              {responseBadge.label}
-            </span>
-          )}
-          {!isAccepted && (
-            <span
-              className={`text-[12px] font-medium px-2.5 py-0.5 rounded-full ${notificationBadge.className}`}
-            >
-              {notificationBadge.label}
-            </span>
-          )}
-        </div>
-
-        <p className="text-[11.5px] text-text-tertiary mb-1">
-          {executor.notifiedAt && `Notified ${formatDate(executor.notifiedAt)}`}
-        </p>
-
-        {!isAccepted && notificationState === "NOTIFIED" && (
-          <p className="text-[11.5px] text-text-tertiary mb-4">
-            An unverified email never blocks or changes the release — it only
-            means we haven&apos;t confirmed the inbox is reachable yet.
-          </p>
-        )}
-        {(isAccepted || notificationState !== "NOTIFIED") && (
-          <div className="mb-4" />
-        )}
-
-        <div className="border-t border-border-color mb-4" />
-
-        <div className="flex gap-2 flex-wrap">
-          {canNotify && (
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleNotify}
-              disabled={notifying}
-            >
-              {notifying && <Loader2 size={13} className="animate-spin" />}
-              {executor.notifiedAt ? "Notify again" : "Notify trusted contact"}
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowDialog(true)}
-            className="text-red-600 hover:bg-red-50"
+        <div className="flex items-start gap-3 mb-5">
+          <div
+            className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${status.iconClassName}`}
           >
-            Remove trusted contact
-          </Button>
+            <StatusIcon size={16} />
+          </div>
+          <div>
+            <p className="font-semibold text-[14px] text-text-primary">
+              {status.title}
+            </p>
+            <p className="text-[13px] text-text-secondary mt-1">
+              {status.description}
+              {executor.notifiedAt &&
+                !executor.acceptedAt &&
+                ` Notified ${formatDate(executor.notifiedAt)}.`}
+            </p>
+          </div>
         </div>
+
+        {status.ctaLabel && (
+          <Button fullWidth onClick={handleNotify} disabled={notifying}>
+            {notifying ? (
+              <Loader2 size={15} className="animate-spin" />
+            ) : (
+              <StatusIcon size={15} />
+            )}
+            {status.ctaLabel}
+          </Button>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setShowDialog(true)}
+          className="block w-full text-center text-[13px] text-text-tertiary hover:text-red transition-colors bg-transparent border-none cursor-pointer font-sans mt-3"
+        >
+          Remove trusted contact
+        </button>
       </div>
 
       {showRemoveDialog && (

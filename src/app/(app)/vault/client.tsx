@@ -76,7 +76,8 @@ export default function VaultClient() {
         <div>
           <h1 className="font-heading text-[28px] text-text-primary">Your assets</h1>
           <p className="text-[13.5px] text-text-secondary mt-1">
-            All financial accounts and assets in your vault.
+            All financial accounts and assets in your vault. Your asset records,
+            not your logins or passwords.
           </p>
         </div>
         <div className="flex flex-col items-end gap-1">
@@ -103,7 +104,7 @@ export default function VaultClient() {
         </div>
       </div>
 
-      {/* Estate summary row */}
+      {/* Release summary row */}
       {!planLoading && (
         <div className="bg-surface border border-border-color rounded-xl shadow-sm p-4 flex items-center gap-4">
           <div className="w-10 h-10 rounded-lg bg-navy/10 flex items-center justify-center flex-shrink-0">

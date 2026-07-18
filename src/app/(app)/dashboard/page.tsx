@@ -130,7 +130,7 @@ function renderExecutorNudge(state: ExecutorDashboardState, executor: Executor |
           <Shield size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-[500] text-amber-900">No trusted contact designated</p>
-            <p className="text-[12px] text-amber-700">Your estate report cannot be delivered without a trusted contact.</p>
+            <p className="text-[12px] text-amber-700">Your release summary cannot be made available without a trusted contact.</p>
           </div>
           <Link href="/executor" className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap flex-shrink-0">
             Designate now →

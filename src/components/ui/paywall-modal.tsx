@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { X, Lock, Loader2, CheckCircle2, Mail } from "lucide-react";
 import { Button } from "./button";
-import { usePaystackCheckout } from "@/hooks/usePaystackCheckout";
+import { usePaystackCheckout, PRO_CHECKOUT_ENABLED } from "@/hooks/usePaystackCheckout";
 
 interface PaywallModalProps {
   open: boolean;
@@ -46,7 +46,7 @@ export function PaywallModal({ open, onClose, onUpgraded }: PaywallModalProps) {
           </div>
           <p className="font-heading text-[20px] text-text-primary mb-1">Welcome to Pro</p>
           <p className="text-[13px] text-text-secondary mb-5 max-w-[300px]">
-            You now have unlimited records, a trusted contact estate report, downloadable estate summary, and configurable inactivity window.
+            You now have unlimited records, a downloadable release summary for you and your trusted contact, and configurable inactivity window.
           </p>
           <Button fullWidth onClick={handleClose}>Go to vault</Button>
         </div>
@@ -117,19 +117,25 @@ export function PaywallModal({ open, onClose, onUpgraded }: PaywallModalProps) {
           You&apos;ve reached your free plan limit
         </p>
         <p className="text-[13px] text-text-secondary mb-6 max-w-[300px]">
-          Free plans include up to 3 asset records. Upgrade to Pro for unlimited records across all 11 categories.
+          {PRO_CHECKOUT_ENABLED
+            ? "Free plans include up to 3 asset records. Upgrade to Pro for unlimited records across all 11 categories."
+            : "Free plans include up to 3 asset records. Pro (unlimited records across all 11 categories) is coming soon."}
         </p>
 
-        <Button
-          fullWidth
-          disabled={isInitializing}
-          onClick={() => start("MONTHLY")}
-          className="mb-3"
-        >
-          {isInitializing
-            ? <><Loader2 size={14} className="animate-spin" /> Preparing checkout…</>
-            : "Upgrade to Pro"}
-        </Button>
+        {PRO_CHECKOUT_ENABLED ? (
+          <Button
+            fullWidth
+            disabled={isInitializing}
+            onClick={() => start("MONTHLY")}
+            className="mb-3"
+          >
+            {isInitializing
+              ? <><Loader2 size={14} className="animate-spin" /> Preparing checkout…</>
+              : "Upgrade to Pro"}
+          </Button>
+        ) : (
+          <Button fullWidth disabled className="mb-3">Coming soon</Button>
+        )}
 
         <Link
           href="/settings?tab=Plan"

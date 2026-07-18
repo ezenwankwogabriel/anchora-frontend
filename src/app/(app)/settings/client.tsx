@@ -17,10 +17,10 @@ import { useAuthStore } from "@/stores/authStore";
 import { ServiceError } from "@/lib/types";
 import type { MfaSetupResponse } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 import { ProBadge } from "@/components/ui/pro-badge";
-import { UpgradePrompt } from "@/components/ui/upgrade-prompt";
 import { usePlan } from "@/hooks/usePlan";
-import { usePaystackCheckout } from "@/hooks/usePaystackCheckout";
+import { usePaystackCheckout, PRO_CHECKOUT_ENABLED } from "@/hooks/usePaystackCheckout";
 import { useIdentityStatus } from "@/hooks/useIdentityStatus";
 import { useNinVerification } from "@/hooks/useNinVerification";
 import { SubscriptionService } from "@/services/subscription.service";
@@ -666,7 +666,7 @@ function DangerZone() {
             </div>
 
             <p className="text-[13px] text-text-secondary leading-relaxed mb-5">
-              This will permanently delete your vault and all records. Your beneficiaries will
+              This will permanently delete your vault and all records. Your Trusted Contact will
               lose access. <strong className="text-text-primary">This cannot be undone.</strong>
             </p>
 
@@ -793,18 +793,15 @@ function InactivityRemindersSection({ isFree, planLoading }: { isFree: boolean; 
     <div>
       <div className="flex items-center gap-2 mb-1">
         <h2 className="text-[14px] font-semibold text-text-primary">Inactivity &amp; Reminders</h2>
-        {isFree && <ProBadge />}
       </div>
       <p className="text-sm text-text-secondary mb-4">
         If Anchora doesn&apos;t detect any activity from you within your chosen window, your trusted contact
-        will be notified to begin the estate release process. We&apos;ll send you reminders throughout
+        will be notified to begin the release process. We&apos;ll send you reminders throughout
         so you can check in and reset the clock.
       </p>
 
-      <div className={cn(
-        "bg-surface rounded-xl border border-border-color overflow-hidden mb-5",
-        isFree && "pointer-events-none opacity-60"
-      )}>
+      <div className="bg-surface rounded-xl border border-border-color overflow-hidden mb-5">
+        <div className={cn(isFree && "pointer-events-none opacity-60")}>
         {/* Inactivity window */}
         <div className="p-5">
           <p className="text-[13px] font-semibold text-text-primary mb-0.5">Inactivity window</p>
@@ -875,22 +872,22 @@ function InactivityRemindersSection({ isFree, planLoading }: { isFree: boolean; 
             </p>
           )}
         </div>
+        </div>
 
         {/* Save */}
         <div className="px-5 py-4 border-t border-border-color flex justify-end">
-          <Button onClick={handleSave} disabled={saving}>
-            {saving && <Loader2 size={15} className="animate-spin" />}
-            Save changes
-          </Button>
+          {isFree ? (
+            <Link href="/settings/upgrade">
+              <Button>Upgrade to Pro</Button>
+            </Link>
+          ) : (
+            <Button onClick={handleSave} disabled={saving}>
+              {saving && <Loader2 size={15} className="animate-spin" />}
+              Save changes
+            </Button>
+          )}
         </div>
       </div>
-
-      {isFree && (
-        <UpgradePrompt
-          feature="Configurable inactivity window"
-          description="Set a custom inactivity window and reminder schedule. Available on Pro."
-        />
-      )}
     </div>
   );
 }
@@ -941,7 +938,7 @@ function CheckoutStatusView({
         </div>
         <p className="font-heading text-[22px] text-text-primary mb-1">Welcome to Pro</p>
         <p className="text-[13px] text-text-secondary mb-6 max-w-[320px]">
-          You now have unlimited records, a trusted contact estate report, downloadable estate summary, configurable inactivity window, and priority support.
+          You now have unlimited records, a downloadable release summary for you and your trusted contact, configurable inactivity window, and priority support.
         </p>
         <Button onClick={onDone}>Go to vault</Button>
       </div>
@@ -1035,7 +1032,7 @@ function IdentityVerificationTab({
           </div>
           <p className="font-heading text-[22px] text-text-primary mb-1">Identity verified</p>
           <p className="text-[13px] text-text-secondary max-w-[320px]">
-            You&apos;ll now be able to access any estate records released to you.
+            You&apos;ll now be able to access any records released to you.
           </p>
         </div>
       ) : phase === "failed" ? (
@@ -1107,7 +1104,6 @@ function IdentityVerificationTab({
           <div className="flex items-center gap-2 mb-3">
             <span className="text-[13.5px] font-medium text-text-primary">Verification status</span>
             <IdentityStatusBadge status={status} />
-            {isFree && <ProBadge />}
           </div>
 
           <p className="text-[13px] text-text-secondary leading-relaxed mb-4 max-w-[560px]">
@@ -1115,20 +1111,18 @@ function IdentityVerificationTab({
             you can access any records that have been released to you.
           </p>
 
-          <div className={cn(isFree && "pointer-events-none opacity-60")}>
+          {isFree ? (
+            <Link href="/settings/upgrade">
+              <Button>Upgrade to Pro to verify</Button>
+            </Link>
+          ) : (
             <Button onClick={startCamera}>
               {status === "FAILED" ? "Retry verification" : "Verify identity"}
             </Button>
-          </div>
+          )}
         </div>
       )}
     </Section>
-    {isFree && (
-      <UpgradePrompt
-        feature="Identity verification"
-        description="Verify your NIN with a live selfie so your Trusted Contact can access records released to you. Available on Pro."
-      />
-    )}
     </>
   );
 }
@@ -1405,10 +1399,14 @@ function PlanTab({
               </button>
             )}
             {!isPro && (
-              <Button size="sm" disabled={isInitializing} onClick={() => startCheckout(cycleSel)}>
-                {isInitializing ? <Loader2 size={13} className="animate-spin" /> : <ArrowRight size={13} />}
-                {isInitializing ? "Preparing…" : "Upgrade to Pro"}
-              </Button>
+              PRO_CHECKOUT_ENABLED ? (
+                <Button size="sm" disabled={isInitializing} onClick={() => startCheckout(cycleSel)}>
+                  {isInitializing ? <Loader2 size={13} className="animate-spin" /> : <ArrowRight size={13} />}
+                  {isInitializing ? "Preparing…" : "Upgrade to Pro"}
+                </Button>
+              ) : (
+                <Button size="sm" disabled>Coming soon</Button>
+              )
             )}
           </div>
         </div>
@@ -1453,8 +1451,8 @@ function PlanTab({
             <PlanFeature included text="All 11 asset categories" />
             <PlanFeature included text="Designate one trusted contact" />
             <PlanFeature included text="Inactivity monitoring" />
-            <PlanFeature included={false} text="Trusted contact receives estate report" />
-            <PlanFeature included={false} text="Downloadable estate summary" />
+            <PlanFeature included={false} text="Trusted contact receives release summary" />
+            <PlanFeature included={false} text="Download your release summary anytime" />
             <PlanFeature included={false} text="Configurable inactivity window" />
             <PlanFeature included={false} text="Unlimited asset records" />
           </ul>
@@ -1492,13 +1490,15 @@ function PlanTab({
             <PlanFeature included text="All 11 asset categories" />
             <PlanFeature included text="Designate one trusted contact" />
             <PlanFeature included text="Full inactivity monitoring" />
-            <PlanFeature included text="Trusted contact receives estate report" />
-            <PlanFeature included text="Downloadable estate summary" />
+            <PlanFeature included text="Trusted contact receives release summary" />
+            <PlanFeature included text="Download your release summary anytime" />
             <PlanFeature included text="Configurable inactivity window (6–24 mo)" />
             <PlanFeature included text="Priority email support" />
           </ul>
           {proCtaState === "current" ? (
             <Button fullWidth disabled className="mt-5">Current plan</Button>
+          ) : !PRO_CHECKOUT_ENABLED ? (
+            <Button fullWidth disabled className="mt-5">Coming soon</Button>
           ) : (
             <Button
               fullWidth

@@ -102,7 +102,7 @@ const FIELD_CONFIGS: Record<AssetCategory, FieldConfig[]> = {
     { fieldName: "institutionName", label: "Pension fund administrator (PFA)", placeholder: "e.g. ARM Pension, Stanbic IBTC", required: true, type: "text" },
     { fieldName: "accountName",     label: "RSA / account name", type: "text" },
     { fieldName: "credential", label: "Portal login email", type: "text" },
-    { fieldName: "notes",           label: "Notes", placeholder: "RSA PIN, employer name, portal access details", type: "textarea" },
+    { fieldName: "notes",           label: "Notes", placeholder: "Portal name, employer name, where login details are stored", type: "textarea" },
   ],
   INSURANCE_POLICY: [
     { fieldName: "institutionName", label: "Insurance provider", placeholder: "e.g. AXA Mansard, Leadway Assurance", required: true, type: "text" },
