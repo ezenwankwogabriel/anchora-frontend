@@ -104,7 +104,7 @@ export function VaultAssetPanel({ open, onClose, onSaved, onDeleted, record }: V
                 <div className="min-w-0">
                   <p className="text-[15px] font-semibold text-text-primary truncate">
                     {record.institutionName}
-                    {record.accountName ? ` — ${record.accountName}` : ""}
+                    {record.accountName ? ` · ${record.accountName}` : ""}
                   </p>
                   <p className="text-[12px] text-text-tertiary mt-[2px]">
                     {categoryLabels[record.category]} · Last edited {updatedAt}

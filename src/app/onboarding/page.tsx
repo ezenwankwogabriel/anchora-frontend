@@ -207,7 +207,7 @@ function ScreenWhy({
       </p>
       <p className="text-[15px] text-text-secondary leading-relaxed mb-10">
         Anchora helps you document what you have, so your Trusted Contact isn&apos;t
-        left guessing — they&apos;ll know exactly where to start and how to navigate
+        left guessing. They&apos;ll know exactly where to start and how to navigate
         the process, when the time comes.
       </p>
       <Button size="lg" onClick={onNext}>
@@ -283,7 +283,7 @@ function ScreenHowItWorks({
 
 const EXPECTATIONS = [
   "Takes about 5 minutes to get started",
-  "Save your progress and pick up anytime — nothing is lost",
+  "Save your progress and pick up anytime, nothing is lost",
   "Your information stays private and is only accessible to your Trusted Contact if you become inactive for an extended period",
 ];
 
@@ -346,7 +346,7 @@ function ScreenCategories({
         What do you want to protect?
       </h2>
       <p className="text-[14px] text-text-secondary mb-8">
-        Pick everything that applies — you can add the details later. Nothing
+        Pick everything that applies. You can add the details later. Nothing
         here is final.
       </p>
 
@@ -396,7 +396,7 @@ function ScreenFirstAsset({
         Ready to log one?
       </h2>
       <p className="text-[14px] text-text-secondary mb-6">
-        Pick one of the categories you just selected — we&apos;ll walk you
+        Pick one of the categories you just selected, and we&apos;ll walk you
         through it.
       </p>
 

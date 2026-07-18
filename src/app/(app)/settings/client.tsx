@@ -219,7 +219,7 @@ function ProfileTab({ planData }: { planData: ReturnType<typeof usePlan>["planDa
       setSuccess(true);
       setTimeout(() => setSuccess(false), 4000);
     } catch (err) {
-      setError(err instanceof ServiceError ? err.message : "Failed to save — please try again");
+      setError(err instanceof ServiceError ? err.message : "Failed to save. Please try again.");
     }
   };
 
@@ -455,7 +455,7 @@ function MfaSection() {
       setState({ phase: "enabled" });
       setCode("");
     } catch (err) {
-      setError(err instanceof ServiceError ? err.message : "Invalid code — try again");
+      setError(err instanceof ServiceError ? err.message : "Invalid code. Try again.");
     } finally {
       setLoading(false);
     }
@@ -1107,7 +1107,7 @@ function IdentityVerificationTab({
           </div>
 
           <p className="text-[13px] text-text-secondary leading-relaxed mb-4 max-w-[560px]">
-            Verify your identity once with your NIN and a live selfie — you&apos;ll need this before
+            Verify your identity once with your NIN and a live selfie. You&apos;ll need this before
             you can access any records that have been released to you.
           </p>
 
@@ -1171,7 +1171,7 @@ function CancellationModal({
               You&apos;ll keep full Pro access until your current billing period ends
               {periodEndDate ? ` on <strong>${periodEndDate}</strong>` : ""}. After that, if you have more than 3
               asset records, records beyond the first 3 become{" "}
-              <strong>read-only</strong> — you can view and delete them, but not edit, until you&apos;re back at or under the free limit.
+              <strong>read-only</strong>, so you can view and delete them, but not edit, until you&apos;re back at or under the free limit.
             </p>
             {error && (
               <p className="text-[12.5px] text-red bg-red-light border border-[#F5B0B0] rounded-md px-3 py-2 mb-4">

@@ -153,7 +153,7 @@ export default function DesignSystemPage() {
           <Card className="mt-3">
             <CardContent>
               <Button variant="primary" fullWidth>
-                Full-width — Create account
+                Full-width · Create account
               </Button>
             </CardContent>
           </Card>
@@ -164,7 +164,7 @@ export default function DesignSystemPage() {
           <div className="flex flex-col gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Badge — pill labels</CardTitle>
+                <CardTitle>Badge · pill labels</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
                 <Badge variant="success">Active</Badge>
@@ -175,7 +175,7 @@ export default function DesignSystemPage() {
             </Card>
             <Card>
               <CardHeader>
-                <CardTitle>StatusBadge — with dot indicator</CardTitle>
+                <CardTitle>StatusBadge · with dot indicator</CardTitle>
               </CardHeader>
               <CardContent className="flex flex-wrap gap-3">
                 <StatusBadge variant="success" label="All clear" />

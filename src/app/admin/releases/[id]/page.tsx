@@ -154,7 +154,7 @@ export default function AdminReleaseDetailPage() {
       <div className="flex items-start justify-between mb-6 gap-4">
         <div>
           <h1 className="font-heading text-[22px] text-text-primary">
-            Release — {release.userName}
+            Release · {release.userName}
           </h1>
           <p className="text-[13.5px] text-text-secondary mt-0.5">{release.userEmail}</p>
         </div>
@@ -222,7 +222,7 @@ export default function AdminReleaseDetailPage() {
               </div>
               <p className="text-[12.5px] text-text-tertiary pt-2 border-t border-border-color">
                 Report download requires this account to have completed identity
-                verification — checked at download time, not tracked per-release.
+                verification, checked at download time, not tracked per-release.
               </p>
             </div>
           )}

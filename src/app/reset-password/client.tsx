@@ -90,7 +90,7 @@ export function ResetPasswordClient({ token }: Props) {
         Choose a new password
       </h1>
       <p className="text-[13.5px] text-text-secondary mb-6">
-        Make it strong — you won&apos;t need to change it again.
+        Make it strong, and you won&apos;t need to change it again.
       </p>
 
       <form onSubmit={handleSubmit(onSubmit)} method="post" noValidate>

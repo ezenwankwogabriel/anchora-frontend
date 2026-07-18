@@ -77,7 +77,7 @@ function deriveActivity(records: VaultRecord[] | null): ActivityItem[] {
       return {
         id: r.id,
         type: wasUpdated ? ("vault_updated" as const) : ("vault_added" as const),
-        label: r.accountName ? `${r.institutionName} — ${r.accountName}` : r.institutionName,
+        label: r.accountName ? `${r.institutionName} · ${r.accountName}` : r.institutionName,
         timestamp: wasUpdated ? r.updatedAt : r.createdAt,
       };
     })
@@ -115,7 +115,7 @@ const EXECUTOR_HEALTH_CARD: Record<
   { value: string; subtext: (name: string) => string; status: "critical" | "warning" | "good" }
 > = {
   NONE:         { value: "None",         subtext: () => "No trusted contact designated",           status: "critical" },
-  NOT_NOTIFIED: { value: "Not notified", subtext: (name) => `${name} designated — not yet notified`, status: "warning" },
+  NOT_NOTIFIED: { value: "Not notified", subtext: (name) => `${name} designated, not yet notified`, status: "warning" },
   PENDING:      { value: "Pending",      subtext: (name) => `Invitation sent to ${name}`,          status: "warning" },
   VERIFIED:     { value: "Verified",     subtext: (name) => `${name}'s email is verified`,          status: "good" },
   DECLINED:     { value: "Declined",     subtext: (name) => `${name} declined the invitation`,      status: "critical" },
@@ -347,7 +347,7 @@ export default function DashboardPage() {
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-[500] text-amber-900">Payment failed</p>
             <p className="text-[12px] text-amber-700">
-              Your last billing attempt didn&apos;t go through. Paystack will retry automatically — update your card if needed.
+              Your last billing attempt didn&apos;t go through. Paystack will retry automatically, but update your card if needed.
             </p>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">

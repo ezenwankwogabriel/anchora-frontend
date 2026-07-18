@@ -134,7 +134,7 @@ export function VaultDocumentPicker({ files, onChange, accented }: VaultDocument
       )}
 
       <p className="text-[11px] text-text-tertiary mt-2">
-        {files.length} of {limit} document{limit === 1 ? "" : "s"} — attach a photo or scan of
+        {files.length} of {limit} document{limit === 1 ? "" : "s"}. Attach a photo or scan of
         the source document, if you have one.
       </p>
     </div>

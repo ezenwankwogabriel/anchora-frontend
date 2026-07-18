@@ -258,7 +258,7 @@ export function VaultForm({
               placeholder="e.g. Amaka, my eldest daughter"
               {...register("intendedBeneficiary")}
             />
-            <HelperText text="A note for your trusted contact — not a legal instruction." />
+            <HelperText text="A note for your trusted contact, not a legal instruction." />
             <FieldError message={errors.intendedBeneficiary?.message} />
           </FormSection>
         </div>

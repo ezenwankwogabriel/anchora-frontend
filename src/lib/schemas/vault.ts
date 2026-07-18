@@ -140,7 +140,7 @@ const FIELD_CONFIGS: Record<AssetCategory, FieldConfig[]> = {
     { fieldName: "institutionName", label: "Service name", placeholder: "e.g. Netflix, Spotify, AWS", required: true, type: "text" },
     { fieldName: "accountName",     label: "Subscription label", placeholder: "e.g. Family plan, Team account", type: "text" },
     { fieldName: "credential", label: "Billing email", type: "text" },
-    { fieldName: "notes",           label: "Cancellation instructions", placeholder: "How to cancel — direct link, phone number, or step-by-step instructions...", type: "textarea" },
+    { fieldName: "notes",           label: "Cancellation instructions", placeholder: "How to cancel: direct link, phone number, or step-by-step instructions...", type: "textarea" },
   ],
   OTHER: [
     { fieldName: "institutionName", label: "Asset or account name", placeholder: "e.g. PayPal, savings club, industrial generator", required: true, type: "text" },

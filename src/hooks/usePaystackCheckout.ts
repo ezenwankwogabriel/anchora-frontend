@@ -68,7 +68,7 @@ export function usePaystackCheckout(onSuccess?: () => void) {
     async (billingCycle: BillingCycle) => {
       if (!PRO_CHECKOUT_ENABLED) {
         setPhase("failed");
-        setError("Pro checkout isn't available yet — check back soon.");
+        setError("Pro checkout isn't available yet. Check back soon.");
         return;
       }
 

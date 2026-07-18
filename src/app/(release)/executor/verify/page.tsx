@@ -52,7 +52,7 @@ function VerifyContent() {
           Email confirmed
         </h1>
         <p className="text-[14px] text-text-secondary text-center leading-relaxed">
-          Thanks for confirming your email address. No account or sign-up was needed — this only
+          Thanks for confirming your email address. No account or sign-up was needed. This only
           confirms the address is reachable.
         </p>
       </div>

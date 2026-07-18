@@ -378,7 +378,7 @@ export default function AdminUserDetailPage() {
             <DetailRow label="Verified at" value={formatDate(user.govIdVerifiedAt)} />
           )}
           <p className="text-[12px] text-text-tertiary mt-3 pt-3 border-t border-border-color">
-            Set only by a real NIN + selfie match via Dojah — no admin override.
+            Set only by a real NIN + selfie match via Dojah. No admin override.
           </p>
         </div>
 

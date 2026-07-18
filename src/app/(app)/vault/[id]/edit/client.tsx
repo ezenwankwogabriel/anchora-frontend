@@ -102,7 +102,7 @@ export function EditAssetClient({ id }: EditAssetClientProps) {
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
               <h1 className="font-heading text-[26px] text-text-primary leading-tight">
-                {record.institutionName}{record.accountName ? ` — ${record.accountName}` : ""}
+                {record.institutionName}{record.accountName ? ` · ${record.accountName}` : ""}
               </h1>
               <p className="text-[12.5px] text-text-tertiary mt-1">
                 {categoryLabels[record.category]} · Last edited {updatedAt}
@@ -134,7 +134,7 @@ export function EditAssetClient({ id }: EditAssetClientProps) {
       <DeleteAssetModal
         open={deleteOpen}
         recordId={record.id}
-        recordName={record.accountName ? `${record.institutionName} — ${record.accountName}` : record.institutionName}
+        recordName={record.accountName ? `${record.institutionName} · ${record.accountName}` : record.institutionName}
         onSuccess={handleDeleteSuccess}
         onClose={() => setDeleteOpen(false)}
       />

@@ -450,7 +450,7 @@ function EstateDrawer({
           </div>
           {release.reportExpired && (
             <p className="mt-2 text-xs text-text-secondary">
-              Link expired — a fresh link will be generated when you download.
+              Link expired. A fresh link will be generated when you download.
             </p>
           )}
           <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">

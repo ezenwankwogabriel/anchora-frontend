@@ -223,7 +223,7 @@ export function VaultDocumentSection({
           </div>
         ) : (
           <p className="text-[12.5px] text-text-tertiary mt-4">
-            {totalCount} of {PRO_DOCUMENT_LIMIT} documents attached — Pro plan limit reached.
+            {totalCount} of {PRO_DOCUMENT_LIMIT} documents attached. Pro plan limit reached.
           </p>
         )
       ) : (
