@@ -91,7 +91,7 @@ function VerificationBanner({
           </p>
         </div>
         <Link
-          href="/settings"
+          href="/settings?tab=Identity%20Verification"
           className="text-amber-700 text-sm font-medium underline hover:no-underline whitespace-nowrap flex-shrink-0"
         >
           Verify identity
@@ -113,7 +113,7 @@ function VerificationBanner({
           </p>
         </div>
         <Link
-          href="/settings"
+          href="/settings?tab=Identity%20Verification"
           className="text-red-700 text-sm font-medium underline hover:no-underline whitespace-nowrap flex-shrink-0"
         >
           Retry verification
@@ -382,7 +382,7 @@ function EstateDrawer({
             </p>
           </div>
           <div className="mt-4">
-            <Link href="/settings">
+            <Link href="/settings?tab=Identity%20Verification">
               <Button className="w-full rounded-lg">
                 Verify your identity
               </Button>
