@@ -25,7 +25,7 @@ const figtree = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Anchora — Digital Financial Legacy Platform",
+  title: "Anchora | Digital Financial Legacy Platform",
   description: "Organise your financial life safely for the people you love.",
 };
 

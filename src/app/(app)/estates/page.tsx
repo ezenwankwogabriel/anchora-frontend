@@ -87,11 +87,11 @@ function VerificationBanner({
             Your identity is not verified.
           </p>
           <p className="text-sm text-amber-700 mt-0.5">
-            Verify once to be ready for any estate you&apos;re assigned to.
+            Verify once to be ready for anything shared with you.
           </p>
         </div>
         <Link
-          href="/settings"
+          href="/settings?tab=Identity%20Verification"
           className="text-amber-700 text-sm font-medium underline hover:no-underline whitespace-nowrap flex-shrink-0"
         >
           Verify identity
@@ -113,7 +113,7 @@ function VerificationBanner({
           </p>
         </div>
         <Link
-          href="/settings"
+          href="/settings?tab=Identity%20Verification"
           className="text-red-700 text-sm font-medium underline hover:no-underline whitespace-nowrap flex-shrink-0"
         >
           Retry verification
@@ -247,7 +247,7 @@ function EstateDrawer({
 
   const canExit = !releaseInProgress;
   const exitDisabledTooltip = releaseInProgress
-    ? "You cannot exit an estate while a release is in progress."
+    ? "You cannot exit while a release is in progress."
     : undefined;
 
   async function handleDownload() {
@@ -270,9 +270,9 @@ function EstateDrawer({
       await EstatesService.exitEstate(estate.estateId);
       onExited(estate.estateId);
       onClose();
-      addToast("You have exited this estate.", "success");
+      addToast(`You've stopped being Trusted Contact for ${estate.ownerName}.`, "success");
     } catch {
-      addToast("Failed to exit estate. Please try again.", "error");
+      addToast("Failed to update your role. Please try again.", "error");
     } finally {
       setExiting(false);
     }
@@ -300,7 +300,7 @@ function EstateDrawer({
         <SheetContent className="max-w-md w-full">
           <SheetHeader>
             <SheetTitle>{estate.ownerName}</SheetTitle>
-            <SheetDescription>Estate of {estate.ownerName}</SheetDescription>
+            <SheetDescription>{estate.ownerName}&apos;s vault</SheetDescription>
           </SheetHeader>
           <div className="mt-6 space-y-4">
             <DrawerDetail
@@ -327,7 +327,7 @@ function EstateDrawer({
           <div className="mt-4 bg-gray-50 rounded-xl p-4">
             <p className="text-sm text-text-secondary">
               You will be notified by email if a release is triggered for this
-              estate.
+              vault.
             </p>
           </div>
           <div className="mt-6 pt-4 border-t border-border-color">
@@ -335,7 +335,7 @@ function EstateDrawer({
               onClick={openExitFlow}
               className="w-full rounded-lg py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
             >
-              Exit estate
+              Stop being Trusted Contact for {estate.ownerName}
             </button>
           </div>
           <ExitDialog
@@ -362,7 +362,7 @@ function EstateDrawer({
         <SheetContent className="max-w-md w-full">
           <SheetHeader>
             <SheetTitle>{estate.ownerName}</SheetTitle>
-            <SheetDescription>Estate of {estate.ownerName}</SheetDescription>
+            <SheetDescription>{estate.ownerName}&apos;s vault</SheetDescription>
           </SheetHeader>
           <div className="mt-6">
             <DrawerDetail
@@ -377,12 +377,12 @@ function EstateDrawer({
           <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
             <AlertTriangle className="text-amber-600 w-5 h-5 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-amber-800">
-              A release has been triggered for this estate. Verify your identity
-              to access the estate report.
+              A release has been triggered for this vault. Verify your identity
+              to access the release summary.
             </p>
           </div>
           <div className="mt-4">
-            <Link href="/settings">
+            <Link href="/settings?tab=Identity%20Verification">
               <Button className="w-full rounded-lg">
                 Verify your identity
               </Button>
@@ -394,7 +394,7 @@ function EstateDrawer({
                 disabled={!canExit}
                 className="w-full rounded-lg py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                Exit estate
+                Stop being Trusted Contact for {estate.ownerName}
               </button>
             </div>
           </div>
@@ -411,7 +411,7 @@ function EstateDrawer({
         <SheetContent className="max-w-md w-full">
           <SheetHeader>
             <SheetTitle>{estate.ownerName}</SheetTitle>
-            <SheetDescription>Estate of {estate.ownerName}</SheetDescription>
+            <SheetDescription>{estate.ownerName}&apos;s vault</SheetDescription>
           </SheetHeader>
           <div className="mt-6">
             <DrawerDetail
@@ -427,7 +427,7 @@ function EstateDrawer({
             <FileText className="text-accent w-8 h-8 flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-text-primary">
-                Estate report
+                Release summary
               </p>
               <p className="text-xs text-text-secondary mt-0.5">
                 Released {relativeDate(release.triggeredAt)}
@@ -450,7 +450,7 @@ function EstateDrawer({
           </div>
           {release.reportExpired && (
             <p className="mt-2 text-xs text-text-secondary">
-              Link expired — a fresh link will be generated when you download.
+              Link expired. A fresh link will be generated when you download.
             </p>
           )}
           <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
@@ -470,7 +470,7 @@ function EstateDrawer({
               onClick={openExitFlow}
               className="w-full rounded-lg py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
             >
-              Exit estate
+              Stop being Trusted Contact for {estate.ownerName}
             </button>
           </div>
           <ExitWithReportDialog
@@ -502,7 +502,7 @@ function EstateDrawer({
       <SheetContent className="max-w-md w-full">
         <SheetHeader>
           <SheetTitle>{estate.ownerName}</SheetTitle>
-          <SheetDescription>Estate of {estate.ownerName}</SheetDescription>
+          <SheetDescription>{estate.ownerName}&apos;s vault</SheetDescription>
         </SheetHeader>
         <div className="mt-6">
           <DrawerDetail
@@ -526,7 +526,7 @@ function EstateDrawer({
             onClick={openExitFlow}
             className="w-full rounded-lg py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
           >
-            Exit estate
+            Stop being Trusted Contact for {estate.ownerName}
           </button>
         </div>
         <ExitDialog
@@ -560,9 +560,9 @@ function ExitDialog({
     <AlertDialog open={open} onOpenChange={onClose}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Exit this estate?</AlertDialogTitle>
+          <AlertDialogTitle>Stop being Trusted Contact for {ownerName}?</AlertDialogTitle>
           <AlertDialogDescription>
-            You will be removed as trusted contact for {ownerName}&apos;s estate. The
+            You will be removed as trusted contact for {ownerName}&apos;s vault. The
             owner will be notified and will need to designate a new trusted contact.
             This cannot be undone.
           </AlertDialogDescription>
@@ -577,7 +577,7 @@ function ExitDialog({
             {loading ? (
               <Loader2 size={14} className="animate-spin mr-1" />
             ) : null}
-            Exit estate
+            Stop being Trusted Contact
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -602,11 +602,11 @@ function ExitWithReportDialog({
     <AlertDialog open={open} onOpenChange={onClose}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Exit this estate?</AlertDialogTitle>
+          <AlertDialogTitle>Stop being Trusted Contact?</AlertDialogTitle>
           <AlertDialogDescription>
-            You have a report available for this estate. Downloading it before
-            exiting is strongly recommended — you will lose access once you
-            exit. This cannot be undone.
+            You have a release summary available for this vault. Downloading it
+            before exiting is strongly recommended, since you will lose access
+            once you exit. This cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -779,7 +779,7 @@ export default function EstatesPage() {
       {/* Header */}
       <div>
         <div className="flex items-center gap-3 flex-wrap">
-          <h1 className="font-heading text-2xl text-text-primary">Estates</h1>
+          <h1 className="font-heading text-2xl text-text-primary">Shared with me</h1>
           {verificationStatus === "VERIFIED" && (
             <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium">
               <ShieldCheck className="w-4 h-4 text-emerald-500" />
@@ -788,7 +788,7 @@ export default function EstatesPage() {
           )}
         </div>
         <p className="text-secondary text-sm mt-1">
-          Estates you have been designated to manage as trusted contact.
+          What others have shared with you as their Trusted Contact.
         </p>
       </div>
 
@@ -826,11 +826,11 @@ export default function EstatesPage() {
         <div className="py-12 flex flex-col items-center">
           <Users className="w-10 h-10 text-gray-300" />
           <p className="text-base font-medium text-text-secondary text-center mt-3">
-            No estates assigned
+            Nothing shared with you yet
           </p>
           <p className="text-sm text-text-secondary text-center mt-1">
-            If someone designates you as their trusted contact, their estate will
-            appear here.
+            This updates automatically if someone designates you and a release
+            is triggered.
           </p>
         </div>
       ) : activeEstates.length > 0 ? (

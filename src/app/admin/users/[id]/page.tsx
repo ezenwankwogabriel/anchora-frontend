@@ -351,7 +351,7 @@ export default function AdminUserDetailPage() {
           ) : (
             <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 p-3">
               <p className="text-[12.5px] text-amber-800">
-                No executor designated. This user&apos;s estate report cannot be delivered without one.
+                No executor designated. This user&apos;s release summary cannot be made available without one.
               </p>
             </div>
           )}
@@ -378,7 +378,7 @@ export default function AdminUserDetailPage() {
             <DetailRow label="Verified at" value={formatDate(user.govIdVerifiedAt)} />
           )}
           <p className="text-[12px] text-text-tertiary mt-3 pt-3 border-t border-border-color">
-            Set only by a real NIN + selfie match via Dojah — no admin override.
+            Set only by a real NIN + selfie match via Dojah. No admin override.
           </p>
         </div>
 

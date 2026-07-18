@@ -7,7 +7,6 @@ import { PanelCard } from "@/components/ui/panel-card";
 import { AssetCategoryRow } from "@/components/ui/asset-category-row";
 import { SkeletonRow } from "@/components/ui/skeleton-card";
 import { Button } from "@/components/ui/button";
-import { UpgradePrompt } from "@/components/ui/upgrade-prompt";
 import { PaywallModal } from "@/components/ui/paywall-modal";
 import { VaultService } from "@/services/vault.service";
 import { usePlan } from "@/hooks/usePlan";
@@ -77,7 +76,8 @@ export default function VaultClient() {
         <div>
           <h1 className="font-heading text-[28px] text-text-primary">Your assets</h1>
           <p className="text-[13.5px] text-text-secondary mt-1">
-            All financial accounts and assets in your vault.
+            All financial accounts and assets in your vault. Your asset records,
+            not your logins or passwords.
           </p>
         </div>
         <div className="flex flex-col items-end gap-1">
@@ -104,35 +104,32 @@ export default function VaultClient() {
         </div>
       </div>
 
-      {/* Estate summary card */}
+      {/* Release summary row */}
       {!planLoading && (
-        <div className="bg-surface border border-border-color rounded-xl shadow-sm p-5 flex flex-col lg:flex-row items-start gap-4">
+        <div className="bg-surface border border-border-color rounded-xl shadow-sm p-4 flex items-center gap-4">
           <div className="w-10 h-10 rounded-lg bg-navy/10 flex items-center justify-center flex-shrink-0">
             <FileText size={20} className="text-navy" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-[14px] text-text-primary">Estate summary</p>
-            <p className="text-[13px] text-text-secondary mt-0.5">
-              A preview of the document your trusted contact will receive at release.
+            <p className="text-[13.5px] text-text-secondary">
+              {isPro
+                ? "This is the document your trusted contact will receive at release."
+                : "Preview a sample summary - the same shape your trusted contact will see. Available on Pro."}
             </p>
           </div>
-          <div className="flex flex-col items-stretch lg:items-end gap-1.5 w-full lg:w-auto">
+          <div className="flex-shrink-0">
             {isPro ? (
-              <>
-                <Button variant="secondary" size="sm" onClick={handleDownloadReport} disabled={downloading}>
-                  {downloading ? (
-                    "Generating..."
-                  ) : (
-                    <><Download size={13} /> Download summary</>
-                  )}
-                </Button>
-                <p className="text-[11px] text-text-tertiary">Generated as a PDF</p>
-              </>
+              <Button variant="secondary" size="sm" onClick={handleDownloadReport} disabled={downloading}>
+                {downloading ? (
+                  "Generating..."
+                ) : (
+                  <><Download size={13} /> Download</>
+                )}
+              </Button>
             ) : (
-              <UpgradePrompt
-                feature="Estate summary download"
-                description="Download a structured PDF estate document to share with your lawyer or review with your trusted contact. Available on Pro."
-              />
+              <Link href="/settings/upgrade">
+                <Button size="sm">Upgrade to Pro</Button>
+              </Link>
             )}
           </div>
         </div>

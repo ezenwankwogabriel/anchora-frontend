@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ProBadge } from "./pro-badge";
 import { Button } from "./button";
 
 interface UpgradePromptProps {
@@ -10,9 +9,6 @@ interface UpgradePromptProps {
 export function UpgradePrompt({ feature, description }: UpgradePromptProps) {
   return (
     <div className="border border-navy/20 bg-navy/5 rounded-xl p-5">
-      <div className="flex items-center gap-2 mb-2">
-        <ProBadge />
-      </div>
       <p className="font-semibold text-[14px] text-text-primary mb-1">{feature}</p>
       <p className="text-[13px] text-text-secondary mb-4">{description}</p>
       <Link href="/settings/upgrade">

@@ -12,8 +12,27 @@ import { Button } from "@/components/ui/button";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useAuthStore } from "@/stores/authStore";
 import { usePlan } from "@/hooks/usePlan";
+import { categoryLabels } from "@/components/ui/category-icon";
 import type { AssetCategory, Executor, VaultRecord } from "@/lib/types";
 import { DIGITAL_ASSET_CATEGORIES, PHYSICAL_ASSET_CATEGORIES, ALL_VAULT_CATEGORIES } from "@/lib/schemas/vault";
+
+// One-liners for the dashboard checklist's per-category "Add" items —
+// deliberately short, low-friction phrasing (see CATEGORY_CHECKLIST_COPY
+// usage in buildChecklist below). SUBSCRIPTION is legacy and never
+// selectable during onboarding, so it has no entry here.
+const CATEGORY_CHECKLIST_COPY: Partial<Record<AssetCategory, string>> = {
+  BANK_ACCOUNT:        "Record where you bank so your Trusted Contact knows where to start.",
+  INVESTMENT_PLATFORM: "Log your brokerage or investment app so it isn't overlooked.",
+  CRYPTO_WALLET:       "Document your exchange or wallet details so it's not lost.",
+  PENSION_PORTAL:      "Log your PFA details so your Trusted Contact knows where to look.",
+  INSURANCE_POLICY:    "Note your provider and policy so a claim isn't missed.",
+  FOREIGN_ACCOUNT:     "Record accounts held abroad so nothing gets left behind.",
+  REAL_ESTATE:         "Note the property and where its title documents are kept.",
+  VEHICLE:             "Log the vehicle and where its logbook is stored.",
+  JEWELRY_WATCHES:     "Describe the item and where it's kept, for anything of lasting value.",
+  SHARE_CERTIFICATES:  "Note the certificate and where it's physically stored.",
+  OTHER:               "Log anything else worth knowing about, so it isn't forgotten.",
+};
 
 const DISMISSED_KEY         = "onboardingDismissed";
 const PAST_DUE_DISMISSED_KEY = "pastDueBannerDismissed";
@@ -58,7 +77,7 @@ function deriveActivity(records: VaultRecord[] | null): ActivityItem[] {
       return {
         id: r.id,
         type: wasUpdated ? ("vault_updated" as const) : ("vault_added" as const),
-        label: r.accountName ? `${r.institutionName} — ${r.accountName}` : r.institutionName,
+        label: r.accountName ? `${r.institutionName} · ${r.accountName}` : r.institutionName,
         timestamp: wasUpdated ? r.updatedAt : r.createdAt,
       };
     })
@@ -96,7 +115,7 @@ const EXECUTOR_HEALTH_CARD: Record<
   { value: string; subtext: (name: string) => string; status: "critical" | "warning" | "good" }
 > = {
   NONE:         { value: "None",         subtext: () => "No trusted contact designated",           status: "critical" },
-  NOT_NOTIFIED: { value: "Not notified", subtext: (name) => `${name} designated — not yet notified`, status: "warning" },
+  NOT_NOTIFIED: { value: "Not notified", subtext: (name) => `${name} designated, not yet notified`, status: "warning" },
   PENDING:      { value: "Pending",      subtext: (name) => `Invitation sent to ${name}`,          status: "warning" },
   VERIFIED:     { value: "Verified",     subtext: (name) => `${name}'s email is verified`,          status: "good" },
   DECLINED:     { value: "Declined",     subtext: (name) => `${name} declined the invitation`,      status: "critical" },
@@ -111,7 +130,7 @@ function renderExecutorNudge(state: ExecutorDashboardState, executor: Executor |
           <Shield size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-[500] text-amber-900">No trusted contact designated</p>
-            <p className="text-[12px] text-amber-700">Your estate report cannot be delivered without a trusted contact.</p>
+            <p className="text-[12px] text-amber-700">Your release summary cannot be made available without a trusted contact.</p>
           </div>
           <Link href="/executor" className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap flex-shrink-0">
             Designate now →
@@ -188,9 +207,44 @@ function renderExecutorNudge(state: ExecutorDashboardState, executor: Executor |
   }
 }
 
-function buildChecklist(hasRecords: boolean, executor: Executor | null): ChecklistItem[] {
+// If the user selected categories during onboarding, show one "Add" item
+// per category still missing a record — each opens the standard add flow,
+// preselected to that category.
+// Once a category gets a record, its item just drops off the list rather
+// than lingering as a checked-off row; the "Asset coverage" health card
+// above already covers that job once everything here is done. Falls back
+// to the old generic single item for accounts with no recorded selection
+// (pre-existing users, or onboarding categories step was skipped).
+function buildChecklist(
+  records: VaultRecord[] | null,
+  executor: Executor | null,
+  selectedCategories: AssetCategory[] | undefined,
+): ChecklistItem[] {
+  const covered = new Set((records ?? []).map((r) => r.category));
+  const selected = selectedCategories ?? [];
+
+  const categoryItems: ChecklistItem[] =
+    selected.length > 0
+      ? ALL_VAULT_CATEGORIES
+          .filter((cat) => selected.includes(cat) && !covered.has(cat))
+          .map((cat) => ({
+            id: `category-${cat}`,
+            label: `Add your ${categoryLabels[cat]}`,
+            description: CATEGORY_CHECKLIST_COPY[cat],
+            done: false,
+            href: `/vault/add?category=${cat}`,
+          }))
+      : [
+          {
+            id: "vault",
+            label: "Add your first financial asset",
+            done: (records?.length ?? 0) > 0,
+            href: "/vault/add",
+          },
+        ];
+
   return [
-    { id: "vault",    label: "Add your first financial asset", done: hasRecords,                             href: "/vault/add" },
+    ...categoryItems,
     { id: "executor", label: "Designate your trusted contact", done: executor !== null && !executor.declinedAt, href: "/executor" },
   ];
 }
@@ -209,9 +263,6 @@ export default function DashboardPage() {
     localStorage.setItem(PAST_DUE_DISMISSED_KEY, "true");
     setPastDueDismissed(true);
   };
-
-  const totalRecords  = records?.length ?? 0;
-  const intentSet     = records?.filter((r) => r.executorIntent !== "UNSPECIFIED").length ?? 0;
 
   const digitalCovered = DIGITAL_ASSET_CATEGORIES.filter(
     (c: AssetCategory) => (records ?? []).some((r) => r.category === c)
@@ -260,28 +311,11 @@ export default function DashboardPage() {
       </div>
 
       {/* Health cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
         {loading ? (
-          <><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
+          <><SkeletonCard /><SkeletonCard /></>
         ) : (
           <>
-            <HealthCard
-              label="Assets with intent"
-              borderAccent="green"
-              value={error ? "—" : `${intentSet} / ${totalRecords}`}
-              subtext={
-                error ? "Could not load"
-                : totalRecords === 0 ? "No assets yet"
-                : intentSet === totalRecords ? "All assets documented"
-                : `${totalRecords - intentSet} still unspecified`
-              }
-              status={
-                error ? "empty"
-                : totalRecords > 0 && intentSet === totalRecords ? "good"
-                : intentSet > 0 ? "warning"
-                : "critical"
-              }
-            />
             <HealthCard
               label="Trusted Contact"
               borderAccent="accent"
@@ -313,7 +347,7 @@ export default function DashboardPage() {
           <div className="flex-1 min-w-0">
             <p className="text-[13px] font-[500] text-amber-900">Payment failed</p>
             <p className="text-[12px] text-amber-700">
-              Your last billing attempt didn&apos;t go through. Paystack will retry automatically — update your card if needed.
+              Your last billing attempt didn&apos;t go through. Paystack will retry automatically, but update your card if needed.
             </p>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
@@ -338,7 +372,7 @@ export default function DashboardPage() {
       {/* Onboarding checklist */}
       {!checklistDismissed && !loading && (
         <ChecklistCard
-          items={buildChecklist((records?.length ?? 0) > 0, executor)}
+          items={buildChecklist(records, executor, user?.onboardingSelectedCategories)}
           onDismiss={dismissChecklist}
         />
       )}

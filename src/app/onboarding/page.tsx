@@ -17,8 +17,12 @@ import { useAuthStore } from "@/stores/authStore";
 import { cn } from "@/lib/utils";
 import type { AssetCategory, VaultRecordInput } from "@/lib/types";
 
-async function finish(router: ReturnType<typeof useRouter>) {
-  await AuthService.completeOnboarding();
+async function finish(
+  router: ReturnType<typeof useRouter>,
+  categories: AssetCategory[],
+) {
+  await AuthService.completeOnboarding(categories);
+  useAuthStore.getState().updateUser({ onboardingSelectedCategories: categories });
   router.push("/dashboard");
 }
 
@@ -47,7 +51,7 @@ export default function OnboardingPage() {
   const continueFromCategories = () => setStep(categories.length > 0 ? 4 : 5);
   const backToExecutorPrevious = () => setStep(categories.length > 0 ? 4 : 3);
 
-  const skip = () => finish(router);
+  const skip = () => finish(router, categories);
 
   const createFirstAsset = async (data: VaultRecordInput, files: File[]) => {
     setAssetApiError(null);
@@ -77,7 +81,7 @@ export default function OnboardingPage() {
         phone: phone.trim() || undefined,
         relationship: relationship.trim() || undefined,
       });
-      await finish(router);
+      await finish(router, categories);
     } catch {
       setApiError(
         "Something went wrong. You can skip and designate a trusted contact from your dashboard."
@@ -194,21 +198,17 @@ function ScreenWhy({
 }) {
   return (
     <div>
-      {firstName && (
-        <p className="text-[13.5px] text-text-secondary mb-3">
-          Welcome, {firstName}
-        </p>
-      )}
       <h1 className="font-heading text-[32px] sm:text-[38px] leading-[1.2] text-text-primary mb-5">
-        Your financial life is complex.{" "}
-        <span className="text-accent">
-          Make sure the people you love can find what they need.
-        </span>
+        Welcome{firstName ? `, ${firstName}` : ""}
       </h1>
+      <p className="text-[15px] text-text-secondary leading-relaxed mb-4">
+        Most people never write down where their accounts are, who to contact, or
+        what steps to take. That gap is what causes chaos when it matters most.
+      </p>
       <p className="text-[15px] text-text-secondary leading-relaxed mb-10">
-        If something happened to you today, would your family know where your
-        accounts are, who to call, or how to access what&apos;s theirs?
-        Anchora exists to make sure they do.
+        Anchora helps you document what you have, so your Trusted Contact isn&apos;t
+        left guessing. They&apos;ll know exactly where to start and how to navigate
+        the process, when the time comes.
       </p>
       <Button size="lg" onClick={onNext}>
         Get started →
@@ -223,17 +223,17 @@ const HOW_STEPS = [
   {
     icon: <VaultIcon />,
     title: "Store",
-    desc: "Add your financial accounts across up to 12 categories — banks, crypto, pensions, and more.",
+    desc: "Add your financial accounts across 11 categories (banks, crypto, pensions, and more).",
   },
   {
     icon: <UsersIcon />,
     title: "Designate",
-    desc: "Choose a trusted contact who will manage your estate on behalf of your loved ones.",
+    desc: "Choose a Trusted Contact who will be guided through the process on behalf of your loved ones.",
   },
   {
     icon: <ShieldIcon />,
     title: "Rest easy",
-    desc: "Anchora's inactivity engine monitors your account and triggers a secure, staged release automatically.",
+    desc: "Anchora's inactivity engine automatically notifies your Trusted Contact if you become inactive, starting a guided, staged process.",
   },
 ];
 
@@ -282,9 +282,9 @@ function ScreenHowItWorks({
 // ── Screen 2: Set expectations ─────────────────────────────────────────────
 
 const EXPECTATIONS = [
-  "Takes about 15 minutes to complete setup",
-  "Save your progress and return anytime — nothing is lost",
-  "Nothing is shared until you're gone and your family needs it",
+  "Takes about 5 minutes to get started",
+  "Save your progress and pick up anytime, nothing is lost",
+  "Your information stays private and is only accessible to your Trusted Contact if you become inactive for an extended period",
 ];
 
 function ScreenExpectations({
@@ -346,7 +346,7 @@ function ScreenCategories({
         What do you want to protect?
       </h2>
       <p className="text-[14px] text-text-secondary mb-8">
-        Pick everything that applies — you can add the details later. Nothing
+        Pick everything that applies. You can add the details later. Nothing
         here is final.
       </p>
 
@@ -396,7 +396,7 @@ function ScreenFirstAsset({
         Ready to log one?
       </h2>
       <p className="text-[14px] text-text-secondary mb-6">
-        Pick one of the categories you just selected — we&apos;ll walk you
+        Pick one of the categories you just selected, and we&apos;ll walk you
         through it.
       </p>
 
@@ -505,11 +505,11 @@ function ScreenExecutor({
         Final step
       </p>
       <h2 className="font-heading text-[28px] sm:text-[32px] leading-[1.2] text-text-primary mb-2">
-        Who should manage your estate?
+        Designate your Trusted Contact
       </h2>
       <p className="text-[14px] text-text-secondary mb-8">
-        Designate a trusted contact — a lawyer, family member, or close friend — who will
-        receive your estate report and coordinate distribution on your behalf.
+        Choose a trusted contact (a lawyer, family member, or close friend) who will
+        receive your release summary and guidance on next steps.
       </p>
 
       <div className="flex flex-col gap-4 mb-5">

@@ -1,6 +1,6 @@
 import http, { normalise } from "@/lib/axios";
 import { useAuthStore } from "@/stores/authStore";
-import type { AuthResponse, MfaLoginResponse, MfaSetupResponse, User } from "@/lib/types";
+import type { AssetCategory, AuthResponse, MfaLoginResponse, MfaSetupResponse, User } from "@/lib/types";
 
 export const AuthService = {
   register: async (data: {
@@ -144,9 +144,9 @@ export const AuthService = {
       normalise(err);
     }
   },
-  completeOnboarding: async (): Promise<void> => {
+  completeOnboarding: async (categories?: AssetCategory[]): Promise<void> => {
     try {
-      await http.post("/auth/me/complete-onboarding");
+      await http.post("/auth/me/complete-onboarding", { categories });
     } catch (err) {
       normalise(err);
     }
