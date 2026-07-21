@@ -196,22 +196,6 @@ export interface paths {
         patch: operations["AuthController_updateMe"];
         trace?: never;
     };
-    "/api/v1/auth/plan": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["AuthController_getPlan"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/auth/me/complete-onboarding": {
         parameters: {
             query?: never;
@@ -1220,30 +1204,14 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/subscription/initialize": {
+    "/api/v1/billing/plan": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
-        post: operations["SubscriptionController_initialize"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/subscription/status": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get: operations["SubscriptionController_status"];
+        get: operations["BillingController_plan"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1252,7 +1220,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/subscription/cancel": {
+    "/api/v1/billing/checkout": {
         parameters: {
             query?: never;
             header?: never;
@@ -1261,14 +1229,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["SubscriptionController_cancel"];
+        post: operations["BillingController_checkout"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/subscription/resume": {
+    "/api/v1/billing/renew": {
         parameters: {
             query?: never;
             header?: never;
@@ -1277,14 +1245,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["SubscriptionController_resume"];
+        post: operations["BillingController_renew"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/subscription/change-cycle": {
+    "/api/v1/billing/webhooks/paystack": {
         parameters: {
             query?: never;
             header?: never;
@@ -1293,14 +1261,14 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["SubscriptionController_changeCycle"];
+        post: operations["BillingController_webhook"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/subscription/webhook": {
+    "/api/v1/billing/dev/activate": {
         parameters: {
             query?: never;
             header?: never;
@@ -1309,23 +1277,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["SubscriptionController_webhook"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/subscription/dev/activate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["SubscriptionController_devActivate"];
+        post: operations["BillingController_devActivate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1375,6 +1327,7 @@ export interface components {
         LoginMfaDto: Record<string, never>;
         ResetPasswordDto: Record<string, never>;
         UpdateMeDto: Record<string, never>;
+        CompleteOnboardingDto: Record<string, never>;
         ChangePasswordDto: Record<string, never>;
         DeleteAccountDto: Record<string, never>;
         CreateExecutorDto: Record<string, never>;
@@ -1474,7 +1427,7 @@ export interface components {
             mfaEnabled: boolean;
             plan: string;
             planActivatedAt: Record<string, never> | null;
-            planExpiresAt: Record<string, never> | null;
+            paidUntil: Record<string, never> | null;
             vaultItemCount: number;
             govIdVerificationStatus: string;
             govIdVerifiedAt: Record<string, never> | null;
@@ -1560,9 +1513,7 @@ export interface components {
         SetPlanDto: Record<string, never>;
         UpsertGuardianDto: Record<string, never>;
         ConfirmTokenDto: Record<string, never>;
-        InitializeSubscriptionDto: Record<string, never>;
-        ChangeCycleDto: Record<string, never>;
-        DevSetPlanDto: Record<string, never>;
+        DevActivateBillingDto: Record<string, never>;
         VerifyNinDto: Record<string, never>;
     };
     responses: never;
@@ -1828,23 +1779,6 @@ export interface operations {
             };
         };
     };
-    AuthController_getPlan: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     AuthController_completeOnboarding: {
         parameters: {
             query?: never;
@@ -1852,7 +1786,11 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CompleteOnboardingDto"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -3369,28 +3307,7 @@ export interface operations {
             };
         };
     };
-    SubscriptionController_initialize: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["InitializeSubscriptionDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    SubscriptionController_status: {
+    BillingController_plan: {
         parameters: {
             query?: never;
             header?: never;
@@ -3407,7 +3324,7 @@ export interface operations {
             };
         };
     };
-    SubscriptionController_cancel: {
+    BillingController_checkout: {
         parameters: {
             query?: never;
             header?: never;
@@ -3424,7 +3341,7 @@ export interface operations {
             };
         };
     };
-    SubscriptionController_resume: {
+    BillingController_renew: {
         parameters: {
             query?: never;
             header?: never;
@@ -3441,28 +3358,7 @@ export interface operations {
             };
         };
     };
-    SubscriptionController_changeCycle: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ChangeCycleDto"];
-            };
-        };
-        responses: {
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    SubscriptionController_webhook: {
+    BillingController_webhook: {
         parameters: {
             query?: never;
             header: {
@@ -3481,7 +3377,7 @@ export interface operations {
             };
         };
     };
-    SubscriptionController_devActivate: {
+    BillingController_devActivate: {
         parameters: {
             query?: never;
             header?: never;
@@ -3490,7 +3386,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DevSetPlanDto"];
+                "application/json": components["schemas"]["DevActivateBillingDto"];
             };
         };
         responses: {

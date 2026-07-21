@@ -191,17 +191,18 @@ export interface PlanLimits {
   executorReceivesReport: boolean;
 }
 
-export type BillingCycle = "MONTHLY" | "ANNUAL";
-export type SubscriptionStatus = "NONE" | "ACTIVE" | "CANCELLED" | "PAST_DUE";
+export type RenewalStatus =
+  | "current"
+  | "expiring_soon"
+  | "auto_charge_failed"
+  | "expired"
+  | null;
 
-export interface PlanData {
-  plan: "FREE" | "PRO";
-  planActivatedAt: string | null;
-  billingCycle: BillingCycle | null;
-  subscriptionStatus: SubscriptionStatus;
-  currentPeriodEnd: string | null;
-  cancelledAt: string | null;
-  limits: PlanLimits;
+export interface BillingData {
+  tier: "FREE" | "PRO";
+  paidUntil: string | null;
+  renewalStatus: RenewalStatus;
+  cardLast4: string | null;
 }
 
 // Account-level government-ID verification (NIN + selfie, via Dojah),

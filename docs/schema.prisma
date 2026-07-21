@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -8,6 +9,19 @@ datasource db {
 }
 
 // ─── ENUMS ───────────────────────────────────────
+
+enum Plan {
+  FREE
+  PRO
+}
+
+enum RenewalStatus {
+  current
+  expiring_soon
+  auto_charge_failed
+  expired
+}
+
 
 enum AdminRole {
   SUPER_ADMIN
@@ -39,11 +53,10 @@ enum AccountStatus {
   DELETED
 }
 
-enum InactivityStage {
-  NONE
-  STAGE_1
-  STAGE_2
-  STAGE_3
+enum InactivityStatus {
+  ACTIVE
+  NOTIFIED
+  RELEASING
 }
 
 enum AssetCategory {
@@ -53,8 +66,29 @@ enum AssetCategory {
   PENSION_PORTAL
   INSURANCE_POLICY
   FOREIGN_ACCOUNT
+  REAL_ESTATE
+  VEHICLE
+  JEWELRY_WATCHES
+  SHARE_CERTIFICATES
   SUBSCRIPTION
   OTHER
+}
+
+enum ExecutorIntent {
+  LIQUIDATE
+  TRANSFER
+  HOLD
+  UNSPECIFIED
+}
+
+// Account-level government-ID verification (NIN + selfie, via Dojah) — the
+// single identity-verification mechanism for every use case (release-report
+// download for a trusted contact, etc). Synchronous check: no PENDING state,
+// resolves to VERIFIED/FAILED immediately.
+enum GovIdVerificationStatus {
+  UNVERIFIED
+  VERIFIED
+  FAILED
 }
 
 enum Relationship {
@@ -81,6 +115,9 @@ enum ReleaseStatus {
   CANCELLED
 }
 
+// Only used by the deprecated Beneficiary/BeneficiaryRelease models now —
+// ExecutorRelease's own verification fields were removed in favor of the
+// single account-level GovIdVerificationStatus check.
 enum VerificationStatus {
   PENDING
   SUBMITTED
@@ -105,10 +142,16 @@ enum NotificationType {
   BENEFICIARY_ACCOUNT_DELETED
   ACCOUNT_DELETION_INITIATED
   BENEFICIARY_INVITATION
+  BENEFICIARY_INVITATION_EXISTING
   RELEASE_INITIATED
   VERIFICATION_APPROVED
   VERIFICATION_REJECTED
   RELEASE_CANCELLED
+  GUARDIAN_INVITED
+  GUARDIAN_ACCEPTED
+  GUARDIAN_DECLINED
+  RENEWAL_UPCOMING
+  RENEWAL_AUTO_CHARGE_FAILED
 }
 
 enum NotificationChannel {
@@ -173,19 +216,29 @@ model User {
   email           String          @unique
   firstName       String
   lastName        String
-  passwordHash    String
+  passwordHash    String?
+  googleId        String?   @unique
+  facebookId      String?   @unique
   mfaSecret       String?
   mfaMethod       MFAMethod?
   phoneNumber     String?
   role            UserRole        @default(USER)
   status          AccountStatus   @default(ACTIVE)
-  emailVerifiedAt DateTime?
-  lastActivityAt  DateTime        @default(now())
-  inactivityStage InactivityStage @default(NONE)
-  stageEnteredAt   DateTime?
-  coolingOffUntil  DateTime?
-  releaseHaltedAt  DateTime?
+  emailVerifiedAt       DateTime?
+  onboardingCompletedAt DateTime?
+  onboardingSelectedCategories AssetCategory[] @default([])
+  lastActivityAt        DateTime        @default(now())
+  inactivityStatus    InactivityStatus @default(ACTIVE)
+  notifiedAt          DateTime?
+  lastReminderSentAt  DateTime?
+  reminderFrequencyDays   Int     @default(30)
+  inactivityWindowMonths  Int     @default(3)
+  plan              Plan      @default(FREE)
+  planActivatedAt   DateTime?
+  lastRenewalNudgeSentAt DateTime?
   deletedAt       DateTime?
+  govIdVerificationStatus       GovIdVerificationStatus @default(UNVERIFIED)
+  govIdVerifiedAt               DateTime?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
@@ -197,12 +250,35 @@ model User {
   releases            Release[]
   notifications       Notification[]
   beneficiaryAccounts BeneficiaryAccount[] @relation("BeneficiaryAccountOwner")
-  guardians           Guardian[]
+  guardian            Guardian?
+  executor            Executor?
+  billing             Billing?
 
   @@index([email])
   @@index([status])
-  @@index([inactivityStage])
+  @@index([inactivityStatus])
   @@index([lastActivityAt])
+  @@index([govIdVerificationStatus])
+}
+
+model Billing {
+  id                     String         @id @default(cuid())
+  userId                 String         @unique
+  paidUntil              DateTime?
+  renewalStatus          RenewalStatus?
+  authorizationCode      String?
+  customerCode           String?
+  subscriptionCode       String?
+  subscriptionEmailToken String?
+  cardLast4              String?
+  lastProcessedReference String?
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([renewalStatus])
+  @@index([paidUntil])
 }
 
 model MFARecoveryCode {
@@ -234,24 +310,101 @@ model Session {
 }
 
 model VaultRecord {
-  id            String        @id @default(cuid())
-  userId        String
-  category      AssetCategory
-  accountName   String
-  accountType   String?
-  nickname      String?
-  accountUrl    String?
-  encryptedData String
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id                  String         @id @default(cuid())
+  userId              String
+  category            AssetCategory
+  institutionName     String
+  accountName         String?
+  accountUrl          String?
+  executorIntent      ExecutorIntent @default(UNSPECIFIED)
+  intendedBeneficiary String?
+  isSelfCustodied     Boolean        @default(false)
+  encryptedData       String
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
 
   user          User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
   beneficiaries VaultRecordBeneficiary[]
+  documents     VaultRecordDocument[]
 
   @@index([userId])
   @@index([userId, category])
 }
 
+model VaultRecordDocument {
+  id               String   @id @default(cuid())
+  vaultRecordId    String
+  userId           String
+  r2Key            String
+  originalFilename String
+  mimeType         String
+  sizeBytes        Int
+  createdAt        DateTime @default(now())
+
+  vaultRecord  VaultRecord           @relation(fields: [vaultRecordId], references: [id], onDelete: Cascade)
+  accessTokens DocumentAccessToken[]
+
+  @@index([vaultRecordId])
+  @@index([userId])
+}
+
+model DocumentAccessToken {
+  id         String   @id @default(cuid())
+  documentId String
+  releaseId  String
+  tokenHash  String   @unique
+  createdAt  DateTime @default(now())
+
+  document VaultRecordDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  release  Release              @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([releaseId])
+}
+
+model Executor {
+  id           String    @id @default(uuid())
+  userId       String    @unique
+  name         String
+  email        String
+  phone        String?
+  relationship String?
+  invitedAt    DateTime  @default(now())
+  removedAt    DateTime?
+
+  notifiedAt              DateTime?
+  verificationToken       String?
+  verificationTokenSentAt DateTime?
+  emailVerifiedAt         DateTime?
+  acceptedAt              DateTime?
+  declinedAt              DateTime?
+
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  executorReleases ExecutorRelease[]
+
+  @@index([userId])
+  @@index([verificationToken])
+}
+
+model ExecutorRelease {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  releaseId  String   @unique
+  executorId String
+
+  release  Release  @relation(fields: [releaseId], references: [id])
+  executor Executor @relation(fields: [executorId], references: [id])
+
+  @@index([executorId])
+}
+
+// @deprecated — replaced by Executor model.
+// Retained for Sprint 5 release workflow
+// compatibility. Do not add new relations.
 model Beneficiary {
   id           String            @id @default(cuid())
   userId       String
@@ -269,6 +422,7 @@ model Beneficiary {
   vaultRecords VaultRecordBeneficiary[]
   account      BeneficiaryAccount?
   releases     BeneficiaryRelease[]
+  guardian     Guardian?
 
   @@unique([userId, email])
   @@index([userId])
@@ -305,16 +459,16 @@ model BeneficiaryAccount {
 model InactivityEvent {
   id          String          @id @default(cuid())
   userId      String
-  stage       InactivityStage
-  triggeredAt DateTime        @default(now())
+  status      InactivityStatus
+  triggeredAt DateTime         @default(now())
   notifiedAt  DateTime?
-  cancelled   Boolean         @default(false)
+  cancelled   Boolean          @default(false)
   cancelledAt DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([userId, stage])
+  @@index([userId, status])
 }
 
 model Release {
@@ -327,11 +481,16 @@ model Release {
   completedAt  DateTime?
   cancelledAt  DateTime?
   cancelReason String?
-  emptyVault   Boolean       @default(false)
+  emptyVault           Boolean       @default(false)
+  reportUrl            String?
+  reportS3Key          String?
+  reportUrlGeneratedAt DateTime?
 
-  user          User                 @relation(fields: [userId], references: [id])
-  report        ReleaseReport?
-  beneficiaries BeneficiaryRelease[]
+  user                 User                  @relation(fields: [userId], references: [id])
+  report               ReleaseReport?
+  executorRelease      ExecutorRelease?
+  beneficiaries        BeneficiaryRelease[]
+  documentAccessTokens DocumentAccessToken[]
 
   @@index([userId])
   @@index([status])
@@ -395,20 +554,26 @@ model Notification {
 // actorId and targetId are plain strings —
 model Guardian {
   id                      String    @id @default(cuid())
-  userId                  String
+  userId                  String    @unique
   firstName               String
   email                   String
+  inviteToken             String?
+  inviteTokenSentAt       DateTime?
+  acceptedAt              DateTime?
+  declinedAt              DateTime?
   confirmationToken       String?
   confirmationTokenSentAt DateTime?
   confirmedAt             DateTime?
   releaseId               String?
+  beneficiaryId           String?   @unique
   createdAt               DateTime  @default(now())
   updatedAt               DateTime  @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  beneficiary Beneficiary? @relation(fields: [beneficiaryId], references: [id], onDelete: SetNull)
 
-  @@index([userId])
   @@index([confirmationToken])
+  @@index([inviteToken])
 }
 
 // they record who did what even after the

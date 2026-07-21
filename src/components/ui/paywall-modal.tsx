@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { X, Lock, Loader2, CheckCircle2, Mail } from "lucide-react";
 import { Button } from "./button";
-import { usePaystackCheckout, PRO_CHECKOUT_ENABLED } from "@/hooks/usePaystackCheckout";
+import { usePaystackCheckout } from "@/hooks/usePaystackCheckout";
 
 interface PaywallModalProps {
   open: boolean;
@@ -86,7 +86,7 @@ export function PaywallModal({ open, onClose, onUpgraded }: PaywallModalProps) {
             {error ?? "No charge was made. You can try again."}
           </p>
           <div className="flex gap-3 w-full mt-3">
-            <Button fullWidth onClick={() => start("MONTHLY")}>
+            <Button fullWidth onClick={() => start("checkout")}>
               Try again
             </Button>
             <Button variant="ghost" fullWidth onClick={handleClose}>Cancel</Button>
@@ -117,25 +117,19 @@ export function PaywallModal({ open, onClose, onUpgraded }: PaywallModalProps) {
           You&apos;ve reached your free plan limit
         </p>
         <p className="text-[13px] text-text-secondary mb-6 max-w-[300px]">
-          {PRO_CHECKOUT_ENABLED
-            ? "Free plans include up to 3 asset records. Upgrade to Pro for unlimited records across all 11 categories."
-            : "Free plans include up to 3 asset records. Pro (unlimited records across all 11 categories) is coming soon."}
+          Free plans include up to 3 asset records. Upgrade to Pro for unlimited records across all 11 categories — ₦49,900 one-time, ₦19,900/year after that.
         </p>
 
-        {PRO_CHECKOUT_ENABLED ? (
-          <Button
-            fullWidth
-            disabled={isInitializing}
-            onClick={() => start("MONTHLY")}
-            className="mb-3"
-          >
-            {isInitializing
-              ? <><Loader2 size={14} className="animate-spin" /> Preparing checkout…</>
-              : "Upgrade to Pro"}
-          </Button>
-        ) : (
-          <Button fullWidth disabled className="mb-3">Coming soon</Button>
-        )}
+        <Button
+          fullWidth
+          disabled={isInitializing}
+          onClick={() => start("checkout")}
+          className="mb-3"
+        >
+          {isInitializing
+            ? <><Loader2 size={14} className="animate-spin" /> Preparing checkout…</>
+            : "Upgrade to Pro"}
+        </Button>
 
         <Link
           href="/settings?tab=Plan"

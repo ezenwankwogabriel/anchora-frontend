@@ -340,14 +340,14 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Payment failed banner */}
-      {true || !planLoading && planData?.subscriptionStatus === "PAST_DUE" && !pastDueDismissed && (
+      {/* Renewal failed banner */}
+      {!planLoading && planData?.renewalStatus === "auto_charge_failed" && !pastDueDismissed && (
         <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
           <CreditCard size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-amber-900">Payment failed</p>
+            <p className="text-[13px] font-[500] text-amber-900">Renewal payment failed</p>
             <p className="text-[12px] text-amber-700">
-              Your last billing attempt didn&apos;t go through. Paystack will retry automatically, but update your card if needed.
+              Your ₦19,900 renewal didn&apos;t go through. Renew manually to keep your Pro access.
             </p>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
