@@ -1,7 +1,6 @@
 import { useCallback, useState } from "react";
-import { SubscriptionService } from "@/services/subscription.service";
+import { BillingService } from "@/services/billing.service";
 import { ServiceError } from "@/lib/types";
-import type { BillingCycle } from "@/lib/types";
 
 export type CheckoutPhase =
   | "idle"
@@ -11,6 +10,8 @@ export type CheckoutPhase =
   | "success"
   | "failed"
   | "timeout";
+
+export type CheckoutIntent = "checkout" | "renew";
 
 interface PaystackPopInstance {
   newTransaction(opts: {
@@ -30,11 +31,6 @@ declare global {
 const POLL_INTERVAL_MS = 2_000;
 const MAX_POLL_ATTEMPTS = 20; // 40 s total
 
-// Paystack account is still in test mode / pending verification — checkout is
-// hidden behind this flag so we can onboard users on the free plan in the
-// meantime. Flip NEXT_PUBLIC_ENABLE_PRO_CHECKOUT=true once verification clears.
-export const PRO_CHECKOUT_ENABLED = process.env.NEXT_PUBLIC_ENABLE_PRO_CHECKOUT === "true";
-
 export function usePaystackCheckout(onSuccess?: () => void) {
   const [phase, setPhase] = useState<CheckoutPhase>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -44,8 +40,8 @@ export function usePaystackCheckout(onSuccess?: () => void) {
 
     const tick = async () => {
       try {
-        const status = await SubscriptionService.status();
-        if (status.plan === "PRO" && status.subscriptionStatus === "ACTIVE") {
+        const status = await BillingService.getPlan();
+        if (status.tier === "PRO" && status.paidUntil !== null) {
           setPhase("success");
           onSuccess?.();
           return;
@@ -65,18 +61,15 @@ export function usePaystackCheckout(onSuccess?: () => void) {
   }, [onSuccess]);
 
   const start = useCallback(
-    async (billingCycle: BillingCycle) => {
-      if (!PRO_CHECKOUT_ENABLED) {
-        setPhase("failed");
-        setError("Pro checkout isn't available yet. Check back soon.");
-        return;
-      }
-
+    async (intent: CheckoutIntent) => {
       setPhase("initializing");
       setError(null);
 
       try {
-        const { accessCode } = await SubscriptionService.initialize(billingCycle);
+        const { accessCode } =
+          intent === "checkout"
+            ? await BillingService.checkout()
+            : await BillingService.renew();
 
         const PaystackPop = window.PaystackPop;
         if (!PaystackPop) {

@@ -20,12 +20,11 @@ import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { ProBadge } from "@/components/ui/pro-badge";
 import { usePlan } from "@/hooks/usePlan";
-import { usePaystackCheckout, PRO_CHECKOUT_ENABLED } from "@/hooks/usePaystackCheckout";
+import { usePaystackCheckout } from "@/hooks/usePaystackCheckout";
 import { useIdentityStatus } from "@/hooks/useIdentityStatus";
 import { useNinVerification } from "@/hooks/useNinVerification";
-import { SubscriptionService } from "@/services/subscription.service";
 import { CheckCircle2, X, ArrowRight, Mail } from "lucide-react";
-import type { BillingCycle, GovIdVerificationStatus } from "@/lib/types";
+import type { GovIdVerificationStatus, RenewalStatus } from "@/lib/types";
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
@@ -236,7 +235,7 @@ function ProfileTab({ planData }: { planData: ReturnType<typeof usePlan>["planDa
                 {user.firstName} {user.lastName}
               </p>
               {planData && (
-                planData.plan === "PRO"
+                planData.tier === "PRO"
                   ? <ProBadge />
                   : <span className="bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-full">FREE</span>
               )}
@@ -894,9 +893,6 @@ function InactivityRemindersSection({ isFree, planLoading }: { isFree: boolean; 
 
 // ── Plan tab ──────────────────────────────────────────────────────────────────
 
-const ANNUAL_TOTAL = 24_000;
-const ANNUAL_DISCOUNT_PCT = 20;
-
 function PlanFeature({ included, text }: { included: boolean; text: string }) {
   return (
     <li className="flex items-start gap-2">
@@ -1128,172 +1124,41 @@ function IdentityVerificationTab({
 }
 
 // 3-step cancellation modal
-function CancellationModal({
-  periodEndDate,
-  onClose,
-  onCancelled,
+// Inline banner shown on the Pro card when renewal needs attention.
+function RenewalBanner({
+  renewalStatus,
+  paidUntilDate,
+  onRenew,
+  renewing,
 }: {
-  periodEndDate: string | null;
-  onClose: () => void;
-  onCancelled: () => void;
+  renewalStatus: RenewalStatus;
+  paidUntilDate: string | null;
+  onRenew: () => void;
+  renewing: boolean;
 }) {
-  const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [reason, setReason] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const addToast = useToastStore((s) => s.add);
+  if (renewalStatus === "current" || renewalStatus === null) return null;
 
-  const reasons = ["Too expensive", "Not using it", "Missing a feature", "Other"];
-
-  const handleCancel = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      await SubscriptionService.cancel();
-      setStep(3);
-      onCancelled();
-    } catch (err) {
-      setError(err instanceof ServiceError ? err.message : "Something went wrong.");
-      addToast("Failed to cancel subscription.", "error");
-    } finally {
-      setLoading(false);
-    }
+  const copy: Record<Exclude<RenewalStatus, "current" | null>, string> = {
+    expiring_soon: paidUntilDate
+      ? `Renews on ${paidUntilDate} — renew now to avoid interruption.`
+      : "Your Pro access renews soon — renew now to avoid interruption.",
+    auto_charge_failed:
+      "Your ₦19,900 renewal didn't go through. Renew manually to keep your access.",
+    expired:
+      "Your paid access has lapsed. Renew now to keep your Pro features.",
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onClose} />
-      <div className="relative z-10 bg-surface rounded-2xl border border-border-color shadow-md w-full max-w-[440px] p-6">
-        {step === 1 && (
-          <>
-            <p className="font-heading text-[20px] text-text-primary mb-3">Cancel your Pro subscription?</p>
-            <p className="text-[13px] text-text-secondary leading-relaxed mb-5">
-              You&apos;ll keep full Pro access until your current billing period ends
-              {periodEndDate ? ` on <strong>${periodEndDate}</strong>` : ""}. After that, if you have more than 3
-              asset records, records beyond the first 3 become{" "}
-              <strong>read-only</strong>, so you can view and delete them, but not edit, until you&apos;re back at or under the free limit.
-            </p>
-            {error && (
-              <p className="text-[12.5px] text-red bg-red-light border border-[#F5B0B0] rounded-md px-3 py-2 mb-4">
-                {error}
-              </p>
-            )}
-            <div className="flex gap-3">
-              <Button variant="ghost" fullWidth onClick={onClose}>Keep Pro</Button>
-              <Button
-                variant="secondary"
-                fullWidth
-                disabled={loading}
-                onClick={() => setStep(2)}
-              >
-                Cancel subscription
-              </Button>
-            </div>
-          </>
-        )}
-
-        {step === 2 && (
-          <>
-            <p className="font-heading text-[20px] text-text-primary mb-3">Before you go…</p>
-            <p className="text-[13px] text-text-secondary mb-4">What&apos;s the main reason? (optional)</p>
-            <div className="flex flex-wrap gap-2 mb-6">
-              {reasons.map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setReason(reason === r ? null : r)}
-                  className={`px-3 py-1.5 rounded-full text-[12.5px] border transition-all ${
-                    reason === r
-                      ? "bg-navy text-white border-navy"
-                      : "bg-surface text-text-secondary border-border-color hover:border-border-strong"
-                  }`}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-3">
-              <Button variant="ghost" fullWidth onClick={() => setStep(1)}>Back</Button>
-              <Button
-                variant="secondary"
-                fullWidth
-                disabled={loading}
-                onClick={handleCancel}
-              >
-                {loading && <Loader2 size={14} className="animate-spin" />}
-                Confirm cancellation
-              </Button>
-            </div>
-          </>
-        )}
-
-        {step === 3 && (
-          <>
-            <div className="flex flex-col items-center text-center py-2">
-              <CheckCircle2 size={32} className="text-text-secondary mb-3" />
-              <p className="font-semibold text-[15px] text-text-primary mb-1">Subscription cancelled</p>
-              <p className="text-[13px] text-text-secondary mb-5">
-                {periodEndDate
-                  ? `You'll have Pro access until ${periodEndDate}.`
-                  : "Your subscription has been cancelled."}
-              </p>
-              <Button onClick={onClose}>Back to settings</Button>
-            </div>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// Billing cycle switch confirmation modal
-function CycleChangeModal({
-  targetCycle,
-  periodEndDate,
-  onClose,
-  onConfirmed,
-}: {
-  targetCycle: BillingCycle;
-  periodEndDate: string | null;
-  onClose: () => void;
-  onConfirmed: () => Promise<void>;
-}) {
-  const [loading, setLoading] = useState(false);
-
-  const isUpgrade = targetCycle === "ANNUAL";
-  const newPrice = isUpgrade ? "₦24,000/year (₦2,000/mo)" : "₦2,500/month";
-  const effectiveNote = isUpgrade
-    ? "Your new annual billing starts immediately."
-    : periodEndDate
-      ? `Monthly billing takes effect at your next renewal on ${periodEndDate}.`
-      : "Monthly billing takes effect at your next renewal.";
+  const tone = renewalStatus === "expiring_soon"
+    ? "bg-amber-50 border-amber-200 text-amber-800"
+    : "bg-red-light border-[#F5B0B0] text-red";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onClose} />
-      <div className="relative z-10 bg-surface rounded-2xl border border-border-color shadow-md w-full max-w-[420px] p-6">
-        <p className="font-heading text-[20px] text-text-primary mb-3">
-          Switch to {targetCycle === "ANNUAL" ? "annual" : "monthly"} billing
-        </p>
-        <p className="text-[13px] text-text-secondary leading-relaxed mb-5">
-          Your new plan will be billed at <strong>{newPrice}</strong>. {effectiveNote}
-        </p>
-        <div className="flex gap-3">
-          <Button variant="ghost" fullWidth onClick={onClose}>Cancel</Button>
-          <Button
-            fullWidth
-            disabled={loading}
-            onClick={async () => {
-              setLoading(true);
-              await onConfirmed();
-              setLoading(false);
-            }}
-          >
-            {loading && <Loader2 size={14} className="animate-spin" />}
-            Confirm switch
-          </Button>
-        </div>
-      </div>
+    <div className={`flex items-center justify-between gap-3 flex-wrap rounded-lg border px-4 py-3 mb-5 ${tone}`}>
+      <p className="text-[13px] leading-snug">{copy[renewalStatus]}</p>
+      <Button size="sm" disabled={renewing} onClick={onRenew}>
+        {renewing && <Loader2 size={13} className="animate-spin" />}
+        Renew now
+      </Button>
     </div>
   );
 }
@@ -1307,46 +1172,33 @@ function PlanTab({
   loading: boolean;
   onPlanUpdated: () => void;
 }) {
-  const addToast = useToastStore((s) => s.add);
-  const [cycleSel, setCycleSel] = useState<BillingCycle>("MONTHLY");
-  const [showCancelModal, setShowCancelModal] = useState(false);
-  const [showCycleModal, setShowCycleModal] = useState(false);
-  const [resuming, setResuming] = useState(false);
+  const [renewing, setRenewing] = useState(false);
+  // Which checkout flow is in flight, so retry/onDone know which one to resume.
+  const [lastIntent, setLastIntent] = useState<"checkout" | "renew">("checkout");
 
   const { start: startCheckout, phase, error: checkoutError, reset: resetCheckout } =
     usePaystackCheckout(onPlanUpdated);
 
   if (loading) return null;
 
-  const isPro       = planData?.plan === "PRO";
-  const isCancelled = isPro && planData?.subscriptionStatus === "CANCELLED";
-  const activeCycle = planData?.billingCycle ?? null;
+  const isPro = planData?.tier === "PRO";
+  const renewalStatus = planData?.renewalStatus ?? null;
 
-  const periodEndDate = planData?.currentPeriodEnd
-    ? new Date(planData.currentPeriodEnd).toLocaleDateString("en-GB", {
+  const paidUntilDate = planData?.paidUntil
+    ? new Date(planData.paidUntil).toLocaleDateString("en-GB", {
         day: "numeric", month: "long", year: "numeric",
       })
     : null;
 
-  // Three-state CTA for the Pro card
-  const proCtaState: "upgrade" | "current" | "switch" =
-    !isPro ? "upgrade" :
-    activeCycle === cycleSel ? "current" : "switch";
-
-  const handleResume = async () => {
-    setResuming(true);
-    try {
-      await SubscriptionService.resume();
-      addToast("Subscription resumed.", "success");
-      onPlanUpdated();
-    } catch {
-      addToast("Failed to resume subscription.", "error");
-    } finally {
-      setResuming(false);
-    }
-  };
-
   const isInitializing = phase === "initializing" || phase === "processing";
+
+  const handleCheckout = () => { setLastIntent("checkout"); startCheckout("checkout"); };
+  const handleRenew = async () => {
+    setLastIntent("renew");
+    setRenewing(true);
+    await startCheckout("renew");
+    setRenewing(false);
+  };
 
   // Show inline status for non-idle checkout phases
   if (phase === "confirming" || phase === "success" || phase === "failed" || phase === "timeout") {
@@ -1354,7 +1206,7 @@ function PlanTab({
       <CheckoutStatusView
         phase={phase}
         error={checkoutError}
-        onRetry={() => startCheckout(cycleSel)}
+        onRetry={() => startCheckout(lastIntent)}
         onDone={() => { resetCheckout(); onPlanUpdated(); }}
       />
     );
@@ -1363,7 +1215,7 @@ function PlanTab({
   return (
     <>
       {/* Current plan summary */}
-      <Section title="Current plan" description="Your active Anchora subscription.">
+      <Section title="Current plan" description="Your active Anchora plan.">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <div className="flex items-center gap-2 mb-1">
@@ -1374,68 +1226,31 @@ function PlanTab({
             </div>
             <p className="text-[12.5px] text-text-secondary">
               {isPro
-                ? isCancelled && periodEndDate
-                  ? <span className="text-amber-600 font-medium">Cancels on {periodEndDate}</span>
-                  : periodEndDate
-                    ? `Renews on ${periodEndDate} · ₦${activeCycle === "ANNUAL" ? "2,000" : "2,500"}/mo · Paystack`
-                    : "Active"
+                ? paidUntilDate
+                  ? `Renews on ${paidUntilDate} · Paystack`
+                  : "Active"
                 : "Up to 3 asset records · all 11 categories"}
             </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {isCancelled && (
-              <Button size="sm" variant="secondary" disabled={resuming} onClick={handleResume}>
-                {resuming && <Loader2 size={13} className="animate-spin" />}
-                Resume subscription
-              </Button>
-            )}
-            {isPro && !isCancelled && (
-              <button
-                type="button"
-                className="text-[12.5px] text-text-secondary hover:text-text-primary underline underline-offset-2 transition-colors"
-                onClick={() => setShowCancelModal(true)}
-              >
-                Manage billing
-              </button>
-            )}
             {!isPro && (
-              PRO_CHECKOUT_ENABLED ? (
-                <Button size="sm" disabled={isInitializing} onClick={() => startCheckout(cycleSel)}>
-                  {isInitializing ? <Loader2 size={13} className="animate-spin" /> : <ArrowRight size={13} />}
-                  {isInitializing ? "Preparing…" : "Upgrade to Pro"}
-                </Button>
-              ) : (
-                <Button size="sm" disabled>Coming soon</Button>
-              )
+              <Button size="sm" disabled={isInitializing} onClick={handleCheckout}>
+                {isInitializing ? <Loader2 size={13} className="animate-spin" /> : <ArrowRight size={13} />}
+                {isInitializing ? "Preparing…" : "Upgrade to Pro"}
+              </Button>
             )}
           </div>
         </div>
       </Section>
 
-      {/* Billing cycle toggle */}
-      <div className="flex justify-center">
-        <div className="flex bg-[#F3F4F6] rounded-[10px] p-[3px] gap-[2px]">
-          {(["MONTHLY", "ANNUAL"] as BillingCycle[]).map((cycle) => (
-            <button
-              key={cycle}
-              type="button"
-              onClick={() => setCycleSel(cycle)}
-              className={`px-4 py-[7px] text-[13px] font-[500] rounded-[8px] transition-all flex items-center gap-2 ${
-                cycleSel === cycle
-                  ? "bg-surface text-text-primary shadow-sm font-semibold"
-                  : "text-text-secondary hover:text-text-primary"
-              }`}
-            >
-              {cycle === "MONTHLY" ? "Monthly" : "Annual"}
-              {cycle === "ANNUAL" && (
-                <span className="bg-green/15 text-green text-[11px] font-semibold px-1.5 py-0.5 rounded-full leading-none">
-                  Save {ANNUAL_DISCOUNT_PCT}%
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
+      {isPro && (
+        <RenewalBanner
+          renewalStatus={renewalStatus}
+          paidUntilDate={paidUntilDate}
+          onRenew={handleRenew}
+          renewing={renewing || (isInitializing && lastIntent === "renew")}
+        />
+      )}
 
       {/* Plan cards */}
       <div className="flex flex-col sm:flex-row gap-5">
@@ -1456,68 +1271,39 @@ function PlanTab({
             <PlanFeature included={false} text="Configurable inactivity window" />
             <PlanFeature included={false} text="Unlimited asset records" />
           </ul>
-          {isPro ? (
-            <Button variant="ghost" fullWidth className="mt-5" onClick={() => setShowCancelModal(true)}>
-              Downgrade to Free
-            </Button>
-          ) : (
-            <Button variant="secondary" fullWidth disabled className="mt-5">
-              Current plan
-            </Button>
-          )}
+          <Button variant="secondary" fullWidth disabled className="mt-5">
+            {isPro ? "Included in Pro" : "Current plan"}
+          </Button>
         </div>
 
         {/* Pro card */}
         <div className="flex-1 bg-surface border-2 border-navy rounded-xl p-5">
-          <div className="flex items-center gap-2">
-            <span className="bg-navy text-white text-[11.5px] font-medium px-2.5 py-1 rounded-full">Pro</span>
-            {cycleSel === "ANNUAL" && (
-              <span className="bg-green/15 text-green text-[11px] font-semibold px-2 py-0.5 rounded-full leading-none">
-                Save 20%
-              </span>
-            )}
-          </div>
-          <p className="text-[26px] font-heading text-navy mt-3">
-            ₦{cycleSel === "ANNUAL" ? "2,000" : "2,500"}
-          </p>
-          <p className="text-[12px] text-text-secondary">
-            {cycleSel === "ANNUAL"
-              ? `billed ₦${ANNUAL_TOTAL.toLocaleString()}/year`
-              : "per month"}
-          </p>
+          <span className="bg-navy text-white text-[11.5px] font-medium px-2.5 py-1 rounded-full">Pro</span>
+          <p className="text-[26px] font-heading text-navy mt-3">₦49,900</p>
+          <p className="text-[12px] text-text-secondary">one-time, then ₦19,900/year</p>
           <ul className="mt-4 space-y-2">
             <PlanFeature included text="Unlimited asset records" />
             <PlanFeature included text="All 11 asset categories" />
-            <PlanFeature included text="Designate one trusted contact" />
+            <PlanFeature included text="Designate multiple trusted contacts" />
             <PlanFeature included text="Full inactivity monitoring" />
-            <PlanFeature included text="Trusted contact receives release summary" />
+            <PlanFeature included text="Trusted contacts receives release summary" />
             <PlanFeature included text="Download your release summary anytime" />
             <PlanFeature included text="Configurable inactivity window (6–24 mo)" />
             <PlanFeature included text="Priority email support" />
           </ul>
-          {proCtaState === "current" ? (
+          {isPro ? (
             <Button fullWidth disabled className="mt-5">Current plan</Button>
-          ) : !PRO_CHECKOUT_ENABLED ? (
-            <Button fullWidth disabled className="mt-5">Coming soon</Button>
           ) : (
             <Button
               fullWidth
               className="mt-5"
               disabled={isInitializing}
-              onClick={
-                proCtaState === "upgrade"
-                  ? () => startCheckout(cycleSel)
-                  : () => setShowCycleModal(true)
-              }
+              onClick={handleCheckout}
             >
               {isInitializing ? (
                 <><Loader2 size={14} className="animate-spin" /> Preparing checkout…</>
-              ) : proCtaState === "upgrade" ? (
-                "Upgrade to Pro"
-              ) : cycleSel === "ANNUAL" ? (
-                "Switch to Annual"
               ) : (
-                "Switch to Monthly"
+                "Upgrade to Pro"
               )}
             </Button>
           )}
@@ -1527,26 +1313,6 @@ function PlanTab({
       <p className="text-[12.5px] text-text-secondary text-center mt-5">
         Questions? Contact us at hello@anchora.co
       </p>
-
-      {showCancelModal && (
-        <CancellationModal
-          periodEndDate={periodEndDate}
-          onClose={() => setShowCancelModal(false)}
-          onCancelled={() => { setShowCancelModal(false); onPlanUpdated(); }}
-        />
-      )}
-
-      {showCycleModal && (
-        <CycleChangeModal
-          targetCycle={cycleSel}
-          periodEndDate={periodEndDate}
-          onClose={() => setShowCycleModal(false)}
-          onConfirmed={async () => {
-            setShowCycleModal(false);
-            await startCheckout(cycleSel);
-          }}
-        />
-      )}
     </>
   );
 }
