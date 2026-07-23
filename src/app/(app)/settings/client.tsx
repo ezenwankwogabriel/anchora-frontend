@@ -1311,7 +1311,7 @@ function PlanTab({
       </div>
 
       <p className="text-[12.5px] text-text-secondary text-center mt-5">
-        Questions? Contact us at hello@anchora.co
+        Questions? Contact us at support@anchora.com.ng
       </p>
     </>
   );
