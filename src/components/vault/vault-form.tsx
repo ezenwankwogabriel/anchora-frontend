@@ -276,13 +276,13 @@ export function VaultForm({
           />
         </div>
       ) : (
-        detailsOpen && (
+        <div className={detailsOpen ? undefined : "hidden"}>
           <VaultDocumentPicker
             files={stagedFiles}
             onChange={onStagedFilesChange}
             accented
           />
-        )
+        </div>
       )}
 
       {errors.root && (
