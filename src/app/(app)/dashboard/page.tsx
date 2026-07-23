@@ -13,7 +13,7 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { useAuthStore } from "@/stores/authStore";
 import { usePlan } from "@/hooks/usePlan";
 import { categoryLabels } from "@/components/ui/category-icon";
-import type { AssetCategory, Executor, VaultRecord } from "@/lib/types";
+import type { AssetCategory, Executor, RenewalStatus, VaultRecord } from "@/lib/types";
 import { DIGITAL_ASSET_CATEGORIES, PHYSICAL_ASSET_CATEGORIES, ALL_VAULT_CATEGORIES } from "@/lib/schemas/vault";
 
 // One-liners for the dashboard checklist's per-category "Add" items —
@@ -36,6 +36,28 @@ const CATEGORY_CHECKLIST_COPY: Partial<Record<AssetCategory, string>> = {
 
 const DISMISSED_KEY         = "onboardingDismissed";
 const PAST_DUE_DISMISSED_KEY = "pastDueBannerDismissed";
+
+const RENEWAL_BANNER_COPY: Record<
+  Exclude<RenewalStatus, "current" | null>,
+  { title: string; message: string }
+> = {
+  expiring_soon: {
+    title: "Your Pro access is expiring soon",
+    message: "Renew now to avoid an interruption to your Pro access.",
+  },
+  auto_charge_failed: {
+    title: "Renewal payment failed",
+    message: "Your ₦19,900 renewal didn't go through. Renew manually to keep your Pro access.",
+  },
+  expired: {
+    title: "Your Pro access has lapsed",
+    message: "Renew now to restore your Pro features.",
+  },
+};
+
+function needsBannerFor(status: RenewalStatus | undefined): status is Exclude<RenewalStatus, "current" | null> {
+  return status === "expiring_soon" || status === "auto_charge_failed" || status === "expired";
+}
 
 function timeAgo(iso: string): string {
   const diff   = Date.now() - new Date(iso).getTime();
@@ -340,14 +362,14 @@ export default function DashboardPage() {
         )}
       </div>
 
-      {/* Renewal failed banner */}
-      {!planLoading && planData?.renewalStatus === "auto_charge_failed" && !pastDueDismissed && (
+      {/* Renewal attention banner */}
+      {!planLoading && needsBannerFor(planData?.renewalStatus) && !pastDueDismissed && (
         <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
           <CreditCard size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-amber-900">Renewal payment failed</p>
+            <p className="text-[13px] font-[500] text-amber-900">{RENEWAL_BANNER_COPY[planData!.renewalStatus!].title}</p>
             <p className="text-[12px] text-amber-700">
-              Your ₦19,900 renewal didn&apos;t go through. Renew manually to keep your Pro access.
+              {RENEWAL_BANNER_COPY[planData!.renewalStatus!].message}
             </p>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
