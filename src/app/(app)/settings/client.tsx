@@ -1196,7 +1196,7 @@ function PlanTab({
   const handleRenew = async () => {
     setLastIntent("renew");
     setRenewing(true);
-    await startCheckout("renew");
+    await startCheckout("renew", planData?.paidUntil ?? null);
     setRenewing(false);
   };
 
@@ -1206,7 +1206,7 @@ function PlanTab({
       <CheckoutStatusView
         phase={phase}
         error={checkoutError}
-        onRetry={() => startCheckout(lastIntent)}
+        onRetry={() => startCheckout(lastIntent, planData?.paidUntil ?? null)}
         onDone={() => { resetCheckout(); onPlanUpdated(); }}
       />
     );
