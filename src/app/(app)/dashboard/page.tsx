@@ -259,6 +259,15 @@ export default function DashboardPage() {
     setPastDueDismissed(localStorage.getItem(PAST_DUE_DISMISSED_KEY) === "true");
   }, []);
 
+  // Once the plan is current again, clear a prior dismissal so a future,
+  // unrelated renewal failure isn't silently suppressed by an old dismiss.
+  useEffect(() => {
+    if (planData?.renewalStatus === "current") {
+      localStorage.removeItem(PAST_DUE_DISMISSED_KEY);
+      setPastDueDismissed(false);
+    }
+  }, [planData?.renewalStatus]);
+
   const dismissPastDueBanner = () => {
     localStorage.setItem(PAST_DUE_DISMISSED_KEY, "true");
     setPastDueDismissed(true);
