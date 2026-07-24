@@ -97,7 +97,8 @@ function hasExistingAdvancedValues(record?: VaultRecord): boolean {
   return Boolean(
     record.encryptedFields?.credential?.trim() ||
     record.intendedBeneficiary?.trim() ||
-    record.accountUrl?.trim(),
+    record.accountUrl?.trim() ||
+    record.isSelfCustodied,
   );
 }
 
