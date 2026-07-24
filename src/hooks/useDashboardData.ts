@@ -34,11 +34,30 @@ export function useDashboardData() {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
+    let stale = false;
+    const startedAt = Date.now();
+    console.debug("[dashboard-data] load start");
+
     async function load() {
       const [recordsRes, executorRes] = await Promise.allSettled([
         VaultService.getRecords(),
         ExecutorService.get(),
       ]);
+
+      const elapsed = Date.now() - startedAt;
+      if (stale) {
+        // If this ever logs, the fetch outlived its component (e.g. an
+        // unmount/remount raced the 401-refresh-retry cycle) and the
+        // resolved data was intentionally dropped instead of silently
+        // vanishing into a state update React discards.
+        console.warn(`[dashboard-data] discarding stale response after ${elapsed}ms — component unmounted before load finished`);
+        return;
+      }
+
+      console.debug(`[dashboard-data] load resolved after ${elapsed}ms, dispatching LOADED`, {
+        recordsStatus: recordsRes.status,
+        executorStatus: executorRes.status,
+      });
 
       dispatch({
         type: "LOADED",
@@ -48,6 +67,8 @@ export function useDashboardData() {
       });
     }
     load();
+
+    return () => { stale = true; };
   }, []);
 
   const deleteRecord = (id: string) => {
