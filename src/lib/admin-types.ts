@@ -66,7 +66,7 @@ export interface AdminUserDetail extends AdminUserListItem {
   emailVerifiedAt: string | null;
   mfaEnabled: boolean;
   planActivatedAt: string | null;
-  planExpiresAt: string | null;
+  paidUntil: string | null;
   govIdVerificationStatus: GovIdVerificationStatus;
   govIdVerifiedAt: string | null;
   releases: { id: string; status: ReleaseStatus; triggeredAt: string }[];

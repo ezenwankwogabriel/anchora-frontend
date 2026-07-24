@@ -398,8 +398,8 @@ export default function AdminUserDetailPage() {
           {user.planActivatedAt && (
             <DetailRow label="Activated"  value={formatDate(user.planActivatedAt)} />
           )}
-          {user.planExpiresAt && (
-            <DetailRow label="Expires"    value={formatDate(user.planExpiresAt)} />
+          {user.paidUntil && (
+            <DetailRow label="Expires"    value={formatDate(user.paidUntil)} />
           )}
 
           {isSuperAdmin && (
