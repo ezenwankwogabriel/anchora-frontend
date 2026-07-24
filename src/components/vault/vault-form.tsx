@@ -97,7 +97,8 @@ function hasExistingAdvancedValues(record?: VaultRecord): boolean {
   return Boolean(
     record.encryptedFields?.credential?.trim() ||
     record.intendedBeneficiary?.trim() ||
-    record.accountUrl?.trim(),
+    record.accountUrl?.trim() ||
+    record.isSelfCustodied,
   );
 }
 
@@ -276,13 +277,13 @@ export function VaultForm({
           />
         </div>
       ) : (
-        detailsOpen && (
+        <div className={detailsOpen ? undefined : "hidden"}>
           <VaultDocumentPicker
             files={stagedFiles}
             onChange={onStagedFilesChange}
             accented
           />
-        )
+        </div>
       )}
 
       {errors.root && (
