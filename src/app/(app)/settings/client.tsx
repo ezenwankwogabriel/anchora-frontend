@@ -1286,7 +1286,7 @@ function PlanTab({
             <PlanFeature included text="All 11 asset categories" />
             <PlanFeature included text="Designate multiple trusted contacts" />
             <PlanFeature included text="Full inactivity monitoring" />
-            <PlanFeature included text="Trusted contacts receives release summary" />
+            <PlanFeature included text="Trusted contact receives release summary" />
             <PlanFeature included text="Download your release summary anytime" />
             <PlanFeature included text="Configurable inactivity window (6–24 mo)" />
             <PlanFeature included text="Priority email support" />
