@@ -35,33 +35,45 @@ export function usePaystackCheckout(onSuccess?: () => void) {
   const [phase, setPhase] = useState<CheckoutPhase>("idle");
   const [error, setError] = useState<string | null>(null);
 
-  const pollForActivation = useCallback(async () => {
-    let attempts = 0;
+  const pollForActivation = useCallback(
+    async (intent: CheckoutIntent, baselinePaidUntil: string | null) => {
+      let attempts = 0;
 
-    const tick = async () => {
-      try {
-        const status = await BillingService.getPlan();
-        if (status.tier === "PRO" && status.paidUntil !== null) {
-          setPhase("success");
-          onSuccess?.();
-          return;
+      const tick = async () => {
+        try {
+          const status = await BillingService.getPlan();
+          // For a renewal, the user is already PRO with a non-null paidUntil
+          // before the charge is even confirmed — only a paidUntil that has
+          // actually moved past the pre-renewal baseline proves the backend
+          // webhook processed this specific payment.
+          const activated =
+            intent === "renew"
+              ? status.paidUntil !== null && status.paidUntil !== baselinePaidUntil
+              : status.tier === "PRO" && status.paidUntil !== null;
+
+          if (activated) {
+            setPhase("success");
+            onSuccess?.();
+            return;
+          }
+        } catch {
+          // swallow poll errors — keep retrying
         }
-      } catch {
-        // swallow poll errors — keep retrying
-      }
 
-      if (++attempts < MAX_POLL_ATTEMPTS) {
-        setTimeout(tick, POLL_INTERVAL_MS);
-      } else {
-        setPhase("timeout");
-      }
-    };
+        if (++attempts < MAX_POLL_ATTEMPTS) {
+          setTimeout(tick, POLL_INTERVAL_MS);
+        } else {
+          setPhase("timeout");
+        }
+      };
 
-    await tick();
-  }, [onSuccess]);
+      await tick();
+    },
+    [onSuccess],
+  );
 
   const start = useCallback(
-    async (intent: CheckoutIntent) => {
+    async (intent: CheckoutIntent, currentPaidUntil: string | null = null) => {
       setPhase("initializing");
       setError(null);
 
@@ -83,7 +95,7 @@ export function usePaystackCheckout(onSuccess?: () => void) {
           accessCode,
           onSuccess: () => {
             setPhase("confirming");
-            pollForActivation();
+            pollForActivation(intent, currentPaidUntil);
           },
           onCancel: () => {
             setPhase("idle");
