@@ -11,7 +11,12 @@ interface State {
 }
 
 type Action =
-  | { type: "LOADED"; records: VaultRecord[] | null; executor: Executor | null; error: boolean }
+  | {
+      type: "LOADED";
+      records: VaultRecord[] | null;
+      executor: Executor | null;
+      error: boolean;
+    }
   | { type: "DELETE_RECORD"; id: string };
 
 const initialState: State = {
@@ -24,9 +29,17 @@ const initialState: State = {
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case "LOADED":
-      return { loading: false, records: action.records, executor: action.executor, error: action.error };
+      return {
+        loading: false,
+        records: action.records,
+        executor: action.executor,
+        error: action.error,
+      };
     case "DELETE_RECORD":
-      return { ...state, records: state.records?.filter((r) => r.id !== action.id) ?? null };
+      return {
+        ...state,
+        records: state.records?.filter((r) => r.id !== action.id) ?? null,
+      };
   }
 }
 
@@ -35,8 +48,6 @@ export function useDashboardData() {
 
   useEffect(() => {
     let stale = false;
-    const startedAt = Date.now();
-    console.debug("[dashboard-data] load start");
 
     async function load() {
       const [recordsRes, executorRes] = await Promise.allSettled([
@@ -44,35 +55,36 @@ export function useDashboardData() {
         ExecutorService.get(),
       ]);
 
-      const elapsed = Date.now() - startedAt;
       if (stale) {
         // If this ever logs, the fetch outlived its component (e.g. an
         // unmount/remount raced the 401-refresh-retry cycle) and the
         // resolved data was intentionally dropped instead of silently
         // vanishing into a state update React discards.
-        console.warn(`[dashboard-data] discarding stale response after ${elapsed}ms — component unmounted before load finished`);
         return;
       }
 
-      console.debug(`[dashboard-data] load resolved after ${elapsed}ms, dispatching LOADED`, {
-        recordsStatus: recordsRes.status,
-        executorStatus: executorRes.status,
-      });
-
       dispatch({
         type: "LOADED",
-        records:  recordsRes.status === "fulfilled"  ? (recordsRes.value ?? [])      : null,
-        executor: executorRes.status === "fulfilled" ? (executorRes.value ?? null)   : null,
-        error:    recordsRes.status === "rejected",
+        records:
+          recordsRes.status === "fulfilled" ? (recordsRes.value ?? []) : null,
+        executor:
+          executorRes.status === "fulfilled"
+            ? (executorRes.value ?? null)
+            : null,
+        error: recordsRes.status === "rejected",
       });
     }
     load();
 
-    return () => { stale = true; };
+    return () => {
+      stale = true;
+    };
   }, []);
 
   const deleteRecord = (id: string) => {
-    VaultService.deleteRecord(id).then(() => dispatch({ type: "DELETE_RECORD", id }));
+    VaultService.deleteRecord(id).then(() =>
+      dispatch({ type: "DELETE_RECORD", id }),
+    );
   };
 
   return { ...state, deleteRecord };
