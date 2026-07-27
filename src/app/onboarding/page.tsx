@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Loader2 } from "lucide-react";
+import { Loader2, Info } from "lucide-react";
 import { ProtectedRoute } from "@/components/layout/protected-route";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +35,7 @@ export default function OnboardingPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [relationship, setRelationship] = useState("");
+  const [notifyNow, setNotifyNow] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -81,6 +82,14 @@ export default function OnboardingPage() {
         phone: phone.trim() || undefined,
         relationship: relationship.trim() || undefined,
       });
+      if (notifyNow) {
+        try {
+          await ExecutorService.notify();
+        } catch {
+          // Best-effort: the trusted contact is designated either way,
+          // so a failed notify shouldn't block finishing onboarding.
+        }
+      }
       await finish(router, categories);
     } catch {
       setApiError(
@@ -169,12 +178,14 @@ export default function OnboardingPage() {
                 email={email}
                 phone={phone}
                 relationship={relationship}
+                notifyNow={notifyNow}
                 submitting={submitting}
                 apiError={apiError}
                 onNameChange={setName}
                 onEmailChange={setEmail}
                 onPhoneChange={setPhone}
                 onRelationshipChange={setRelationship}
+                onNotifyNowChange={setNotifyNow}
                 onBack={backToExecutorPrevious}
                 onSubmit={submitExecutor}
                 onSkip={skip}
@@ -473,12 +484,14 @@ function ScreenExecutor({
   email,
   phone,
   relationship,
+  notifyNow,
   submitting,
   apiError,
   onNameChange,
   onEmailChange,
   onPhoneChange,
   onRelationshipChange,
+  onNotifyNowChange,
   onBack,
   onSubmit,
   onSkip,
@@ -487,12 +500,14 @@ function ScreenExecutor({
   email: string;
   phone: string;
   relationship: string;
+  notifyNow: boolean;
   submitting: boolean;
   apiError: string | null;
   onNameChange: (v: string) => void;
   onEmailChange: (v: string) => void;
   onPhoneChange: (v: string) => void;
   onRelationshipChange: (v: string) => void;
+  onNotifyNowChange: (v: boolean) => void;
   onBack: () => void;
   onSubmit: () => void;
   onSkip: () => void;
@@ -511,6 +526,15 @@ function ScreenExecutor({
         Choose a trusted contact (a lawyer, family member, or close friend) who will
         receive your release summary and guidance on next steps.
       </p>
+
+      <div className="flex items-start gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl p-4 mb-5">
+        <Info size={16} className="text-blue-500 flex-shrink-0 mt-[1px]" />
+        <p className="text-[13px] text-blue-800">
+          Saving this never sends an email on its own. Choose below if
+          you&apos;d like to notify your trusted contact right away, or do it later
+          from your dashboard.
+        </p>
+      </div>
 
       <div className="flex flex-col gap-4 mb-5">
         <div>
@@ -561,6 +585,16 @@ function ScreenExecutor({
           />
         </div>
       </div>
+
+      <label className="flex items-center gap-2 text-[13px] text-text-secondary mb-4">
+        <input
+          type="checkbox"
+          className="h-4 w-4"
+          checked={notifyNow}
+          onChange={(e) => onNotifyNowChange(e.target.checked)}
+        />
+        Notify my trusted contact by email now
+      </label>
 
       {apiError && (
         <p className="text-[12.5px] text-red bg-red-light border border-[#F5B0B0] rounded-md px-3 py-2 mb-4">

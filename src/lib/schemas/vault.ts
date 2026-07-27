@@ -12,10 +12,16 @@ export interface VaultFormData {
   executorIntent: "LIQUIDATE" | "TRANSFER" | "HOLD" | "UNSPECIFIED";
   intendedBeneficiary: string;
   isSelfCustodied: boolean;
+  accountType: string;
 }
 
 // ── Field config (single source of truth for labels/placeholders) ──────────
-export type FieldType = "text" | "checkbox" | "textarea";
+export type FieldType = "text" | "checkbox" | "textarea" | "select";
+
+export interface FieldOption {
+  value: string;
+  label: string;
+}
 
 export interface FieldConfig {
   fieldName: keyof VaultFormData;
@@ -24,7 +30,14 @@ export interface FieldConfig {
   required?: boolean;
   helperText?: string;
   type: FieldType;
+  options?: FieldOption[];
 }
+
+export const BANK_ACCOUNT_TYPE_OPTIONS: FieldOption[] = [
+  { value: "SAVINGS", label: "Savings" },
+  { value: "CURRENT", label: "Current" },
+  { value: "DOMICILIARY", label: "Domiciliary" },
+];
 
 // ── Category groupings (single source of truth) ───────────────────────────
 export const DIGITAL_ASSET_CATEGORIES: AssetCategory[] = [
@@ -80,73 +93,73 @@ export function isPhysicalCategory(category: AssetCategory): boolean {
 const FIELD_CONFIGS: Record<AssetCategory, FieldConfig[]> = {
   BANK_ACCOUNT: [
     { fieldName: "institutionName", label: "Bank name", placeholder: "e.g. GTB, Zenith, Access Bank", required: true, type: "text" },
-    { fieldName: "accountName",     label: "Account name", placeholder: "e.g. Joint savings, Dollar account", type: "text" },
+    { fieldName: "accountName",     label: "Account holder name", helperText: "The legal name the account is registered under", type: "text" },
     { fieldName: "referenceId",   label: "Account number", placeholder: "e.g. 0123456789", type: "text" },
-    { fieldName: "credential", label: "Internet banking username / email", type: "text" },
-    { fieldName: "notes",           label: "Notes", placeholder: "Branch, NUBAN, any relevant access context", type: "textarea" },
+    { fieldName: "accountType",     label: "Account type", type: "select", options: BANK_ACCOUNT_TYPE_OPTIONS },
+    { fieldName: "notes",           label: "Notes", placeholder: "Account purpose (salary, family house fund, etc.), branch, who should receive this asset, any relevant access context", type: "textarea" },
   ],
   INVESTMENT_PLATFORM: [
     { fieldName: "institutionName", label: "Platform name", placeholder: "e.g. Bamboo, Risevest, PiggyVest", required: true, type: "text" },
-    { fieldName: "accountName",     label: "Portfolio / account name", type: "text" },
-    { fieldName: "credential", label: "Login email", type: "text" },
-    { fieldName: "notes",           label: "Notes", placeholder: "Account number, broker details, portfolio type", type: "textarea" },
+    { fieldName: "accountName",     label: "Account holder name", helperText: "The legal name the account is registered under", type: "text" },
+    { fieldName: "credential", label: "Account email", type: "text" },
+    { fieldName: "notes",           label: "Notes", placeholder: "e.g. US brokerage account ID: XXXX. NGX (CHN/CSCS no.): XXXX. Broker: XYZ. Who should receive this asset: XYZ.", type: "textarea" },
   ],
   CRYPTO_WALLET: [
     { fieldName: "institutionName", label: "Wallet or exchange name", placeholder: "e.g. Binance, Ledger hardware wallet", required: true, type: "text" },
-    { fieldName: "accountName",     label: "Wallet label", type: "text" },
-    { fieldName: "credential", label: "Login email / username", type: "text" },
+    { fieldName: "accountName",     label: "Account holder name", helperText: "The legal name the wallet or exchange account is registered under", type: "text" },
+    { fieldName: "credential", label: "Account email / username", type: "text" },
     { fieldName: "isSelfCustodied", label: "I hold my own private keys", type: "checkbox" },
-    { fieldName: "notes",           label: "Notes", placeholder: "Seed phrase storage location, hardware wallet location, exchange account details", type: "textarea" },
+    { fieldName: "notes",           label: "Notes", placeholder: "Seed phrase storage location, hardware wallet location, exchange account details, who should receive this asset", type: "textarea" },
   ],
   PENSION_PORTAL: [
     { fieldName: "institutionName", label: "Pension fund administrator (PFA)", placeholder: "e.g. ARM Pension, Stanbic IBTC", required: true, type: "text" },
-    { fieldName: "accountName",     label: "RSA / account name", type: "text" },
-    { fieldName: "credential", label: "Portal login email", type: "text" },
-    { fieldName: "notes",           label: "Notes", placeholder: "Portal name, employer name, where login details are stored", type: "textarea" },
+    { fieldName: "accountName",     label: "Account holder name", helperText: "The legal name the RSA is registered under", type: "text" },
+    { fieldName: "credential", label: "Account email", type: "text" },
+    { fieldName: "notes",           label: "Notes", placeholder: "Portal name, employer name, where login details are stored, who should receive this asset", type: "textarea" },
   ],
   INSURANCE_POLICY: [
     { fieldName: "institutionName", label: "Insurance provider", placeholder: "e.g. AXA Mansard, Leadway Assurance", required: true, type: "text" },
-    { fieldName: "accountName",     label: "Policy name / type", placeholder: "e.g. Term life, whole life, health", type: "text" },
-    { fieldName: "credential", label: "Portal login email", type: "text" },
-    { fieldName: "notes",           label: "Notes", placeholder: "Policy number, coverage amount, agent contact", type: "textarea" },
+    { fieldName: "accountName",     label: "Policyholder name", helperText: "The legal name the policy is registered under", type: "text" },
+    { fieldName: "credential", label: "Account email", type: "text" },
+    { fieldName: "notes",           label: "Notes", placeholder: "Policy type (term life, whole life, health), policy number, coverage amount, agent contact, who should receive this asset", type: "textarea" },
   ],
   FOREIGN_ACCOUNT: [
     { fieldName: "institutionName", label: "Institution name", placeholder: "e.g. Barclays UK, Charles Schwab", required: true, type: "text" },
-    { fieldName: "accountName",     label: "Account / portfolio name", type: "text" },
-    { fieldName: "credential", label: "Login email", type: "text" },
-    { fieldName: "notes",           label: "Notes", placeholder: "Country, account number, FX or remittance details", type: "textarea" },
+    { fieldName: "accountName",     label: "Account holder name", helperText: "The legal name the account is registered under", type: "text" },
+    { fieldName: "credential", label: "Account email", type: "text" },
+    { fieldName: "notes",           label: "Notes", placeholder: "Country, account number, FX or remittance details, who should receive this asset", type: "textarea" },
   ],
   REAL_ESTATE: [
     { fieldName: "institutionName", label: "Property name / description", placeholder: "e.g. Duplex on Admiralty Way, Lekki", required: true, type: "text" },
     { fieldName: "credential", label: "Title number / survey plan ref", type: "text" },
-    { fieldName: "notes",           label: "Description & storage notes", placeholder: "Address, where title documents are stored, estimated value", type: "textarea" },
+    { fieldName: "notes",           label: "Description & storage notes", placeholder: "Address, where title documents are stored, estimated value, who should receive this asset", type: "textarea" },
   ],
   VEHICLE: [
     { fieldName: "institutionName", label: "Vehicle description", placeholder: "e.g. 2019 Toyota Land Cruiser", required: true, type: "text" },
     { fieldName: "credential", label: "Plate number / chassis number", type: "text" },
-    { fieldName: "notes",           label: "Description & storage notes", placeholder: "Colour, where vehicle logbook is stored", type: "textarea" },
+    { fieldName: "notes",           label: "Description & storage notes", placeholder: "Colour, where vehicle logbook is stored, who should receive this asset", type: "textarea" },
   ],
   JEWELRY_WATCHES: [
     { fieldName: "institutionName", label: "Item description", placeholder: "e.g. Rolex Datejust, gold wedding band", required: true, type: "text" },
     { fieldName: "credential", label: "Serial number (if known)", type: "text" },
-    { fieldName: "notes",           label: "Description & storage notes", placeholder: "Where it is stored, estimated value", type: "textarea" },
+    { fieldName: "notes",           label: "Description & storage notes", placeholder: "Where it is stored, estimated value, who should receive this asset", type: "textarea" },
   ],
   SHARE_CERTIFICATES: [
     { fieldName: "institutionName", label: "Asset description", placeholder: "e.g. Dangote Cement paper cert", required: true, type: "text" },
     { fieldName: "credential", label: "Certificate number", type: "text" },
-    { fieldName: "notes",           label: "Description & storage notes", placeholder: "Number of units, where the certificate is physically stored", type: "textarea" },
+    { fieldName: "notes",           label: "Description & storage notes", placeholder: "Number of units, where the certificate is physically stored, who should receive this asset", type: "textarea" },
   ],
   SUBSCRIPTION: [
     { fieldName: "institutionName", label: "Service name", placeholder: "e.g. Netflix, Spotify, AWS", required: true, type: "text" },
-    { fieldName: "accountName",     label: "Subscription label", placeholder: "e.g. Family plan, Team account", type: "text" },
+    { fieldName: "accountName",     label: "Account holder name", helperText: "The legal name the subscription is registered under", type: "text" },
     { fieldName: "credential", label: "Billing email", type: "text" },
-    { fieldName: "notes",           label: "Cancellation instructions", placeholder: "How to cancel: direct link, phone number, or step-by-step instructions...", type: "textarea" },
+    { fieldName: "notes",           label: "Cancellation instructions", placeholder: "Plan type (family plan, team account), how to cancel: direct link, phone number, or step-by-step instructions, who should receive this asset", type: "textarea" },
   ],
   OTHER: [
     { fieldName: "institutionName", label: "Asset or account name", placeholder: "e.g. PayPal, savings club, industrial generator", required: true, type: "text" },
-    { fieldName: "accountName",     label: "Label / type", type: "text" },
-    { fieldName: "credential", label: "Reference number or login email", type: "text" },
-    { fieldName: "notes",           label: "Notes", placeholder: "Description, location, and where any documents are stored", type: "textarea" },
+    { fieldName: "accountName",     label: "Account holder name", helperText: "The legal name the account is registered under", type: "text" },
+    { fieldName: "credential", label: "Reference number or account email", type: "text" },
+    { fieldName: "notes",           label: "Notes", placeholder: "Description, location, and where any documents are stored, who should receive this asset", type: "textarea" },
   ],
 };
 
@@ -165,6 +178,7 @@ const BASE_DEFAULTS: VaultFormData = {
   executorIntent: "UNSPECIFIED",
   intendedBeneficiary: "",
   isSelfCustodied: false,
+  accountType: "",
 };
 
 export const CATEGORY_DEFAULTS: Record<AssetCategory, VaultFormData> = {
@@ -197,6 +211,7 @@ const sharedFields = {
   executorIntent:      intentEnum,
   intendedBeneficiary: opt(),
   isSelfCustodied:     z.boolean().default(false),
+  accountType:         opt(),
 };
 
 const digitalSchema = (overrides?: object) =>

@@ -21,6 +21,7 @@ function toApiPayload(input: VaultRecordInput) {
     executorIntent:      input.executorIntent      ?? "UNSPECIFIED",
     intendedBeneficiary: input.intendedBeneficiary || undefined,
     isSelfCustodied:     input.isSelfCustodied     ?? false,
+    accountType:         input.accountType         || undefined,
   };
 }
 
