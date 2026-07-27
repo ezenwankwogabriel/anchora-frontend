@@ -75,6 +75,7 @@ export interface VaultRecord {
     credential?: string;
     referenceId?: string;
     notes?: string;
+    accountType?: string;
   };
   beneficiary: {
     id: string;
@@ -97,6 +98,7 @@ export interface VaultRecordInput {
   executorIntent?: ExecutorIntent;
   intendedBeneficiary?: string;
   isSelfCustodied?: boolean;
+  accountType?: string;
 }
 
 export interface VaultDocument {

@@ -6,13 +6,14 @@ import { zodResolver as _zodResolver } from "@hookform/resolvers/zod";
 
 // Zod v4 sets Input=unknown on ZodType<T>, breaking zodResolver's overload.
 const zodResolver = _zodResolver as unknown as (
-  schema: ReturnType<typeof getCategorySchema>
+  schema: ReturnType<typeof getCategorySchema>,
 ) => Resolver<VaultFormData>;
 
 import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { FormSection } from "@/components/ui/form-section";
 import { InfoBanner } from "@/components/ui/info-banner";
@@ -24,7 +25,6 @@ import type { VaultRecord, VaultRecordInput, AssetCategory } from "@/lib/types";
 import {
   getCategorySchema,
   getFieldConfig,
-  isPhysicalCategory,
   CATEGORY_DEFAULTS,
   type VaultFormData,
   type FieldConfig,
@@ -59,7 +59,8 @@ function FieldLabel({ text, required, tone }: FieldLabelProps) {
         tone === "guidance" && "font-normal text-text-primary",
       )}
     >
-      {text}{required && " *"}
+      {text}
+      {required && " *"}
     </label>
   );
 }
@@ -74,20 +75,19 @@ function HelperText({ text }: { text: string }) {
 }
 
 // Fields that always sit in the core, always-visible section regardless of
-// category. "credential" is core only for physical assets — there it holds
-// a reference number (title/plate/serial/certificate) rather than a login,
-// so it plays the same role as "Account number" does for digital assets.
+// category.
 const ALWAYS_CORE_FIELDS = new Set<keyof VaultFormData>([
   "institutionName",
   "accountName",
+  "credential",
   "referenceId",
+  "accountType",
+  "isSelfCustodied",
   "notes",
 ]);
 
-function isCoreField(field: FieldConfig, category: AssetCategory): boolean {
-  if (ALWAYS_CORE_FIELDS.has(field.fieldName)) return true;
-  if (field.fieldName === "credential") return isPhysicalCategory(category);
-  return false;
+function isCoreField(field: FieldConfig): boolean {
+  return ALWAYS_CORE_FIELDS.has(field.fieldName);
 }
 
 // The "Add more details" section starts expanded on an existing record only
@@ -117,15 +117,16 @@ export function VaultForm({
 
   const defaultValues: VaultFormData = record
     ? {
-        institutionName:     record.institutionName,
-        accountName:         record.accountName ?? "",
-        referenceId:         record.encryptedFields?.referenceId ?? "",
-        credential:          record.encryptedFields?.credential ?? "",
-        accountUrl:          record.accountUrl ?? "",
-        notes:               record.encryptedFields?.notes ?? "",
-        executorIntent:      record.executorIntent ?? "UNSPECIFIED",
+        institutionName: record.institutionName,
+        accountName: record.accountName ?? "",
+        referenceId: record.encryptedFields?.referenceId ?? "",
+        credential: record.encryptedFields?.credential ?? "",
+        accountUrl: record.accountUrl ?? "",
+        notes: record.encryptedFields?.notes ?? "",
+        executorIntent: record.executorIntent ?? "UNSPECIFIED",
         intendedBeneficiary: record.intendedBeneficiary ?? "",
-        isSelfCustodied:     record.isSelfCustodied ?? false,
+        isSelfCustodied: record.isSelfCustodied ?? false,
+        accountType: record.encryptedFields?.accountType ?? "",
       }
     : CATEGORY_DEFAULTS[category];
 
@@ -136,40 +137,47 @@ export function VaultForm({
     watch,
     setValue,
     formState: { errors, isSubmitting },
+    getValues,
   } = useForm<VaultFormData>({
     resolver: zodResolver(schema),
     defaultValues,
   });
 
-  const [detailsOpen, setDetailsOpen] = useState(() => hasExistingAdvancedValues(record));
+  const [detailsOpen, setDetailsOpen] = useState(() =>
+    hasExistingAdvancedValues(record),
+  );
 
   const isSelfCustodied = watch("isSelfCustodied");
-  const notesValue      = watch("notes") ?? "";
+  const notesValue = watch("notes") ?? "";
 
   const handleFormSubmit = async (values: VaultFormData) => {
     try {
       await onSubmit({
         category,
-        institutionName:     values.institutionName,
-        accountName:         values.accountName         || undefined,
-        credential:          values.credential          || undefined,
-        referenceId:         values.referenceId         || undefined,
-        accountUrl:          values.accountUrl          || undefined,
-        notes:               values.notes               || undefined,
-        executorIntent:      values.executorIntent,
+        institutionName: values.institutionName,
+        accountName: values.accountName || undefined,
+        credential: values.credential || undefined,
+        referenceId: values.referenceId || undefined,
+        accountUrl: values.accountUrl || undefined,
+        notes: values.notes || undefined,
+        executorIntent: values.executorIntent,
         intendedBeneficiary: values.intendedBeneficiary || undefined,
-        isSelfCustodied:     values.isSelfCustodied,
+        isSelfCustodied: values.isSelfCustodied,
+        accountType: values.accountType || undefined,
       });
     } catch (err) {
       setError("root", {
-        message: err instanceof ServiceError ? err.message : "Something went wrong",
+        message:
+          err instanceof ServiceError ? err.message : "Something went wrong",
       });
     }
   };
 
   const renderField = (field: FieldConfig, tone: FieldTone) => {
     const key = field.fieldName;
-    const error = errors[key as keyof typeof errors]?.message as string | undefined;
+    const error = errors[key as keyof typeof errors]?.message as
+      | string
+      | undefined;
 
     if (field.type === "checkbox") {
       return (
@@ -191,8 +199,8 @@ export function VaultForm({
 
           {isSelfCustodied && (
             <InfoBanner variant="warning" className="mt-3">
-              Private key location is critical. Use the notes field to describe exactly
-              where your seed phrase or hardware wallet is stored.
+              Private key location is critical. Use the notes field to describe
+              exactly where your seed phrase or hardware wallet is stored.
             </InfoBanner>
           )}
         </FormSection>
@@ -202,7 +210,16 @@ export function VaultForm({
     if (field.type === "textarea") {
       return (
         <FormSection key={key}>
-          <FieldLabel text={field.label} required={field.required} tone={tone} />
+          <FieldLabel
+            text={field.label}
+            required={field.required}
+            tone={tone}
+          />
+          {getValues("notes") !== "" && field.placeholder && (
+            <p className="text-[11.5px] text-text-tertiary mb-[6px] leading-snug">
+              {field.placeholder}
+            </p>
+          )}
           <Textarea
             placeholder={field.placeholder}
             rows={4}
@@ -215,8 +232,31 @@ export function VaultForm({
       );
     }
 
+    if (field.type === "select") {
+      const selectField = key as "accountType";
+      return (
+        <FormSection key={key}>
+          <FieldLabel text={field.label} required={field.required} tone={tone} />
+          <Select {...register(selectField)}>
+            <option value="">Select...</option>
+            {field.options?.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </Select>
+          {field.helperText && <HelperText text={field.helperText} />}
+          <FieldError message={error} />
+        </FormSection>
+      );
+    }
+
     // Default: text input
-    const textField = key as "institutionName" | "accountName" | "credential" | "referenceId";
+    const textField = key as
+      | "institutionName"
+      | "accountName"
+      | "credential"
+      | "referenceId";
     return (
       <FormSection key={key}>
         <FieldLabel text={field.label} required={field.required} tone={tone} />
@@ -227,8 +267,8 @@ export function VaultForm({
     );
   };
 
-  const coreFields     = fields.filter((f) => isCoreField(f, category));
-  const advancedFields = fields.filter((f) => !isCoreField(f, category));
+  const coreFields = fields.filter((f) => isCoreField(f));
+  const advancedFields = fields.filter((f) => !isCoreField(f));
 
   const handleDocumentsLoaded = (hasDocuments: boolean) => {
     if (hasDocuments) setDetailsOpen(true);
@@ -237,7 +277,9 @@ export function VaultForm({
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} noValidate>
       <div className="bg-surface border border-border-color rounded-lg p-4 mb-3 [&>*:last-child]:mb-0">
-        {coreFields.map((f) => renderField(f, f.required ? "required" : "optional"))}
+        {coreFields.map((f) =>
+          renderField(f, f.required ? "required" : "optional"),
+        )}
       </div>
 
       <button
@@ -249,19 +291,9 @@ export function VaultForm({
         {detailsOpen ? "Hide more details" : "Add more details"}
       </button>
 
-      {detailsOpen && (
+      {detailsOpen && advancedFields.length > 0 && (
         <div className="bg-surface border border-border-color rounded-lg p-4 mb-3 [&>*:last-child]:mb-0">
           {advancedFields.map((f) => renderField(f, "guidance"))}
-
-          <FormSection>
-            <FieldLabel text="Who should receive this asset?" tone="guidance" />
-            <Input
-              placeholder="e.g. Amaka, my eldest daughter"
-              {...register("intendedBeneficiary")}
-            />
-            <HelperText text="A note for your trusted contact, not a legal instruction." />
-            <FieldError message={errors.intendedBeneficiary?.message} />
-          </FormSection>
         </div>
       )}
 
