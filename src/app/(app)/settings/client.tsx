@@ -1219,14 +1219,13 @@ function PlanTab({
   return (
     <>
       {/* Current plan summary */}
-      <Section title="Current plan" description="Your active Anchora plan.">
+      <Section title="Current plan">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <p className="text-[15px] font-semibold text-text-primary">
                 {isPro ? "Pro" : "Free"}
               </p>
-              {isPro && <ProBadge />}
             </div>
             <p className="text-[12.5px] text-text-secondary">
               {isPro
