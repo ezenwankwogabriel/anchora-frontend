@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm, type Resolver } from "react-hook-form";
 import { useToastStore } from "@/stores/toastStore";
 import { zodResolver as _zodResolver } from "@hookform/resolvers/zod";
@@ -908,12 +909,13 @@ function PlanFeature({ included, text }: { included: boolean; text: string }) {
 
 // Inline status view when the checkout popup has returned a result
 function CheckoutStatusView({
-  phase, error, onRetry, onDone,
+  phase, error, onRetry, onDone, onGoToVault,
 }: {
   phase: "confirming" | "success" | "failed" | "timeout";
   error: string | null;
   onRetry: () => void;
   onDone: () => void;
+  onGoToVault: () => void;
 }) {
   if (phase === "confirming") {
     return (
@@ -936,7 +938,7 @@ function CheckoutStatusView({
         <p className="text-[13px] text-text-secondary mb-6 max-w-[320px]">
           You now have unlimited records, a downloadable release summary for you and your trusted contact, configurable inactivity window, and priority support.
         </p>
-        <Button onClick={onDone}>Go to vault</Button>
+        <Button onClick={onGoToVault}>Go to vault</Button>
       </div>
     );
   }
@@ -1172,6 +1174,7 @@ function PlanTab({
   loading: boolean;
   onPlanUpdated: () => void;
 }) {
+  const router = useRouter();
   const [renewing, setRenewing] = useState(false);
   // Which checkout flow is in flight, so retry/onDone know which one to resume.
   const [lastIntent, setLastIntent] = useState<"checkout" | "renew">("checkout");
@@ -1208,6 +1211,7 @@ function PlanTab({
         error={checkoutError}
         onRetry={() => startCheckout(lastIntent, planData?.paidUntil ?? null)}
         onDone={() => { resetCheckout(); onPlanUpdated(); }}
+        onGoToVault={() => { resetCheckout(); onPlanUpdated(); router.push("/vault"); }}
       />
     );
   }
@@ -1215,14 +1219,13 @@ function PlanTab({
   return (
     <>
       {/* Current plan summary */}
-      <Section title="Current plan" description="Your active Anchora plan.">
+      <Section title="Current plan">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <p className="text-[15px] font-semibold text-text-primary">
                 {isPro ? "Pro" : "Free"}
               </p>
-              {isPro && <ProBadge />}
             </div>
             <p className="text-[12.5px] text-text-secondary">
               {isPro
