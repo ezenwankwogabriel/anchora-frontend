@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { DM_Serif_Display } from "next/font/google";
 import Script from "next/script";
 import { ToastContainer } from "@/components/ui/toast";
 import "./globals.css";
@@ -24,6 +25,13 @@ const figtree = localFont({
   display: "swap",
 });
 
+const dmSerifDisplay = DM_Serif_Display({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-serif-display",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Anchora | Digital Financial Legacy Platform",
   description: "Organise your financial life safely for the people you love.",
@@ -35,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${cabinetGrotesk.variable} ${figtree.variable}`}>
+    <html lang="en" className={`${cabinetGrotesk.variable} ${figtree.variable} ${dmSerifDisplay.variable}`}>
       <body className="antialiased font-sans bg-background text-foreground">
         {children}
         <ToastContainer />

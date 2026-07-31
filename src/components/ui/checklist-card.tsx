@@ -1,5 +1,6 @@
+import { useState } from "react";
 import Link from "next/link";
-import { Check, ChevronRight } from "lucide-react";
+import { Check, ChevronDown, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface ChecklistItem {
@@ -14,11 +15,70 @@ interface ChecklistCardProps {
   items: ChecklistItem[];
   onDismiss?: () => void;
   className?: string;
+  compact?: boolean;
 }
 
-export function ChecklistCard({ items, onDismiss, className }: ChecklistCardProps) {
+function ProgressBar({ doneCount, total, rounded }: { doneCount: number; total: number; rounded?: boolean }) {
+  return (
+    <div className={cn("h-1 bg-surface-2", rounded && "rounded-full overflow-hidden")}>
+      <div
+        className="h-1 bg-accent transition-all duration-500"
+        style={{ width: `${(doneCount / total) * 100}%` }}
+      />
+    </div>
+  );
+}
+
+export function ChecklistCard({ items, onDismiss, className, compact }: ChecklistCardProps) {
   const doneCount = items.filter((i) => i.done).length;
   const allDone = doneCount === items.length;
+  // The strip is only ever a space-saving default, not a dead end — a user
+  // with incomplete items must still be able to reach them, so compact only
+  // hides the list until they ask to see it.
+  const [expanded, setExpanded] = useState(false);
+
+  if (compact && !expanded) {
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => setExpanded(true)}
+        onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setExpanded(true)}
+        className={cn(
+          "bg-surface border border-border-color rounded-xl px-5 py-3 cursor-pointer hover:bg-surface-2 transition-colors",
+          className,
+        )}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-1.5">
+              <h2 className="text-[12.5px] font-semibold text-text-primary">
+                Getting started
+              </h2>
+              <p className="text-[11.5px] text-text-tertiary">
+                {doneCount} of {items.length} complete
+              </p>
+            </div>
+            <ProgressBar doneCount={doneCount} total={items.length} rounded />
+          </div>
+          {allDone && onDismiss ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDismiss();
+              }}
+              className="text-[11.5px] text-text-tertiary hover:text-text-secondary underline flex-shrink-0"
+            >
+              Dismiss
+            </button>
+          ) : (
+            <ChevronDown size={14} className="text-text-tertiary flex-shrink-0" />
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("bg-surface border border-border-color rounded-xl", className)}>
@@ -42,13 +102,7 @@ export function ChecklistCard({ items, onDismiss, className }: ChecklistCardProp
         )}
       </div>
 
-      {/* Progress bar */}
-      <div className="h-1 bg-surface-2">
-        <div
-          className="h-1 bg-accent transition-all duration-500"
-          style={{ width: `${(doneCount / items.length) * 100}%` }}
-        />
-      </div>
+      <ProgressBar doneCount={doneCount} total={items.length} />
 
       <ul className="divide-y divide-border-color">
         {items.map((item) => (

@@ -71,6 +71,7 @@ export interface VaultRecord {
   executorIntent: ExecutorIntent;
   intendedBeneficiary?: string;
   isSelfCustodied: boolean;
+  estimatedValue: number | null; // kobo — encrypted at rest, decrypted on read
   encryptedFields: {
     credential?: string;
     referenceId?: string;
@@ -99,6 +100,30 @@ export interface VaultRecordInput {
   intendedBeneficiary?: string;
   isSelfCustodied?: boolean;
   accountType?: string;
+  estimatedValue?: number | null; // kobo — null explicitly clears it
+}
+
+// Canonical VaultRecord -> VaultRecordInput mapper, for callers that only
+// mean to change one field (e.g. bulk value edits) but must resend the rest
+// of a partial-update payload, since the backend treats an omitted field as
+// "leave alone" and treats undefined-vs-included very differently for
+// estimatedValue in particular. estimatedValue is deliberately excluded
+// here — callers that use this are, by definition, overriding it themselves.
+// Keep this in sync whenever a field is added to VaultRecordInput above.
+export function recordToInput(record: VaultRecord): VaultRecordInput {
+  return {
+    category: record.category,
+    institutionName: record.institutionName,
+    accountName: record.accountName ?? undefined,
+    accountUrl: record.accountUrl ?? undefined,
+    credential: record.encryptedFields?.credential,
+    referenceId: record.encryptedFields?.referenceId,
+    notes: record.encryptedFields?.notes,
+    executorIntent: record.executorIntent,
+    intendedBeneficiary: record.intendedBeneficiary,
+    isSelfCustodied: record.isSelfCustodied,
+    accountType: record.encryptedFields?.accountType,
+  };
 }
 
 export interface VaultDocument {

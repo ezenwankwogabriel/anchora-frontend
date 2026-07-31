@@ -22,6 +22,7 @@ function toApiPayload(input: VaultRecordInput) {
     intendedBeneficiary: input.intendedBeneficiary || undefined,
     isSelfCustodied:     input.isSelfCustodied     ?? false,
     accountType:         input.accountType         || undefined,
+    estimatedValue:      input.estimatedValue,
   };
 }
 

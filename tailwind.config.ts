@@ -12,6 +12,7 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
         heading: ["var(--font-heading)", "ui-sans-serif", "system-ui", "sans-serif"],
+        "serif-display": ["var(--font-serif-display)", "ui-serif", "Georgia", "serif"],
       },
       colors: {
         bg: "var(--bg)",
