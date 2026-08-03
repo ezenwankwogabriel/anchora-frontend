@@ -87,24 +87,24 @@ export function UpdateValuesSheet({ open, onOpenChange, records, onValuesChange 
   const versionRef = useRef<Record<string, number>>({});
 
   const handleSave = () => {
-    const changed = records.filter((r) => (values[r.id] ?? "") !== valueToString(r));
+    const parsed = new Map(records.map((r) => [r.id, parseNairaInputToKobo(values[r.id] ?? "")] as const));
+
+    const valid = records.filter((r) => {
+      const raw = values[r.id] ?? "";
+      return raw === "" || parsed.get(r.id) !== null;
+    });
+
+    // Compare parsed Kobo values against the record's actual value, not
+    // display strings, so a formatting-only edit (e.g. "100" -> "100.00" on
+    // blur) doesn't trigger a PATCH.
+    const changed = valid.filter((r) => parsed.get(r.id) !== (r.estimatedValue ?? null));
     onOpenChange(false);
     if (changed.length === 0) return;
 
-    // A non-empty value that fails to parse (e.g. a stray "." left over from
-    // clearing digit-by-digit) is invalid input, not an intentional clear —
-    // only a genuinely empty field means "clear this value". Drop invalid
-    // rows rather than submitting them as null.
-    const valid = changed.filter((r) => {
-      const raw = values[r.id] ?? "";
-      return raw === "" || parseNairaInputToKobo(raw) !== null;
-    });
-    if (valid.length === 0) return;
-
-    const previous = new Map(valid.map((r) => [r.id, r.estimatedValue]));
-    const entered = new Map(valid.map((r) => [r.id, parseNairaInputToKobo(values[r.id] ?? "")]));
+    const previous = new Map(changed.map((r) => [r.id, r.estimatedValue]));
+    const entered = new Map(changed.map((r) => [r.id, parsed.get(r.id) ?? null]));
     const myVersions = new Map(
-      valid.map((r) => [r.id, (versionRef.current[r.id] = (versionRef.current[r.id] ?? 0) + 1)]),
+      changed.map((r) => [r.id, (versionRef.current[r.id] = (versionRef.current[r.id] ?? 0) + 1)]),
     );
 
     // Optimistic: reflect what the user typed immediately, before the
@@ -112,7 +112,7 @@ export function UpdateValuesSheet({ open, onOpenChange, records, onValuesChange 
     onValuesChange(Object.fromEntries(entered));
 
     Promise.allSettled(
-      valid.map((r) =>
+      changed.map((r) =>
         VaultService.updateRecord(r.id, {
           ...recordToInput(r),
           estimatedValue: entered.get(r.id) ?? null,
@@ -122,7 +122,7 @@ export function UpdateValuesSheet({ open, onOpenChange, records, onValuesChange 
       const reconciled: Record<string, number | null> = {};
       let failedCount = 0;
       results.forEach((res, i) => {
-        const id = valid[i].id;
+        const id = changed[i].id;
         // A newer save batch for this record has since started — let that
         // batch's reconciliation win instead of overwriting it with ours.
         if (versionRef.current[id] !== myVersions.get(id)) return;
