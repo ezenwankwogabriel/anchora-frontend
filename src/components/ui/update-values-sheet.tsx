@@ -63,6 +63,20 @@ export function UpdateValuesSheet({ open, onOpenChange, records, onValuesChange 
     Object.fromEntries(records.map((r) => [r.id, valueToString(r)])),
   );
 
+  // Per-record save version. The sheet stays mounted across open/close
+  // cycles, so a save batch can still be in flight when the user reopens it
+  // and saves the same record again — without this, whichever batch's PATCH
+  // resolves last wins, even if it's the older, now-stale one.
+  const versionRef = useRef<Record<string, number>>({});
+
+  // Last value the server actually confirmed for each record, used as the
+  // rollback baseline on failure. Deliberately not read from `records` at
+  // save time — `records` already carries our own optimistic update once a
+  // batch has fired, so it isn't a reliable "what does the server have"
+  // source once a second batch starts before the first one resolves. Seeded
+  // on open below; updated only from a fulfilled PATCH response.
+  const confirmedRef = useRef<Record<string, number | null>>({});
+
   // Resync to the latest records whenever the sheet opens — it stays
   // mounted across open/close cycles (see dashboard/page.tsx), so without
   // this it keeps showing whatever was true the first time it ever mounted,
@@ -73,18 +87,15 @@ export function UpdateValuesSheet({ open, onOpenChange, records, onValuesChange 
   useEffect(() => {
     if (open) {
       setValues(Object.fromEntries(records.map((r) => [r.id, valueToString(r)])));
+      records.forEach((r) => {
+        if (!(r.id in confirmedRef.current)) confirmedRef.current[r.id] = r.estimatedValue;
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   const valuedRecords = records.filter((r) => r.estimatedValue != null);
   const unvaluedRecords = records.filter((r) => r.estimatedValue == null);
-
-  // Per-record save version. The sheet stays mounted across open/close
-  // cycles, so a save batch can still be in flight when the user reopens it
-  // and saves the same record again — without this, whichever batch's PATCH
-  // resolves last wins, even if it's the older, now-stale one.
-  const versionRef = useRef<Record<string, number>>({});
 
   const handleSave = () => {
     const parsed = new Map(records.map((r) => [r.id, parseNairaInputToKobo(values[r.id] ?? "")] as const));
@@ -101,7 +112,9 @@ export function UpdateValuesSheet({ open, onOpenChange, records, onValuesChange 
     onOpenChange(false);
     if (changed.length === 0) return;
 
-    const previous = new Map(changed.map((r) => [r.id, r.estimatedValue]));
+    const previous = new Map(
+      changed.map((r) => [r.id, r.id in confirmedRef.current ? confirmedRef.current[r.id] : r.estimatedValue]),
+    );
     const entered = new Map(changed.map((r) => [r.id, parsed.get(r.id) ?? null]));
     const myVersions = new Map(
       changed.map((r) => [r.id, (versionRef.current[r.id] = (versionRef.current[r.id] ?? 0) + 1)]),
@@ -127,7 +140,9 @@ export function UpdateValuesSheet({ open, onOpenChange, records, onValuesChange 
         // batch's reconciliation win instead of overwriting it with ours.
         if (versionRef.current[id] !== myVersions.get(id)) return;
         if (res.status === "fulfilled") {
-          reconciled[id] = res.value.estimatedValue ?? null;
+          const value = res.value.estimatedValue ?? null;
+          confirmedRef.current[id] = value;
+          reconciled[id] = value;
         } else {
           failedCount += 1;
           reconciled[id] = previous.get(id) ?? null;
