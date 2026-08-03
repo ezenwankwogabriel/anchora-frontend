@@ -62,6 +62,9 @@ export function VaultDocumentSection({
         setDocuments(data ?? []);
         onDocumentsLoaded?.((data ?? []).length > 0);
       })
+      .catch(() => {
+        addToast("Couldn't load existing documents. Refresh the page to try again.", "error");
+      })
       .finally(() => setLoading(false));
     // onDocumentsLoaded is a callback the parent should keep stable; only
     // recordId should re-trigger this fetch.
