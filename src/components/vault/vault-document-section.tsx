@@ -53,10 +53,7 @@ export function VaultDocumentSection({
   const inputRef = useRef<HTMLInputElement>(null);
   const [documents, setDocuments] = useState<VaultDocument[]>([]);
   const [loading, setLoading] = useState(true);
-  // Separate from `loading`: a failed fetch leaves the real document count
-  // unknown, so uploads must stay blocked even after `loading` goes back to
-  // false — otherwise a record already at its limit could accept an
-  // over-limit batch while its true count is unconfirmed.
+
   const [documentLoadFailed, setDocumentLoadFailed] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -257,6 +254,9 @@ export function VaultDocumentSection({
       ) : (
         <>
           <div
+            role="button"
+            tabIndex={uploadsDisabled ? -1 : 0}
+            aria-disabled={uploadsDisabled}
             className={`mt-4 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
               uploadsDisabled
                 ? "cursor-not-allowed opacity-50 border-blue-300 bg-[#F8FAFF]"
@@ -265,6 +265,13 @@ export function VaultDocumentSection({
                   : "cursor-pointer border-blue-300 bg-[#F8FAFF] hover:border-[#3B82F6]"
             }`}
             onClick={() => { if (!uploadsDisabled) inputRef.current?.click(); }}
+            onKeyDown={(e) => {
+              if (uploadsDisabled) return;
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                inputRef.current?.click();
+              }
+            }}
             onDragOver={(e) => { e.preventDefault(); if (!uploadsDisabled) setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
