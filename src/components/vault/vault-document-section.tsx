@@ -57,12 +57,19 @@ export function VaultDocumentSection({
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
+    // This section is reused across records rather than remounted (see
+    // VaultAssetPanel), so a fetch for the newly selected record must not
+    // render whatever was left over from the previous one.
+    setLoading(true);
+    setDocuments([]);
     VaultService.getDocuments(recordId)
       .then((data) => {
         setDocuments(data ?? []);
         onDocumentsLoaded?.((data ?? []).length > 0);
       })
       .catch(() => {
+        setDocuments([]);
+        onDocumentsLoaded?.(false);
         addToast("Couldn't load existing documents. Refresh the page to try again.", "error");
       })
       .finally(() => setLoading(false));

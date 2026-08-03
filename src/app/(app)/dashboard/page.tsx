@@ -279,7 +279,6 @@ export default function DashboardPage() {
   const { planData, loading: planLoading } = usePlan();
   const [pastDueDismissed, setPastDueDismissed] = useState(false);
   const [updateValuesOpen, setUpdateValuesOpen] = useState(false);
-  console.log('records', records)
 
   useEffect(() => {
     setPastDueDismissed(localStorage.getItem(PAST_DUE_DISMISSED_KEY) === "true");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { CurrencyInput } from "@/components/ui/currency-input";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,7 @@ function ValueRow({
         placeholder="0.00"
         value={value}
         onChange={onChange}
+        aria-label={recordLabel(record)}
       />
     </div>
   );
@@ -79,6 +80,12 @@ export function UpdateValuesSheet({ open, onOpenChange, records, onValuesChange 
   const valuedRecords = records.filter((r) => r.estimatedValue != null);
   const unvaluedRecords = records.filter((r) => r.estimatedValue == null);
 
+  // Per-record save version. The sheet stays mounted across open/close
+  // cycles, so a save batch can still be in flight when the user reopens it
+  // and saves the same record again — without this, whichever batch's PATCH
+  // resolves last wins, even if it's the older, now-stale one.
+  const versionRef = useRef<Record<string, number>>({});
+
   const handleSave = () => {
     const changed = records.filter((r) => (values[r.id] ?? "") !== valueToString(r));
     onOpenChange(false);
@@ -86,6 +93,9 @@ export function UpdateValuesSheet({ open, onOpenChange, records, onValuesChange 
 
     const previous = new Map(changed.map((r) => [r.id, r.estimatedValue]));
     const entered = new Map(changed.map((r) => [r.id, parseNairaInputToKobo(values[r.id] ?? "")]));
+    const myVersions = new Map(
+      changed.map((r) => [r.id, (versionRef.current[r.id] = (versionRef.current[r.id] ?? 0) + 1)]),
+    );
 
     // Optimistic: reflect what the user typed immediately, before the
     // network round-trip resolves.
@@ -103,6 +113,9 @@ export function UpdateValuesSheet({ open, onOpenChange, records, onValuesChange 
       let failedCount = 0;
       results.forEach((res, i) => {
         const id = changed[i].id;
+        // A newer save batch for this record has since started — let that
+        // batch's reconciliation win instead of overwriting it with ours.
+        if (versionRef.current[id] !== myVersions.get(id)) return;
         if (res.status === "fulfilled") {
           reconciled[id] = res.value.estimatedValue ?? null;
         } else {
@@ -110,7 +123,7 @@ export function UpdateValuesSheet({ open, onOpenChange, records, onValuesChange 
           reconciled[id] = previous.get(id) ?? null;
         }
       });
-      onValuesChange(reconciled);
+      if (Object.keys(reconciled).length > 0) onValuesChange(reconciled);
 
       if (failedCount > 0) {
         addToast(
