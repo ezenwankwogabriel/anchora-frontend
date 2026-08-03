@@ -83,6 +83,7 @@ export function VaultDocumentSection({
   const atLimit = totalCount >= limit;
 
   const handleFile = (file: File) => {
+    if (loading) return;
     if (!["image/jpeg", "image/png", "application/pdf"].includes(file.type)) {
       addToast("Only JPG, PNG or PDF files are accepted.", "error");
       return;
@@ -97,7 +98,7 @@ export function VaultDocumentSection({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    if (atLimit) return;
+    if (atLimit || loading) return;
     const file = e.dataTransfer.files[0];
     if (file) handleFile(file);
   };
@@ -239,13 +240,15 @@ export function VaultDocumentSection({
       ) : (
         <>
           <div
-            className={`mt-4 border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-              dragOver
-                ? "border-[#3B82F6] bg-[#3B82F6]/5"
-                : "border-blue-300 bg-[#F8FAFF] hover:border-[#3B82F6]"
+            className={`mt-4 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+              loading
+                ? "cursor-not-allowed opacity-50 border-blue-300 bg-[#F8FAFF]"
+                : dragOver
+                  ? "cursor-pointer border-[#3B82F6] bg-[#3B82F6]/5"
+                  : "cursor-pointer border-blue-300 bg-[#F8FAFF] hover:border-[#3B82F6]"
             }`}
-            onClick={() => inputRef.current?.click()}
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onClick={() => { if (!loading) inputRef.current?.click(); }}
+            onDragOver={(e) => { e.preventDefault(); if (!loading) setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
           >
@@ -261,6 +264,7 @@ export function VaultDocumentSection({
             type="file"
             accept={ACCEPTED_MIMES}
             className="hidden"
+            disabled={loading}
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) handleFile(file);
