@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Lock } from "lucide-react";
 import Link from "next/link";
 import { StepIndicator } from "@/components/ui/step-indicator";
 import { CategorySelector } from "@/components/ui/category-selector";
@@ -25,6 +25,39 @@ const VALID_CATEGORIES = new Set<string>([
 ]);
 
 const STEP_LABELS = ["Select type", "Enter details"] as const;
+
+const ENCRYPTION_TOOLTIP_COPY =
+  "Vault data is encrypted using industry-standard encryption algorithms and stored securely.";
+
+function EncryptionIndicator() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative flex-shrink-0">
+      <button
+        type="button"
+        aria-label="Vault data is encrypted"
+        aria-describedby="encryption-indicator-tooltip"
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+        className="flex items-center justify-center text-text-tertiary hover:text-text-secondary transition-colors bg-transparent border-none cursor-pointer p-0.5"
+      >
+        <Lock size={16} />
+      </button>
+      {open && (
+        <div
+          id="encryption-indicator-tooltip"
+          role="tooltip"
+          className="absolute right-0 top-full mt-2 w-[220px] rounded-md bg-text-primary text-white text-[11.5px] leading-[1.4] px-2.5 py-2 shadow-md z-10"
+        >
+          {ENCRYPTION_TOOLTIP_COPY}
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface AddAssetClientProps {
   initialCategory?: string;
@@ -162,14 +195,17 @@ export function AddAssetClient({ initialCategory, recordCount }: AddAssetClientP
         {/* Step 1 — asset details */}
         {category && step === 1 && (
           <div>
-            <div className="flex items-center gap-3 mb-5 py-[14px] px-4 rounded-lg bg-[#10B981]/5 border border-[#D1FAE5]">
-              <CategoryIcon category={category} size={20} solid className="w-10 h-10 rounded-lg" />
-              <div>
-                <p className="font-heading text-[20px] text-text-primary leading-[1.1]">
-                  {categoryLabels[category]}
-                </p>
-                <p className="text-[13px] text-text-secondary mt-[2px]">Fill in the details below</p>
+            <div className="flex items-center justify-between gap-3 mb-5 py-[14px] px-4 rounded-lg bg-[#10B981]/5 border border-[#D1FAE5]">
+              <div className="flex items-center gap-3">
+                <CategoryIcon category={category} size={20} solid className="w-10 h-10 rounded-lg" />
+                <div>
+                  <p className="font-heading text-[20px] text-text-primary leading-[1.1]">
+                    {categoryLabels[category]}
+                  </p>
+                  <p className="text-[13px] text-text-secondary mt-[2px]">Fill in the details below</p>
+                </div>
               </div>
+              <EncryptionIndicator />
             </div>
 
             <VaultForm
