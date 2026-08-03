@@ -53,6 +53,11 @@ export function VaultDocumentSection({
   const inputRef = useRef<HTMLInputElement>(null);
   const [documents, setDocuments] = useState<VaultDocument[]>([]);
   const [loading, setLoading] = useState(true);
+  // Separate from `loading`: a failed fetch leaves the real document count
+  // unknown, so uploads must stay blocked even after `loading` goes back to
+  // false — otherwise a record already at its limit could accept an
+  // over-limit batch while its true count is unconfirmed.
+  const [documentLoadFailed, setDocumentLoadFailed] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
@@ -62,6 +67,7 @@ export function VaultDocumentSection({
     // render whatever was left over from the previous one.
     setLoading(true);
     setDocuments([]);
+    setDocumentLoadFailed(false);
 
     let cancelled = false;
     VaultService.getDocuments(recordId)
@@ -73,6 +79,7 @@ export function VaultDocumentSection({
       .catch(() => {
         if (cancelled) return;
         setDocuments([]);
+        setDocumentLoadFailed(true);
         onDocumentsLoaded?.(false);
         addToast("Couldn't load existing documents. Refresh the page to try again.", "error");
       })
@@ -90,9 +97,10 @@ export function VaultDocumentSection({
   const limit = isFree ? FREE_DOCUMENT_LIMIT : PRO_DOCUMENT_LIMIT;
   const totalCount = documents.length + stagedFiles.length;
   const atLimit = totalCount >= limit;
+  const uploadsDisabled = loading || documentLoadFailed;
 
   const handleFile = (file: File) => {
-    if (loading) return;
+    if (uploadsDisabled) return;
     if (!["image/jpeg", "image/png", "application/pdf"].includes(file.type)) {
       addToast("Only JPG, PNG or PDF files are accepted.", "error");
       return;
@@ -107,7 +115,7 @@ export function VaultDocumentSection({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    if (atLimit || loading) return;
+    if (atLimit || uploadsDisabled) return;
     const file = e.dataTransfer.files[0];
     if (file) handleFile(file);
   };
@@ -250,14 +258,14 @@ export function VaultDocumentSection({
         <>
           <div
             className={`mt-4 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-              loading
+              uploadsDisabled
                 ? "cursor-not-allowed opacity-50 border-blue-300 bg-[#F8FAFF]"
                 : dragOver
                   ? "cursor-pointer border-[#3B82F6] bg-[#3B82F6]/5"
                   : "cursor-pointer border-blue-300 bg-[#F8FAFF] hover:border-[#3B82F6]"
             }`}
-            onClick={() => { if (!loading) inputRef.current?.click(); }}
-            onDragOver={(e) => { e.preventDefault(); if (!loading) setDragOver(true); }}
+            onClick={() => { if (!uploadsDisabled) inputRef.current?.click(); }}
+            onDragOver={(e) => { e.preventDefault(); if (!uploadsDisabled) setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
           >
@@ -273,7 +281,7 @@ export function VaultDocumentSection({
             type="file"
             accept={ACCEPTED_MIMES}
             className="hidden"
-            disabled={loading}
+            disabled={uploadsDisabled}
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) handleFile(file);
