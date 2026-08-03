@@ -62,17 +62,26 @@ export function VaultDocumentSection({
     // render whatever was left over from the previous one.
     setLoading(true);
     setDocuments([]);
+
+    let cancelled = false;
     VaultService.getDocuments(recordId)
       .then((data) => {
+        if (cancelled) return;
         setDocuments(data ?? []);
         onDocumentsLoaded?.((data ?? []).length > 0);
       })
       .catch(() => {
+        if (cancelled) return;
         setDocuments([]);
         onDocumentsLoaded?.(false);
         addToast("Couldn't load existing documents. Refresh the page to try again.", "error");
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
     // onDocumentsLoaded is a callback the parent should keep stable; only
     // recordId should re-trigger this fetch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
