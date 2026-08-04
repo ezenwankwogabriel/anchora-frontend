@@ -159,12 +159,12 @@ export interface GuardianInput {
 
 export interface Executor {
   id: string;
+  rank: number;
   name: string;
   email: string;
   phone?: string;
   relationship?: string;
   invitedAt: string;
-  removedAt?: string;
   notifiedAt: string | null;
   emailVerifiedAt: string | null;
   acceptedAt: string | null;
@@ -222,9 +222,11 @@ export interface IdentityStatus {
 
 export class ServiceError extends Error {
   status: number;
-  constructor(message: string, status: number) {
+  code?: string;
+  constructor(message: string, status: number, code?: string) {
     super(message);
     this.status = status;
+    this.code = code;
     this.name = "ServiceError";
   }
 }

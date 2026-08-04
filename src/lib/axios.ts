@@ -83,9 +83,11 @@ export default http;
 // Shared error normaliser — import in every service instead of duplicating
 export function normalise(err: unknown): never {
   if (axios.isAxiosError(err)) {
+    const data = err.response?.data as { message?: string; error?: string };
     throw new ServiceError(
-      (err.response?.data as { message?: string })?.message ?? "Something went wrong",
-      err.response?.status ?? 500
+      data?.message ?? "Something went wrong",
+      err.response?.status ?? 500,
+      data?.error,
     );
   }
   throw err;
