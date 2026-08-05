@@ -4,15 +4,28 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Info, Loader2, AlertTriangle, Send, Mail, CheckCircle2 } from "lucide-react";
+import {
+  Info,
+  Loader2,
+  AlertTriangle,
+  Send,
+  Mail,
+  CheckCircle2,
+  Shield,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormSection } from "@/components/ui/form-section";
+import { PaywallModal } from "@/components/ui/paywall-modal";
 import { ExecutorService } from "@/services/executor.service";
 import { useToastStore } from "@/stores/toastStore";
 import { ServiceError } from "@/lib/types";
 import { executorSchema } from "@/lib/schemas/executor";
+import { trustedContactLimitFor } from "@/lib/plan-limits";
+import { usePlan } from "@/hooks/usePlan";
 import type { Executor, ExecutorNotificationState } from "@/lib/types";
 
 function getNotificationState(executor: Executor): ExecutorNotificationState {
@@ -128,7 +141,7 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
 
       if (notifyNow) {
         try {
-          await ExecutorService.notify();
+          await ExecutorService.notify(executor.id);
           toast(`Trusted contact designated and notified.`, "success");
         } catch {
           toast(
@@ -146,7 +159,7 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
       onCreated(executor);
     } catch (err) {
       if (err instanceof ServiceError && err.status === 409) {
-        setError("root", { message: "A trusted contact is already designated." });
+        setError("root", { message: "This person is already one of your trusted contacts." });
       } else {
         setError("root", {
           message:
@@ -317,9 +330,14 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
   const [showRemoveDialog, setShowDialog] = useState(false);
   const [removing, setRemoving] = useState(false);
 
+  // Refetches the whole list and picks this card's contact back out — the
+  // list-returning API has no single-contact GET, so this is the only way
+  // to pull the server's latest view of one contact (e.g. after a notify,
+  // to pick up notifiedAt/emailVerifiedAt).
   const refresh = async () => {
-    const latest = await ExecutorService.get();
-    if (latest) onUpdated(latest);
+    const latest = await ExecutorService.list();
+    const updated = latest.find((e) => e.id === executor.id);
+    if (updated) onUpdated(updated);
   };
 
   // Also refreshes the verification link when unverified — there's no
@@ -328,7 +346,7 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
   const handleNotify = async () => {
     setNotifying(true);
     try {
-      await ExecutorService.notify();
+      await ExecutorService.notify(executor.id);
       toast("Trusted contact notified", "success");
       await refresh();
     } catch {
@@ -341,7 +359,7 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
   const handleRemove = async () => {
     setRemoving(true);
     try {
-      await ExecutorService.remove();
+      await ExecutorService.remove(executor.id);
       toast("Trusted contact removed", "success");
       setShowDialog(false);
       onRemoved();
@@ -355,16 +373,7 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
   const StatusIcon = status.Icon;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-[28px] text-text-primary">
-          Your trusted contact
-        </h1>
-        <p className="text-[13.5px] text-text-secondary mt-1">
-          This person will receive your release summary if a release is triggered.
-        </p>
-      </div>
-
+    <>
       <div className="bg-surface border border-border-color rounded-xl shadow-sm p-6">
         <div className="flex items-center gap-4 pb-5 mb-5 border-b border-border-color">
           <div className="w-12 h-12 rounded-full bg-navy flex items-center justify-center flex-shrink-0">
@@ -432,6 +441,132 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
           wasNotified={!!executor.notifiedAt}
         />
       )}
+    </>
+  );
+}
+
+// ── Trusted Contact List (State B) ─────────────────────────────────────────────
+
+interface TrustedContactListProps {
+  executors: Executor[];
+  onReordered: (executors: Executor[]) => void;
+  onRemoved: (id: string) => void;
+  onUpdated: (executor: Executor) => void;
+}
+
+function TrustedContactList({
+  executors,
+  onReordered,
+  onRemoved,
+  onUpdated,
+}: TrustedContactListProps) {
+  const toast = useToastStore((s) => s.add);
+  // Tracks which contact is mid-reorder so both its own buttons and its
+  // swap partner's are disabled — prevents double-clicking a second move
+  // before the first PATCH resolves and desyncing local order from the
+  // server's.
+  const [reordering, setReordering] = useState(false);
+
+  const move = async (index: number, direction: -1 | 1) => {
+    const target = index + direction;
+    if (target < 0 || target >= executors.length || reordering) return;
+
+    const reordered = [...executors];
+    const [moved] = reordered.splice(index, 1);
+    reordered.splice(target, 0, moved);
+
+    setReordering(true);
+    try {
+      const updated = await ExecutorService.reorder(reordered.map((e) => e.id));
+      onReordered(updated);
+    } catch {
+      toast("Failed to reorder trusted contacts", "error");
+    } finally {
+      setReordering(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="font-heading text-[28px] text-text-primary">
+          {executors.length === 1 ? "Your trusted contact" : "Your trusted contacts"}
+        </h1>
+        <p className="text-[13.5px] text-text-secondary mt-1">
+          {executors.length === 1
+            ? "This person will receive your release summary if a release is triggered."
+            : "These people will receive your release summary if a release is triggered, contacted in the order below."}
+        </p>
+      </div>
+
+      <div className="space-y-4">
+        {executors.map((executor, index) => (
+          <div key={executor.id} className="flex items-start gap-3">
+            {executors.length > 1 && (
+              <div className="flex flex-col items-center gap-1 pt-6 flex-shrink-0">
+                <span className="text-[11px] font-semibold text-text-tertiary">
+                  #{executor.rank}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => move(index, -1)}
+                  disabled={index === 0 || reordering}
+                  aria-label={`Move ${executor.name} up`}
+                  className="w-6 h-6 flex items-center justify-center rounded-md border border-border-color text-text-tertiary bg-transparent hover:text-text-primary hover:bg-bg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronUp size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => move(index, 1)}
+                  disabled={index === executors.length - 1 || reordering}
+                  aria-label={`Move ${executor.name} down`}
+                  className="w-6 h-6 flex items-center justify-center rounded-md border border-border-color text-text-tertiary bg-transparent hover:text-text-primary hover:bg-bg disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronDown size={14} />
+                </button>
+              </div>
+            )}
+            <div className="flex-1 min-w-0">
+              <ExecutorCard
+                executor={executor}
+                onRemoved={() => onRemoved(executor.id)}
+                onUpdated={onUpdated}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Empty state ────────────────────────────────────────────────────────────────
+
+function EmptyTrustedContactState({ onAdd }: { onAdd: () => void }) {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="font-heading text-[28px] text-text-primary">
+          Your trusted contact
+        </h1>
+        <p className="text-[13.5px] text-text-secondary mt-1">
+          Your trusted contact is the person who will receive your release summary and
+          manage the discovery process if your vault becomes inactive.
+        </p>
+      </div>
+
+      <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+        <Shield size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
+        <div className="flex-1 min-w-0">
+          <p className="text-[13px] font-[500] text-amber-900">No trusted contact designated</p>
+          <p className="text-[12px] text-amber-700">
+            Your release summary cannot be made available without a trusted contact.
+          </p>
+        </div>
+      </div>
+
+      <Button onClick={onAdd}>Add trusted contact</Button>
     </div>
   );
 }
@@ -440,15 +575,26 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
 
 export default function ExecutorClient() {
   const [loading, setLoading] = useState(true);
-  const [executor, setExecutor] = useState<Executor | null>(null);
+  const [executors, setExecutors] = useState<Executor[]>([]);
   const [fetchError, setFetchError] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const { isPro, refetch: refetchPlan } = usePlan();
 
   useEffect(() => {
-    ExecutorService.get()
-      .then((data) => setExecutor(data ?? null))
+    ExecutorService.list()
+      .then(setExecutors)
       .catch(() => setFetchError(true))
       .finally(() => setLoading(false));
   }, []);
+
+  const limit = trustedContactLimitFor(isPro);
+  const atLimit = executors.length >= limit;
+
+  function handleAddClick() {
+    if (atLimit && !isPro) setShowPaywall(true);
+    else setShowAddForm(true);
+  }
 
   if (loading) {
     return (
@@ -466,15 +612,60 @@ export default function ExecutorClient() {
     );
   }
 
-  if (executor === null) {
-    return <DesignateForm onCreated={(e) => setExecutor(e)} />;
+  if (executors.length === 0 && !showAddForm) {
+    return <EmptyTrustedContactState onAdd={handleAddClick} />;
   }
 
   return (
-    <ExecutorCard
-      executor={executor}
-      onRemoved={() => setExecutor(null)}
-      onUpdated={(e) => setExecutor(e)}
-    />
+    <div className="space-y-6">
+      {executors.length > 0 && (
+        <TrustedContactList
+          executors={executors}
+          onReordered={setExecutors}
+          onRemoved={(id) =>
+            setExecutors((cur) =>
+              cur
+                .filter((e) => e.id !== id)
+                .map((e, i) => ({ ...e, rank: i + 1 })),
+            )
+          }
+          onUpdated={(updated) =>
+            setExecutors((cur) =>
+              cur.map((e) => (e.id === updated.id ? updated : e)),
+            )
+          }
+        />
+      )}
+
+      {showAddForm && (
+        <DesignateForm
+          onCreated={(e) => {
+            setExecutors((cur) => [...cur, e]);
+            setShowAddForm(false);
+          }}
+        />
+      )}
+
+      {!showAddForm && !atLimit && (
+        <Button variant="secondary" onClick={handleAddClick}>
+          Add another trusted contact
+        </Button>
+      )}
+
+      {!showAddForm && atLimit && !isPro && (
+        <Button variant="secondary" onClick={() => setShowPaywall(true)}>
+          Add another trusted contact
+        </Button>
+      )}
+
+      <PaywallModal
+        open={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        onUpgraded={() => {
+          setShowPaywall(false);
+          refetchPlan();
+        }}
+      />
+    </div>
   );
 }

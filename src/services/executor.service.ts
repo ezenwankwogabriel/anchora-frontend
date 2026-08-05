@@ -2,9 +2,9 @@ import http, { normalise } from "@/lib/axios";
 import type { Executor, ExecutorInput } from "@/lib/types";
 
 export const ExecutorService = {
-  get: async (): Promise<Executor | null> => {
+  list: async (): Promise<Executor[]> => {
     try {
-      return (await http.get<Executor | null>("/executor")).data;
+      return (await http.get<Executor[]>("/executor")).data;
     } catch (err) {
       normalise(err);
     }
@@ -18,25 +18,33 @@ export const ExecutorService = {
     }
   },
 
-  update: async (data: Partial<ExecutorInput>): Promise<Executor> => {
+  update: async (id: string, data: Partial<ExecutorInput>): Promise<Executor> => {
     try {
-      return (await http.patch<Executor>("/executor", data)).data;
+      return (await http.patch<Executor>(`/executor/${id}`, data)).data;
     } catch (err) {
       normalise(err);
     }
   },
 
-  remove: async (): Promise<void> => {
+  remove: async (id: string): Promise<void> => {
     try {
-      await http.delete("/executor");
+      await http.delete(`/executor/${id}`);
     } catch (err) {
       normalise(err);
     }
   },
 
-  notify: async (): Promise<void> => {
+  reorder: async (orderedIds: string[]): Promise<Executor[]> => {
     try {
-      await http.post("/executor/notify");
+      return (await http.patch<Executor[]>("/executor/reorder", { orderedIds })).data;
+    } catch (err) {
+      normalise(err);
+    }
+  },
+
+  notify: async (id: string): Promise<void> => {
+    try {
+      await http.post(`/executor/${id}/notify`);
     } catch (err) {
       normalise(err);
     }

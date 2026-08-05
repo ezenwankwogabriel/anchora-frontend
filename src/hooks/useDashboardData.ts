@@ -52,7 +52,10 @@ export function useDashboardData() {
     async function load() {
       const [recordsRes, executorRes] = await Promise.allSettled([
         VaultService.getRecords(),
-        ExecutorService.get(),
+        // Dashboard nudge is still single-contact-shaped pending the
+        // multi-contact nudge redesign — surface the first-ranked contact,
+        // matching today's behavior when there was only ever one.
+        ExecutorService.list().then((list) => list[0] ?? null),
       ]);
 
       if (stale) {
