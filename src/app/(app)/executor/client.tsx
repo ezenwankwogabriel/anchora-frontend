@@ -75,6 +75,11 @@ interface RemoveDialogProps {
   onCancel: () => void;
   removing: boolean;
   wasNotified: boolean;
+  // Separate from `removing` (this card's own in-flight remove call):
+  // blocks just the confirm action while a list-wide reorder is in
+  // flight, without also blocking Cancel — the user should always be
+  // able to back out of the dialog.
+  confirmDisabled?: boolean;
 }
 
 function RemoveDialog({
@@ -82,6 +87,7 @@ function RemoveDialog({
   onCancel,
   removing,
   wasNotified,
+  confirmDisabled = false,
 }: RemoveDialogProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -104,7 +110,11 @@ function RemoveDialog({
           <Button variant="secondary" onClick={onCancel} disabled={removing}>
             Keep trusted contact
           </Button>
-          <Button variant="danger" onClick={onConfirm} disabled={removing}>
+          <Button
+            variant="danger"
+            onClick={onConfirm}
+            disabled={removing || confirmDisabled}
+          >
             {removing && <Loader2 size={13} className="animate-spin" />}
             Remove
           </Button>
@@ -257,6 +267,13 @@ interface ExecutorCardProps {
   executor: Executor;
   onRemoved: () => void;
   onUpdated: (executor: Executor) => void;
+  // True while a list-wide reorder PATCH is in flight (any card, not just
+  // this one). Blocks Notify/Remove here too: a reorder response replaces
+  // the whole `executors` array wholesale, so a remove/notify that lands
+  // and mutates local state while a stale reorder response is still in
+  // flight can have its effect silently clobbered when that response
+  // arrives. See TrustedContactList's `reordering` state.
+  disabled?: boolean;
 }
 
 interface StatusPresentation {
@@ -324,7 +341,12 @@ function getStatusPresentation(executor: Executor): StatusPresentation {
   };
 }
 
-function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
+function ExecutorCard({
+  executor,
+  onRemoved,
+  onUpdated,
+  disabled = false,
+}: ExecutorCardProps) {
   const toast = useToastStore((s) => s.add);
   const [notifying, setNotifying] = useState(false);
   const [showRemoveDialog, setShowDialog] = useState(false);
@@ -344,6 +366,7 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
   // separate "resend verification" action, since it would do nothing this
   // doesn't already do.
   const handleNotify = async () => {
+    if (disabled) return;
     setNotifying(true);
     try {
       await ExecutorService.notify(executor.id);
@@ -357,6 +380,7 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
   };
 
   const handleRemove = async () => {
+    if (disabled) return;
     setRemoving(true);
     try {
       await ExecutorService.remove(executor.id);
@@ -413,7 +437,7 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
 
         {status.ctaLabel && (
           <div className="flex justify-center">
-            <Button onClick={handleNotify} disabled={notifying}>
+            <Button onClick={handleNotify} disabled={notifying || disabled}>
               {notifying ? (
                 <Loader2 size={15} className="animate-spin" />
               ) : (
@@ -427,7 +451,8 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
         <button
           type="button"
           onClick={() => setShowDialog(true)}
-          className="block w-full text-center text-[13px] text-text-tertiary hover:text-red transition-colors bg-transparent border-none cursor-pointer font-sans mt-3"
+          disabled={disabled}
+          className="block w-full text-center text-[13px] text-text-tertiary hover:text-red transition-colors bg-transparent border-none cursor-pointer font-sans mt-3 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:text-text-tertiary"
         >
           Remove trusted contact
         </button>
@@ -438,6 +463,7 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
           onConfirm={handleRemove}
           onCancel={() => setShowDialog(false)}
           removing={removing}
+          confirmDisabled={disabled}
           wasNotified={!!executor.notifiedAt}
         />
       )}
@@ -532,6 +558,7 @@ function TrustedContactList({
                 executor={executor}
                 onRemoved={() => onRemoved(executor.id)}
                 onUpdated={onUpdated}
+                disabled={reordering}
               />
             </div>
           </div>
