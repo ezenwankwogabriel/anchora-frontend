@@ -891,6 +891,130 @@ function InactivityRemindersSection({ isFree, planLoading }: { isFree: boolean; 
   );
 }
 
+// ── Escalation window ─────────────────────────────────────────────────────────
+
+const ESCALATION_OPTIONS: Array<{ value: number; label: string; recommended?: boolean }> = [
+  { value: 3,  label: "3 days" },
+  { value: 7,  label: "7 days", recommended: true },
+  { value: 14, label: "14 days" },
+  { value: 30, label: "30 days" },
+];
+
+function EscalationWindowSection({ isFree, planLoading }: { isFree: boolean; planLoading: boolean }) {
+  const user         = useAuthStore((s) => s.user);
+  const setAuth      = useAuthStore((s) => s.setAuth);
+  const accessToken  = useAuthStore((s) => s.accessToken);
+  const refreshToken = useAuthStore((s) => s.refreshToken);
+  const sessionId    = useAuthStore((s) => s.sessionId);
+  const addToast     = useToastStore((s) => s.add);
+
+  const [escalationWindow, setEscalationWindow] = useState(
+    user?.escalationWindowDays ?? 7
+  );
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const updated = await AuthService.updateMe({
+        escalationWindowDays: escalationWindow,
+      });
+      if (user && accessToken) {
+        setAuth(
+          {
+            ...user,
+            escalationWindowDays: updated.escalationWindowDays,
+          },
+          accessToken,
+          refreshToken ?? "",
+          sessionId ?? "",
+        );
+      }
+      addToast("Settings saved.", "success");
+    } catch {
+      addToast("Failed to save settings. Please try again.", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (planLoading) {
+    return (
+      <div>
+        <div className="animate-pulse h-5 w-48 bg-surface-2 rounded mb-2" />
+        <div className="animate-pulse h-3.5 w-full max-w-lg bg-surface-2 rounded mb-5" />
+        <div className="bg-surface rounded-xl border border-border-color overflow-hidden">
+          <div className="p-5">
+            <div className="animate-pulse h-3.5 w-32 bg-surface-2 rounded mb-3" />
+            <div className="flex gap-2">
+              {[1, 2, 3, 4].map((i) => <div key={i} className="animate-pulse h-9 w-24 bg-surface-2 rounded-lg" />)}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex items-center gap-2 mb-1">
+        <h2 className="text-[14px] font-semibold text-text-primary">Trusted Contact Response Window</h2>
+      </div>
+      <p className="text-sm text-text-secondary mb-4">
+        A preference for how long to wait on an unresponsive trusted contact before your next
+        trusted contact could be reached instead.
+      </p>
+
+      <div className="bg-surface rounded-xl border border-border-color overflow-hidden">
+        <div className={cn(isFree && "pointer-events-none opacity-60")}>
+        {/* Response window */}
+        <div className="p-5">
+          <p className="text-[13px] font-semibold text-text-primary mb-0.5">Response window</p>
+          <p className="text-[12px] text-text-secondary mb-3">
+            How long to wait before considering your first trusted contact unreachable, so the
+            next one on your list can be reached instead.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {ESCALATION_OPTIONS.map(({ value, label, recommended }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setEscalationWindow(value)}
+                className={cn(
+                  "px-4 py-2 border-[1.5px] rounded-lg text-[13px] font-[500] transition-all",
+                  escalationWindow === value
+                    ? "border-accent bg-accent-light text-accent"
+                    : "border-border-color text-text-secondary hover:border-accent hover:bg-surface-2"
+                )}
+              >
+                {label}
+                {recommended && (
+                  <span className="ml-1.5 text-[11px] font-normal opacity-70">(Recommended)</span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+        </div>
+
+        {/* Save */}
+        <div className="px-5 py-4 border-t border-border-color flex justify-end">
+          {isFree ? (
+            <Link href="/settings/upgrade">
+              <Button>Upgrade to Pro</Button>
+            </Link>
+          ) : (
+            <Button onClick={handleSave} disabled={saving}>
+              {saving && <Loader2 size={15} className="animate-spin" />}
+              Save changes
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Plan tab ──────────────────────────────────────────────────────────────────
 
 function PlanFeature({ included, text }: { included: boolean; text: string }) {
@@ -1347,7 +1471,12 @@ export function SettingsClient({ initialTab }: { initialTab?: string }) {
         {tab === "Identity Verification" && (
           <IdentityVerificationTab isFree={isFree} planLoading={planLoading} />
         )}
-        {tab === "Notifications" && <InactivityRemindersSection isFree={isFree} planLoading={planLoading} />}
+        {tab === "Notifications" && (
+          <>
+            <InactivityRemindersSection isFree={isFree} planLoading={planLoading} />
+            <EscalationWindowSection isFree={isFree} planLoading={planLoading} />
+          </>
+        )}
         {tab === "Plan" && <PlanTab planData={planData} loading={planLoading} onPlanUpdated={refetchPlan} />}
         {tab === "Account" && <DangerZone />}
     </div>

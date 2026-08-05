@@ -8,6 +8,7 @@ export interface User {
   mfaEnabled: boolean;
   reminderFrequencyDays?: number;
   inactivityWindowMonths?: number;
+  escalationWindowDays?: number;
   onboardingCompletedAt: string | null;
   // Optional: older cached sessions predate this field, so it may be
   // missing from a locally-stored user object until the next login.
