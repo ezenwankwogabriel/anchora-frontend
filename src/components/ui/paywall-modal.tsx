@@ -9,9 +9,15 @@ interface PaywallModalProps {
   open: boolean;
   onClose: () => void;
   onUpgraded?: () => void;
+  reason?: "vault" | "trustedContact";
 }
 
-export function PaywallModal({ open, onClose, onUpgraded }: PaywallModalProps) {
+const PAYWALL_COPY: Record<"vault" | "trustedContact", string> = {
+  vault: "Free plans include up to 3 asset records. Upgrade to Pro for unlimited records across all 11 categories — ₦49,900 one-time, ₦19,900/year after that.",
+  trustedContact: "Free plans include 1 trusted contact. Upgrade to Pro to add up to 2 backups, so records still reach someone if your first choice can't be — ₦49,900 one-time, ₦19,900/year after that.",
+};
+
+export function PaywallModal({ open, onClose, onUpgraded, reason = "vault" }: PaywallModalProps) {
   const { start, phase, error, reset } = usePaystackCheckout(onUpgraded);
 
   if (!open) return null;
@@ -117,7 +123,7 @@ export function PaywallModal({ open, onClose, onUpgraded }: PaywallModalProps) {
           You&apos;ve reached your free plan limit
         </p>
         <p className="text-[13px] text-text-secondary mb-6 max-w-[300px]">
-          Free plans include up to 3 asset records. Upgrade to Pro for unlimited records across all 11 categories — ₦49,900 one-time, ₦19,900/year after that.
+          {PAYWALL_COPY[reason]}
         </p>
 
         <Button

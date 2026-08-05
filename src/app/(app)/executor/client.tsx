@@ -692,6 +692,7 @@ export default function ExecutorClient() {
           setShowPaywall(false);
           refetchPlan();
         }}
+        reason="trustedContact"
       />
     </div>
   );
