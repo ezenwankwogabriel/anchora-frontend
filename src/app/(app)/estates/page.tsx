@@ -153,7 +153,11 @@ function StatusPill({
     );
   }
 
-  if (!estate.isActiveContact) {
+  // Explicit `=== false`, not `!estate.isActiveContact` — a missing field
+  // (deploy skew, a partial rollback) must not fail closed into hiding
+  // access for every contact. The server still enforces the real gate on
+  // download; this is just display.
+  if (estate.isActiveContact === false) {
     return (
       <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
         Not currently available
@@ -365,7 +369,11 @@ function EstateDrawer({
 
   // ── State 1.5: Release triggered, but you're not the currently active contact ──
 
-  if (release.status !== "CANCELLED" && !estate.isActiveContact) {
+  // Explicit `=== false` (see StatusPill's identical guard above) — a
+  // missing/undefined field must fall through to the server-authoritative
+  // download gate (NOT_ACTIVE_CONTACT, handled by handleDownload's catch)
+  // rather than lock every contact out client-side.
+  if (release.status !== "CANCELLED" && estate.isActiveContact === false) {
     return (
       <Sheet open={open} onOpenChange={onClose}>
         <SheetContent className="max-w-md w-full">

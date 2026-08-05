@@ -128,12 +128,20 @@ function RemoveDialog({
 
 interface DesignateFormProps {
   onCreated: (executor: Executor) => void;
+  // Called instead of showing a raw form error when the backend's
+  // create-executor guard rejects with TRUSTED_CONTACT_LIMIT_REACHED —
+  // possible even when this page's own `atLimit` check said otherwise
+  // (stale state from a second tab, a plan downgrade, or the plan-fetch
+  // race described where this page renders before `isPro` catches up).
+  // Routes the user to the same paywall the "Add another" button uses,
+  // instead of a raw error string.
+  onLimitReached: () => void;
 }
 
 const designateSchema = executorSchema.extend({ notifyNow: z.boolean() });
 type DesignateFormValues = z.infer<typeof designateSchema>;
 
-function DesignateForm({ onCreated }: DesignateFormProps) {
+function DesignateForm({ onCreated, onLimitReached }: DesignateFormProps) {
   const toast = useToastStore((s) => s.add);
   const {
     register,
@@ -170,6 +178,11 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
     } catch (err) {
       if (err instanceof ServiceError && err.status === 409) {
         setError("root", { message: "This person is already one of your trusted contacts." });
+      } else if (
+        err instanceof ServiceError &&
+        err.code === "TRUSTED_CONTACT_LIMIT_REACHED"
+      ) {
+        onLimitReached();
       } else {
         setError("root", {
           message:
@@ -526,12 +539,19 @@ function TrustedContactList({
       </div>
 
       <div className="space-y-4">
+        {/* Badge shows list position (index + 1), never the server's stored
+            `rank` field — the backend no longer closes rank gaps on delete
+            (removed to avoid a uniqueness-constraint conflict; a deleted
+            contact's rank slot is simply left vacant until the next
+            reorder renumbers everything densely). The server already
+            orders this list by rank ascending, so position in the array
+            is the correct display value; the specific integer isn't. */}
         {executors.map((executor, index) => (
           <div key={executor.id} className="flex items-start gap-3">
             {executors.length > 1 && (
               <div className="flex flex-col items-center gap-1 pt-6 flex-shrink-0">
                 <span className="text-[11px] font-semibold text-text-tertiary">
-                  #{executor.rank}
+                  #{index + 1}
                 </span>
                 <button
                   type="button"
@@ -606,7 +626,13 @@ export default function ExecutorClient() {
   const [fetchError, setFetchError] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
-  const { isPro, refetch: refetchPlan } = usePlan();
+  // `planLoading` is a separate round trip from the executor list fetch —
+  // usePlan() starts `isPro` at false until /billing/plan resolves, and
+  // falls back to FREE if that call fails. Folding it into the page's own
+  // loading gate (rather than gating just the add/paywall buttons) avoids
+  // a PRO user with contacts already loaded seeing/triggering the FREE
+  // paywall for the brief window before the plan fetch catches up.
+  const { isPro, loading: planLoading, refetch: refetchPlan } = usePlan();
 
   useEffect(() => {
     ExecutorService.list()
@@ -623,7 +649,7 @@ export default function ExecutorClient() {
     else setShowAddForm(true);
   }
 
-  if (loading) {
+  if (loading || planLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 size={20} className="animate-spin text-text-tertiary" />
@@ -649,12 +675,14 @@ export default function ExecutorClient() {
         <TrustedContactList
           executors={executors}
           onReordered={setExecutors}
+          // Plain filter — do not renumber `rank` locally. The backend
+          // no longer closes rank gaps on delete (see the comment above
+          // the rank badge below), so inventing new rank values here
+          // would just be wrong until the next reorder. List order is
+          // already correct (server returns contacts ordered by rank
+          // ascending), which is all the UI actually needs to display.
           onRemoved={(id) =>
-            setExecutors((cur) =>
-              cur
-                .filter((e) => e.id !== id)
-                .map((e, i) => ({ ...e, rank: i + 1 })),
-            )
+            setExecutors((cur) => cur.filter((e) => e.id !== id))
           }
           onUpdated={(updated) =>
             setExecutors((cur) =>
@@ -670,6 +698,7 @@ export default function ExecutorClient() {
             setExecutors((cur) => [...cur, e]);
             setShowAddForm(false);
           }}
+          onLimitReached={() => setShowPaywall(true)}
         />
       )}
 
