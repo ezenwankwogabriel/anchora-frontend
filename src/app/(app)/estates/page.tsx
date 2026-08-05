@@ -36,6 +36,7 @@ import { useEstatesStore } from "@/stores/estatesStore";
 import { EstatesService } from "@/services/estates.service";
 import type { EstateItem } from "@/lib/types/estates";
 import type { GovIdVerificationStatus } from "@/lib/types";
+import { ServiceError } from "@/lib/types";
 import { useToastStore } from "@/stores/toastStore";
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
@@ -152,6 +153,14 @@ function StatusPill({
     );
   }
 
+  if (!estate.isActiveContact) {
+    return (
+      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+        Not currently available
+      </span>
+    );
+  }
+
   if (release.reportAvailable) {
     return (
       <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
@@ -256,8 +265,12 @@ function EstateDrawer({
     try {
       const { url } = await EstatesService.getReport(estate.release.id);
       window.open(url, "_blank");
-    } catch {
-      addToast("Failed to load report. Please try again.", "error");
+    } catch (err) {
+      if (err instanceof ServiceError && err.code === "NOT_ACTIVE_CONTACT") {
+        addToast("Records aren't available through your account at this time.", "error");
+      } else {
+        addToast("Failed to load report. Please try again.", "error");
+      }
     } finally {
       setDownloading(false);
     }
@@ -345,6 +358,36 @@ function EstateDrawer({
             loading={exiting}
             ownerName={estate.ownerName}
           />
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  // ── State 1.5: Release triggered, but you're not the currently active contact ──
+
+  if (release.status !== "CANCELLED" && !estate.isActiveContact) {
+    return (
+      <Sheet open={open} onOpenChange={onClose}>
+        <SheetContent className="max-w-md w-full">
+          <SheetHeader>
+            <SheetTitle>{estate.ownerName}</SheetTitle>
+            <SheetDescription>{estate.ownerName}&apos;s vault</SheetDescription>
+          </SheetHeader>
+          <div className="mt-6">
+            <DrawerDetail
+              label="Status"
+              value={
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                  Not currently available
+                </span>
+              }
+            />
+          </div>
+          <div className="mt-4 bg-gray-50 rounded-xl p-4">
+            <p className="text-sm text-text-secondary">
+              Records aren&apos;t available through your account at this time.
+            </p>
+          </div>
         </SheetContent>
       </Sheet>
     );

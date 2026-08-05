@@ -16,6 +16,7 @@ export interface EstateItem {
   acceptedAt: string | null;
   declinedAt: string | null;
   release: EstateRelease | null;
+  isActiveContact: boolean;
 }
 
 export interface EstatesResponse {
