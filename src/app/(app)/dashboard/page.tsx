@@ -109,126 +109,80 @@ function deriveActivity(records: VaultRecord[] | null): ActivityItem[] {
     .slice(0, 5);
 }
 
-type ExecutorDashboardState =
-  | "NONE"
-  | "NOT_NOTIFIED"
-  | "PENDING"
-  | "VERIFIED"
-  | "DECLINED"
-  | "ACCEPTED";
+// Collapsed to two states, deliberately — equal access means no contact
+// outranks another, so there's no cross-contact precedence left to derive
+// (declined/notified/verified/accepted are per-contact detail, shown on
+// the /executor list page itself, not summarized here).
+type ExecutorDashboardState = "NONE" | "HAS_CONTACTS";
 
-function assertNever(value: never): never {
-  throw new Error(`Unhandled executor dashboard state: ${String(value)}`);
+function getExecutorDashboardState(executors: Executor[]): ExecutorDashboardState {
+  return executors.length === 0 ? "NONE" : "HAS_CONTACTS";
 }
 
-// Precedence mirrors the executor page's own state derivation
-// (src/app/(app)/executor/client.tsx): declined/accepted are terminal
-// responses; emailVerifiedAt is a separate terminal state for
-// account-less executors, who have no accept/decline step to complete.
-function getExecutorDashboardState(executor: Executor | null): ExecutorDashboardState {
-  if (!executor) return "NONE";
-  if (executor.declinedAt) return "DECLINED";
-  if (executor.acceptedAt) return "ACCEPTED";
-  if (executor.emailVerifiedAt) return "VERIFIED";
-  if (!executor.notifiedAt) return "NOT_NOTIFIED";
-  return "PENDING";
-}
-
-const EXECUTOR_HEALTH_CARD: Record<
-  ExecutorDashboardState,
-  { value: string; subtext: (name: string) => string; status: "critical" | "warning" | "good" }
-> = {
-  NONE:         { value: "None",         subtext: () => "No trusted contact designated",           status: "critical" },
-  NOT_NOTIFIED: { value: "Not notified", subtext: (name) => `${name} designated, not yet notified`, status: "warning" },
-  PENDING:      { value: "Pending",      subtext: (name) => `Invitation sent to ${name}`,          status: "warning" },
-  VERIFIED:     { value: "Verified",     subtext: (name) => `${name}'s email is verified`,          status: "good" },
-  DECLINED:     { value: "Declined",     subtext: (name) => `${name} declined the invitation`,      status: "critical" },
-  ACCEPTED:     { value: "Accepted",     subtext: (name) => `${name} accepted`,                     status: "good" },
-};
-
-function renderExecutorNudge(state: ExecutorDashboardState, executor: Executor | null) {
-  switch (state) {
-    case "NONE":
-      return (
-        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-          <Shield size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-amber-900">No trusted contact designated</p>
-            <p className="text-[12px] text-amber-700">Your release summary cannot be made available without a trusted contact.</p>
-          </div>
-          <Link href="/executor" className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap flex-shrink-0">
-            Designate now →
-          </Link>
-        </div>
-      );
-    case "NOT_NOTIFIED":
-      return (
-        <div className="flex items-start gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl px-4 py-3">
-          <Clock size={16} className="text-blue-500 flex-shrink-0 mt-[2px]" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-blue-900">Trusted contact not yet notified</p>
-            <p className="text-[12px] text-blue-700">{executor!.name} won&apos;t know they&apos;ve been designated until you notify them.</p>
-          </div>
-          <Link href="/executor" className="text-[12.5px] font-semibold text-blue-700 hover:text-blue-900 whitespace-nowrap flex-shrink-0">
-            View trusted contact →
-          </Link>
-        </div>
-      );
-    case "PENDING":
-      return (
-        <div className="flex items-start gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl px-4 py-3">
-          <Clock size={16} className="text-blue-500 flex-shrink-0 mt-[2px]" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-blue-900">Trusted contact invitation pending</p>
-            <p className="text-[12px] text-blue-700">{executor!.name} has not yet responded.</p>
-          </div>
-          <Link href="/executor" className="text-[12.5px] font-semibold text-blue-700 hover:text-blue-900 whitespace-nowrap flex-shrink-0">
-            View trusted contact →
-          </Link>
-        </div>
-      );
-    case "VERIFIED":
-      return (
-        <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
-          <CheckCircle size={16} className="text-emerald-500 flex-shrink-0 mt-[2px]" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-emerald-900">Trusted contact email verified</p>
-            <p className="text-[12px] text-emerald-700">{executor!.name} has confirmed their email.</p>
-          </div>
-          <Link href="/executor" className="text-[12.5px] font-semibold text-emerald-700 hover:text-emerald-900 whitespace-nowrap flex-shrink-0">
-            View trusted contact →
-          </Link>
-        </div>
-      );
-    case "DECLINED":
-      return (
-        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-          <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-amber-900">Trusted contact invitation declined</p>
-            <p className="text-[12px] text-amber-700">{executor!.name} declined your invitation. Notify them again or designate someone else.</p>
-          </div>
-          <Link href="/executor" className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap flex-shrink-0">
-            View trusted contact →
-          </Link>
-        </div>
-      );
-    case "ACCEPTED":
-      return (
-        <div className="flex items-start gap-3 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
-          <CheckCircle size={16} className="text-emerald-500 flex-shrink-0 mt-[2px]" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-emerald-900">Trusted contact designated</p>
-            <p className="text-[12px] text-emerald-700">{executor!.name} accepted the role.</p>
-          </div>
-          <Link href="/executor" className="text-[12.5px] font-semibold text-emerald-700 hover:text-emerald-900 whitespace-nowrap flex-shrink-0">
-            View trusted contact →
-          </Link>
-        </div>
-      );
-    default:
-      return assertNever(state);
+function getExecutorHealthCard(executors: Executor[]): {
+  value: string;
+  subtext: string;
+  status: "critical" | "warning" | "good";
+} {
+  if (executors.length === 0) {
+    return { value: "None", subtext: "No trusted contact designated", status: "critical" };
   }
+  const allAccepted = executors.every((e) => e.acceptedAt);
+  return {
+    value: `${executors.length} added`,
+    subtext: allAccepted
+      ? "All trusted contacts have accepted"
+      : "Some trusted contacts haven't confirmed yet",
+    status: allAccepted ? "good" : "warning",
+  };
+}
+
+function renderExecutorNudge(state: ExecutorDashboardState, executors: Executor[]) {
+  if (state === "NONE") {
+    return (
+      <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+        <Shield size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
+        <div className="flex-1 min-w-0">
+          <p className="text-[13px] font-[500] text-amber-900">No trusted contact designated</p>
+          <p className="text-[12px] text-amber-700">Your release summary cannot be made available without at least one trusted contact.</p>
+        </div>
+        <Link href="/executor" className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap flex-shrink-0">
+          Designate now →
+        </Link>
+      </div>
+    );
+  }
+
+  const allAccepted = executors.every((e) => e.acceptedAt);
+  return (
+    <div
+      className={`flex items-start gap-3 rounded-xl px-4 py-3 border ${
+        allAccepted ? "bg-emerald-50 border-emerald-200" : "bg-[#EFF6FF] border-[#BFDBFE]"
+      }`}
+    >
+      {allAccepted ? (
+        <CheckCircle size={16} className="text-emerald-500 flex-shrink-0 mt-[2px]" />
+      ) : (
+        <Clock size={16} className="text-blue-500 flex-shrink-0 mt-[2px]" />
+      )}
+      <div className="flex-1 min-w-0">
+        <p className={`text-[13px] font-[500] ${allAccepted ? "text-emerald-900" : "text-blue-900"}`}>
+          {executors.length} trusted contact{executors.length === 1 ? "" : "s"} added
+        </p>
+        <p className={`text-[12px] ${allAccepted ? "text-emerald-700" : "text-blue-700"}`}>
+          {allAccepted ? "All have accepted." : "Some haven't confirmed yet."}
+        </p>
+      </div>
+      <Link
+        href="/executor"
+        className={`text-[12.5px] font-semibold whitespace-nowrap flex-shrink-0 ${
+          allAccepted ? "text-emerald-700 hover:text-emerald-900" : "text-blue-700 hover:text-blue-900"
+        }`}
+      >
+        View trusted contacts →
+      </Link>
+    </div>
+  );
 }
 
 // If the user selected categories during onboarding, show one "Add" item
@@ -241,7 +195,7 @@ function renderExecutorNudge(state: ExecutorDashboardState, executor: Executor |
 // (pre-existing users, or onboarding categories step was skipped).
 function buildChecklist(
   records: VaultRecord[] | null,
-  executor: Executor | null,
+  executors: Executor[],
   selectedCategories: AssetCategory[] | undefined,
 ): ChecklistItem[] {
   const covered = new Set((records ?? []).map((r) => r.category));
@@ -269,13 +223,13 @@ function buildChecklist(
 
   return [
     ...categoryItems,
-    { id: "executor", label: "Designate your trusted contact", done: executor !== null && !executor.declinedAt, href: "/executor" },
+    { id: "executor", label: "Designate your trusted contact", done: executors.some((e) => !e.declinedAt), href: "/executor" },
   ];
 }
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
-  const { loading, records, executor, error, deleteRecord, updateRecordValues } = useDashboardData();
+  const { loading, records, executors, error, deleteRecord, updateRecordValues } = useDashboardData();
   const { planData, loading: planLoading } = usePlan();
   const [pastDueDismissed, setPastDueDismissed] = useState(false);
   const [updateValuesOpen, setUpdateValuesOpen] = useState(false);
@@ -330,8 +284,9 @@ export default function DashboardPage() {
   );
 
   const recentActivity = deriveActivity(records);
-  const executorState = getExecutorDashboardState(executor);
-  const checklistItems = buildChecklist(records, executor, user?.onboardingSelectedCategories);
+  const executorState = getExecutorDashboardState(executors);
+  const executorHealthCard = getExecutorHealthCard(executors);
+  const checklistItems = buildChecklist(records, executors, user?.onboardingSelectedCategories);
   const checklistAllDone = checklistItems.every((i) => i.done);
   const hasDocumentedValue = (records ?? []).some((r) => r.estimatedValue != null);
 
@@ -356,9 +311,9 @@ export default function DashboardPage() {
             <HealthCard
               label="Trusted Contact"
               borderAccent="accent"
-              value={EXECUTOR_HEALTH_CARD[executorState].value}
-              subtext={EXECUTOR_HEALTH_CARD[executorState].subtext(executor?.name ?? "")}
-              status={EXECUTOR_HEALTH_CARD[executorState].status}
+              value={executorHealthCard.value}
+              subtext={executorHealthCard.subtext}
+              status={executorHealthCard.status}
             />
             <HealthCard
               label="Asset coverage"
@@ -404,7 +359,7 @@ export default function DashboardPage() {
       )}
 
       {/* Executor status nudge */}
-      {!loading && renderExecutorNudge(executorState, executor)}
+      {!loading && renderExecutorNudge(executorState, executors)}
 
       {/* Onboarding checklist */}
       {!checklistDismissed && !loading && (
