@@ -172,25 +172,6 @@ export interface SharedVaultItem {
   assetCount:   number;
 }
 
-// ── Guardian ──────────────────────────────────────────
-
-export interface Guardian {
-  id: string;
-  firstName: string;
-  email: string;
-  beneficiaryId: string | null;
-  acceptedAt: string | null;
-  declinedAt: string | null;
-  confirmedAt: string | null;
-  createdAt: string;
-}
-
-export interface GuardianInput {
-  firstName: string;
-  email: string;
-  beneficiaryId?: string;
-}
-
 // ── Executor ──────────────────────────────────────────
 
 export interface Executor {
