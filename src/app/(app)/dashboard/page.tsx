@@ -6,6 +6,8 @@ import { Plus, FilePlus, FileEdit, Shield, Clock, CheckCircle, AlertTriangle, Cr
 import { HealthCard } from "@/components/ui/health-card";
 import { PanelCard } from "@/components/ui/panel-card";
 import { ChecklistCard, type ChecklistItem } from "@/components/ui/checklist-card";
+import { DocumentedValueCard } from "@/components/ui/documented-value-card";
+import { UpdateValuesSheet } from "@/components/ui/update-values-sheet";
 import { AssetCategoryRow } from "@/components/ui/asset-category-row";
 import { SkeletonCard, SkeletonRow } from "@/components/ui/skeleton-card";
 import { Button } from "@/components/ui/button";
@@ -273,9 +275,10 @@ function buildChecklist(
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
-  const { loading, records, executor, error, deleteRecord } = useDashboardData();
+  const { loading, records, executor, error, deleteRecord, updateRecordValues } = useDashboardData();
   const { planData, loading: planLoading } = usePlan();
   const [pastDueDismissed, setPastDueDismissed] = useState(false);
+  const [updateValuesOpen, setUpdateValuesOpen] = useState(false);
 
   useEffect(() => {
     setPastDueDismissed(localStorage.getItem(PAST_DUE_DISMISSED_KEY) === "true");
@@ -328,6 +331,9 @@ export default function DashboardPage() {
 
   const recentActivity = deriveActivity(records);
   const executorState = getExecutorDashboardState(executor);
+  const checklistItems = buildChecklist(records, executor, user?.onboardingSelectedCategories);
+  const checklistAllDone = checklistItems.every((i) => i.done);
+  const hasDocumentedValue = (records ?? []).some((r) => r.estimatedValue != null);
 
   return (
     <div className="space-y-6">
@@ -403,8 +409,26 @@ export default function DashboardPage() {
       {/* Onboarding checklist */}
       {!checklistDismissed && !loading && (
         <ChecklistCard
-          items={buildChecklist(records, executor, user?.onboardingSelectedCategories)}
+          items={checklistItems}
           onDismiss={dismissChecklist}
+          compact={checklistAllDone || hasDocumentedValue}
+        />
+      )}
+
+      {/* Documented value */}
+      {!loading && (
+        <DocumentedValueCard
+          records={records ?? []}
+          onUpdateClick={() => setUpdateValuesOpen(true)}
+        />
+      )}
+
+      {records && (
+        <UpdateValuesSheet
+          open={updateValuesOpen}
+          onOpenChange={setUpdateValuesOpen}
+          records={records}
+          onValuesChange={updateRecordValues}
         />
       )}
 

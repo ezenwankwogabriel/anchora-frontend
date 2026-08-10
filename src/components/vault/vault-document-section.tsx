@@ -53,16 +53,39 @@ export function VaultDocumentSection({
   const inputRef = useRef<HTMLInputElement>(null);
   const [documents, setDocuments] = useState<VaultDocument[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [documentLoadFailed, setDocumentLoadFailed] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
+    // This section is reused across records rather than remounted (see
+    // VaultAssetPanel), so a fetch for the newly selected record must not
+    // render whatever was left over from the previous one.
+    setLoading(true);
+    setDocuments([]);
+    setDocumentLoadFailed(false);
+
+    let cancelled = false;
     VaultService.getDocuments(recordId)
       .then((data) => {
+        if (cancelled) return;
         setDocuments(data ?? []);
         onDocumentsLoaded?.((data ?? []).length > 0);
       })
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (cancelled) return;
+        setDocuments([]);
+        setDocumentLoadFailed(true);
+        onDocumentsLoaded?.(false);
+        addToast("Couldn't load existing documents. Refresh the page to try again.", "error");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
     // onDocumentsLoaded is a callback the parent should keep stable; only
     // recordId should re-trigger this fetch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -71,8 +94,10 @@ export function VaultDocumentSection({
   const limit = isFree ? FREE_DOCUMENT_LIMIT : PRO_DOCUMENT_LIMIT;
   const totalCount = documents.length + stagedFiles.length;
   const atLimit = totalCount >= limit;
+  const uploadsDisabled = loading || documentLoadFailed;
 
   const handleFile = (file: File) => {
+    if (uploadsDisabled) return;
     if (!["image/jpeg", "image/png", "application/pdf"].includes(file.type)) {
       addToast("Only JPG, PNG or PDF files are accepted.", "error");
       return;
@@ -87,7 +112,7 @@ export function VaultDocumentSection({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragOver(false);
-    if (atLimit) return;
+    if (atLimit || uploadsDisabled) return;
     const file = e.dataTransfer.files[0];
     if (file) handleFile(file);
   };
@@ -229,13 +254,25 @@ export function VaultDocumentSection({
       ) : (
         <>
           <div
-            className={`mt-4 border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
-              dragOver
-                ? "border-[#3B82F6] bg-[#3B82F6]/5"
-                : "border-blue-300 bg-[#F8FAFF] hover:border-[#3B82F6]"
+            role="button"
+            tabIndex={uploadsDisabled ? -1 : 0}
+            aria-disabled={uploadsDisabled}
+            className={`mt-4 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+              uploadsDisabled
+                ? "cursor-not-allowed opacity-50 border-blue-300 bg-[#F8FAFF]"
+                : dragOver
+                  ? "cursor-pointer border-[#3B82F6] bg-[#3B82F6]/5"
+                  : "cursor-pointer border-blue-300 bg-[#F8FAFF] hover:border-[#3B82F6]"
             }`}
-            onClick={() => inputRef.current?.click()}
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onClick={() => { if (!uploadsDisabled) inputRef.current?.click(); }}
+            onKeyDown={(e) => {
+              if (uploadsDisabled) return;
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                inputRef.current?.click();
+              }
+            }}
+            onDragOver={(e) => { e.preventDefault(); if (!uploadsDisabled) setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
           >
@@ -251,6 +288,7 @@ export function VaultDocumentSection({
             type="file"
             accept={ACCEPTED_MIMES}
             className="hidden"
+            disabled={uploadsDisabled}
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) handleFile(file);

@@ -71,6 +71,7 @@ export interface VaultRecord {
   executorIntent: ExecutorIntent;
   intendedBeneficiary?: string;
   isSelfCustodied: boolean;
+  estimatedValue: number | null; // kobo — encrypted at rest, decrypted on read
   encryptedFields: {
     credential?: string;
     referenceId?: string;
@@ -99,6 +100,41 @@ export interface VaultRecordInput {
   intendedBeneficiary?: string;
   isSelfCustodied?: boolean;
   accountType?: string;
+  estimatedValue?: number | null; // kobo — null explicitly clears it
+}
+
+// Every key of VaultRecordInput (minus estimatedValue), forced present even
+// though the source type marks most of them optional — so recordToInput
+// below gets a compile error if a newly added field is forgotten, instead of
+// silently dropping it from partial-update payloads.
+type RecordToInputResult = {
+  [K in Exclude<keyof VaultRecordInput, "estimatedValue">]-?: VaultRecordInput[K] | undefined;
+};
+
+// Canonical VaultRecord -> VaultRecordInput mapper, for callers that only
+// mean to change one field (e.g. bulk value edits) but must resend the rest
+// of a partial-update payload, since the backend treats an omitted field as
+// "leave alone" and treats undefined-vs-included very differently for
+// estimatedValue in particular. estimatedValue is deliberately excluded
+// here — callers that use this are, by definition, overriding it themselves.
+export function recordToInput(record: VaultRecord): VaultRecordInput {
+  const input: RecordToInputResult = {
+    category: record.category,
+    institutionName: record.institutionName,
+    accountName: record.accountName ?? undefined,
+    accountUrl: record.accountUrl ?? undefined,
+    credential: record.encryptedFields?.credential,
+    referenceId: record.encryptedFields?.referenceId,
+    notes: record.encryptedFields?.notes,
+    executorIntent: record.executorIntent,
+    intendedBeneficiary: record.intendedBeneficiary,
+    isSelfCustodied: record.isSelfCustodied,
+    accountType: record.encryptedFields?.accountType,
+  };
+  // Presence of every field was already checked above; this cast just
+  // restores category/institutionName's non-optional-ness, which
+  // RecordToInputResult widens to allow undefined uniformly.
+  return input as VaultRecordInput;
 }
 
 export interface VaultDocument {

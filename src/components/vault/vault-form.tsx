@@ -11,7 +11,9 @@ const zodResolver = _zodResolver as unknown as (
 
 import { ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { koboToNaira, parseNairaInputToKobo } from "@/lib/currency";
 import { Input } from "@/components/ui/input";
+import { CurrencyInput } from "@/components/ui/currency-input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -84,6 +86,7 @@ const ALWAYS_CORE_FIELDS = new Set<keyof VaultFormData>([
   "accountType",
   "isSelfCustodied",
   "notes",
+  "estimatedValue",
 ]);
 
 function isCoreField(field: FieldConfig): boolean {
@@ -127,6 +130,8 @@ export function VaultForm({
         intendedBeneficiary: record.intendedBeneficiary ?? "",
         isSelfCustodied: record.isSelfCustodied ?? false,
         accountType: record.encryptedFields?.accountType ?? "",
+        estimatedValue:
+          record.estimatedValue != null ? String(koboToNaira(record.estimatedValue)) : "",
       }
     : CATEGORY_DEFAULTS[category];
 
@@ -164,6 +169,11 @@ export function VaultForm({
         intendedBeneficiary: values.intendedBeneficiary || undefined,
         isSelfCustodied: values.isSelfCustodied,
         accountType: values.accountType || undefined,
+        estimatedValue: values.estimatedValue
+          ? parseNairaInputToKobo(values.estimatedValue)
+          : record?.estimatedValue != null
+            ? null
+            : undefined,
       });
     } catch (err) {
       setError("root", {
@@ -226,6 +236,22 @@ export function VaultForm({
             {...register("notes")}
           />
           <CharacterCounter value={notesValue} max={500} />
+          {field.helperText && <HelperText text={field.helperText} />}
+          <FieldError message={error} />
+        </FormSection>
+      );
+    }
+
+    if (field.type === "currency") {
+      return (
+        <FormSection key={key}>
+          <FieldLabel text={field.label} required={field.required} tone={tone} />
+          <CurrencyInput
+            name="estimatedValue"
+            placeholder={field.placeholder ?? "0.00"}
+            value={watch("estimatedValue") ?? ""}
+            onChange={(v) => setValue("estimatedValue", v)}
+          />
           {field.helperText && <HelperText text={field.helperText} />}
           <FieldError message={error} />
         </FormSection>
