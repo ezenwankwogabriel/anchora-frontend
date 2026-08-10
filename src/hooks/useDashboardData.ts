@@ -6,7 +6,7 @@ import type { VaultRecord, Executor } from "@/lib/types";
 interface State {
   loading: boolean;
   records: VaultRecord[] | null;
-  executor: Executor | null;
+  executors: Executor[];
   error: boolean;
 }
 
@@ -14,7 +14,7 @@ type Action =
   | {
       type: "LOADED";
       records: VaultRecord[] | null;
-      executor: Executor | null;
+      executors: Executor[];
       error: boolean;
     }
   | { type: "DELETE_RECORD"; id: string }
@@ -23,7 +23,7 @@ type Action =
 const initialState: State = {
   loading: true,
   records: null,
-  executor: null,
+  executors: [],
   error: false,
 };
 
@@ -33,7 +33,7 @@ function reducer(state: State, action: Action): State {
       return {
         loading: false,
         records: action.records,
-        executor: action.executor,
+        executors: action.executors,
         error: action.error,
       };
     case "DELETE_RECORD":
@@ -57,9 +57,9 @@ export function useDashboardData() {
   const staleRef = useRef(false);
 
   const load = useCallback(async () => {
-    const [recordsRes, executorRes] = await Promise.allSettled([
+    const [recordsRes, executorsRes] = await Promise.allSettled([
       VaultService.getRecords(),
-      ExecutorService.get(),
+      ExecutorService.list(),
     ]);
 
     if (staleRef.current) {
@@ -74,8 +74,8 @@ export function useDashboardData() {
       type: "LOADED",
       records:
         recordsRes.status === "fulfilled" ? (recordsRes.value ?? []) : null,
-      executor:
-        executorRes.status === "fulfilled" ? (executorRes.value ?? null) : null,
+      executors:
+        executorsRes.status === "fulfilled" ? executorsRes.value : [],
       error: recordsRes.status === "rejected",
     });
   }, []);

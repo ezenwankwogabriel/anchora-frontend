@@ -76,7 +76,7 @@ export default function OnboardingPage() {
     setSubmitting(true);
     setApiError(null);
     try {
-      await ExecutorService.create({
+      const executor = await ExecutorService.create({
         name: name.trim(),
         email: email.trim(),
         phone: phone.trim() || undefined,
@@ -84,7 +84,7 @@ export default function OnboardingPage() {
       });
       if (notifyNow) {
         try {
-          await ExecutorService.notify();
+          await ExecutorService.notify(executor.id);
         } catch {
           // Best-effort: the trusted contact is designated either way,
           // so a failed notify shouldn't block finishing onboarding.
