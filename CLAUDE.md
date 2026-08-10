@@ -33,14 +33,13 @@ The manually maintained `src/lib/admin-types.ts` is the source of truth for type
 
 ## Executor vs. Beneficiary — UI distinction
 
-Guardian was removed (unused, no UI entry point — confirmed 2026-08-07). The current release-flow participant is **Executor**, not Beneficiary.
+Guardian's frontend UI and service were removed (no entry point — confirmed 2026-08-07). The `Guardian` model and its enum values still appear in `docs/schema.prisma`, so that alone isn't proof it's gone from the backend — check `anchor-backend/CLAUDE.md`/schema directly. The current release-flow participant is **Executor**, not Beneficiary.
 
 **Executor** (`src/services/executor.service.ts`)
-- One per user; the release flow (report access, verification) is entirely Executor-based on the backend.
+- Many per user, subject to the plan's trusted-contact limit (`src/lib/plan-limits.ts`: FREE=1, PRO=3); the release flow (report access, verification) is entirely Executor-based on the backend.
 
-**Beneficiary** (`src/app/beneficiaries/`, `src/services/beneficiary.service.ts`)
-- Many per user; managed on the Beneficiaries page.
-- Must create or link an Anchora account to accept their invite.
+**Beneficiary** (`src/services/beneficiary.service.ts`)
+- Orphaned: `src/app/beneficiaries/` no longer exists and nothing imports `BeneficiaryService`.
 - The backend's `Beneficiary`/`BeneficiaryRelease` models are deprecated for the release flow — verify against `anchor-backend/CLAUDE.md` before building anything release-related against Beneficiary.
 
 ## API proxy

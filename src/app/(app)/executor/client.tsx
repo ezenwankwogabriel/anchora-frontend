@@ -126,27 +126,9 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
   });
 
   const onSubmit = async ({ notifyNow, ...values }: DesignateFormValues) => {
+    let executor: Executor;
     try {
-      const executor = await ExecutorService.create(values);
-
-      if (notifyNow) {
-        try {
-          await ExecutorService.notify(executor.id);
-          toast(`Trusted contact designated and notified.`, "success");
-        } catch {
-          toast(
-            `Trusted contact designated, but the notification failed to send.`,
-            "error",
-          );
-        }
-      } else {
-        toast(
-          `Trusted contact designated. Notify them whenever you're ready.`,
-          "success",
-        );
-      }
-
-      onCreated(executor);
+      executor = await ExecutorService.create(values);
     } catch (err) {
       if (err instanceof ServiceError && err.status === 409) {
         setError("root", { message: "This person is already one of your trusted contacts." });
@@ -156,6 +138,36 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
             err instanceof ServiceError ? err.message : "Something went wrong",
         });
       }
+      return;
+    }
+
+    if (!notifyNow) {
+      toast(
+        `Trusted contact designated. Notify them whenever you're ready.`,
+        "success",
+      );
+      onCreated(executor);
+      return;
+    }
+
+    try {
+      await ExecutorService.notify(executor.id);
+    } catch {
+      toast(
+        `Trusted contact designated, but the notification failed to send.`,
+        "error",
+      );
+      onCreated(executor);
+      return;
+    }
+
+    toast(`Trusted contact designated and notified.`, "success");
+    try {
+      const latest = await ExecutorService.list();
+      onCreated(latest.find((e) => e.id === executor.id) ?? executor);
+    } catch {
+      // Notification succeeded; the card just starts out stale until the next refresh.
+      onCreated(executor);
     }
   };
 
@@ -316,12 +328,18 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
     setNotifying(true);
     try {
       await ExecutorService.notify(executor.id);
-      toast("Trusted contact notified", "success");
+    } catch {
+      toast("Failed to notify trusted contact", "error");
+      setNotifying(false);
+      return;
+    }
+    toast("Trusted contact notified", "success");
+    try {
       const latest = await ExecutorService.list();
       const updated = latest.find((e) => e.id === executor.id);
       if (updated) onUpdated(updated);
     } catch {
-      toast("Failed to notify trusted contact", "error");
+      // Notification succeeded; the card just stays stale until the next refresh.
     } finally {
       setNotifying(false);
     }
@@ -422,7 +440,7 @@ export default function ExecutorClient() {
   const [fetchError, setFetchError] = useState(false);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
-  const { isPro, refetch: refetchPlan } = usePlan();
+  const { isPro, loading: planLoading, refetch: refetchPlan } = usePlan();
 
   useEffect(() => {
     ExecutorService.list()
@@ -431,7 +449,7 @@ export default function ExecutorClient() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
+  if (loading || planLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 size={20} className="animate-spin text-text-tertiary" />

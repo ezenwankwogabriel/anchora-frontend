@@ -109,21 +109,27 @@ function deriveActivity(records: VaultRecord[] | null): ActivityItem[] {
     .slice(0, 5);
 }
 
-// Collapsed to two states, deliberately — equal access means no contact
+// Collapsed to three states, deliberately — equal access means no contact
 // outranks another, so there's no cross-contact precedence left to derive
 // (declined/notified/verified/accepted are per-contact detail, shown on
-// the /executor list page itself, not summarized here).
-type ExecutorDashboardState = "NONE" | "HAS_CONTACTS";
+// the /executor list page itself, not summarized here). ERROR is distinct
+// from NONE so a transient executor-list failure doesn't read as "you have
+// no trusted contact".
+type ExecutorDashboardState = "ERROR" | "NONE" | "HAS_CONTACTS";
 
-function getExecutorDashboardState(executors: Executor[]): ExecutorDashboardState {
+function getExecutorDashboardState(executors: Executor[], executorsError: boolean): ExecutorDashboardState {
+  if (executorsError) return "ERROR";
   return executors.length === 0 ? "NONE" : "HAS_CONTACTS";
 }
 
-function getExecutorHealthCard(executors: Executor[]): {
+function getExecutorHealthCard(executors: Executor[], executorsError: boolean): {
   value: string;
   subtext: string;
-  status: "critical" | "warning" | "good";
+  status: "critical" | "warning" | "good" | "empty";
 } {
+  if (executorsError) {
+    return { value: "—", subtext: "Could not load", status: "empty" };
+  }
   if (executors.length === 0) {
     return { value: "None", subtext: "No trusted contact designated", status: "critical" };
   }
@@ -138,6 +144,15 @@ function getExecutorHealthCard(executors: Executor[]): {
 }
 
 function renderExecutorNudge(state: ExecutorDashboardState, executors: Executor[]) {
+  if (state === "ERROR") {
+    return (
+      <div className="flex items-start gap-3 bg-surface-2 border border-border-color rounded-xl px-4 py-3">
+        <Shield size={16} className="text-text-tertiary flex-shrink-0 mt-[2px]" />
+        <p className="text-[13px] text-text-secondary">Could not load your trusted contact status. Please refresh.</p>
+      </div>
+    );
+  }
+
   if (state === "NONE") {
     return (
       <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
@@ -229,7 +244,7 @@ function buildChecklist(
 
 export default function DashboardPage() {
   const user = useAuthStore((s) => s.user);
-  const { loading, records, executors, error, deleteRecord, updateRecordValues } = useDashboardData();
+  const { loading, records, executors, error, executorsError, deleteRecord, updateRecordValues } = useDashboardData();
   const { planData, loading: planLoading } = usePlan();
   const [pastDueDismissed, setPastDueDismissed] = useState(false);
   const [updateValuesOpen, setUpdateValuesOpen] = useState(false);
@@ -284,8 +299,8 @@ export default function DashboardPage() {
   );
 
   const recentActivity = deriveActivity(records);
-  const executorState = getExecutorDashboardState(executors);
-  const executorHealthCard = getExecutorHealthCard(executors);
+  const executorState = getExecutorDashboardState(executors, executorsError);
+  const executorHealthCard = getExecutorHealthCard(executors, executorsError);
   const checklistItems = buildChecklist(records, executors, user?.onboardingSelectedCategories);
   const checklistAllDone = checklistItems.every((i) => i.done);
   const hasDocumentedValue = (records ?? []).some((r) => r.estimatedValue != null);

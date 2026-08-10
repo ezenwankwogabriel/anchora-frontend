@@ -8,6 +8,7 @@ interface State {
   records: VaultRecord[] | null;
   executors: Executor[];
   error: boolean;
+  executorsError: boolean;
 }
 
 type Action =
@@ -16,6 +17,7 @@ type Action =
       records: VaultRecord[] | null;
       executors: Executor[];
       error: boolean;
+      executorsError: boolean;
     }
   | { type: "DELETE_RECORD"; id: string }
   | { type: "UPDATE_RECORD_VALUES"; updates: Record<string, number | null> };
@@ -25,6 +27,7 @@ const initialState: State = {
   records: null,
   executors: [],
   error: false,
+  executorsError: false,
 };
 
 function reducer(state: State, action: Action): State {
@@ -35,6 +38,7 @@ function reducer(state: State, action: Action): State {
         records: action.records,
         executors: action.executors,
         error: action.error,
+        executorsError: action.executorsError,
       };
     case "DELETE_RECORD":
       return {
@@ -77,6 +81,7 @@ export function useDashboardData() {
       executors:
         executorsRes.status === "fulfilled" ? executorsRes.value : [],
       error: recordsRes.status === "rejected",
+      executorsError: executorsRes.status === "rejected",
     });
   }, []);
 
