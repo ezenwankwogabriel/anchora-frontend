@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, FilePlus, FileEdit, Shield, Clock, CheckCircle, AlertTriangle, CreditCard, X } from "lucide-react";
+import { Plus, FilePlus, FileEdit, Shield, Clock, CheckCircle, CreditCard, X } from "lucide-react";
 import { HealthCard } from "@/components/ui/health-card";
 import { PanelCard } from "@/components/ui/panel-card";
 import { ChecklistCard, type ChecklistItem } from "@/components/ui/checklist-card";

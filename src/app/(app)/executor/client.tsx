@@ -451,8 +451,9 @@ export default function ExecutorClient() {
   const atLimit = executors.length >= limit;
 
   function handleAddClick() {
-    if (atLimit && !isPro) setShowPaywall(true);
-    else setShowAddForm(true);
+    if (!atLimit) setShowAddForm(true);
+    else if (!isPro) setShowPaywall(true);
+    // Pro users at their plan cap: no-op — the "Add" button is disabled below instead.
   }
 
   if (executors.length === 0 && !showAddForm) {
@@ -507,7 +508,16 @@ export default function ExecutorClient() {
       )}
 
       {!showAddForm && (
-        <Button variant="secondary" onClick={handleAddClick}>Add another trusted contact</Button>
+        atLimit && isPro ? (
+          <div className="flex items-center gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl px-4 py-3">
+            <Info size={16} className="text-blue-500 flex-shrink-0" />
+            <p className="text-[13px] text-blue-800">
+              Pro plan includes up to {limit} trusted contacts. Remove one to add another.
+            </p>
+          </div>
+        ) : (
+          <Button variant="secondary" onClick={handleAddClick}>Add another trusted contact</Button>
+        )
       )}
 
       <PaywallModal
