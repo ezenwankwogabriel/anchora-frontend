@@ -69,6 +69,11 @@ export function ChecklistCard({ items, onDismiss, className, compact }: Checklis
                   e.stopPropagation();
                   onDismiss();
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.stopPropagation();
+                  }
+                }}
                 aria-label="Dismiss checklist"
                 className="text-text-tertiary hover:text-text-secondary transition-colors"
               >

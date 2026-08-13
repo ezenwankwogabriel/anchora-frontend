@@ -239,9 +239,19 @@ function EstateDrawer({
   // Set when a download 403s as IDENTITY_VERIFICATION_REQUIRED despite
   // verificationStatus looking VERIFIED client-side (stale estates list) —
   // overrides straight into the same verify-identity panel as State 2,
-  // instead of a toast the user can miss mid-navigation.
-  const [verificationRequiredMessage, setVerificationRequiredMessage] =
-    useState<string | null>(null);
+  // instead of a toast the user can miss mid-navigation. Scoped to the
+  // estate/release it came from — the drawer never unmounts on close or
+  // when switching estates, so a response that lands after the user has
+  // already moved on must not bleed into whatever estate is open now.
+  const [verificationRequired, setVerificationRequired] = useState<{
+    estateId: string;
+    releaseId: string;
+    message: string;
+  } | null>(null);
+
+  useEffect(() => {
+    setVerificationRequired(null);
+  }, [open, estate?.estateId, estate?.release?.id]);
 
   if (!estate) return null;
 
@@ -250,6 +260,12 @@ function EstateDrawer({
     !!release &&
     release.status !== "COMPLETED" &&
     release.status !== "CANCELLED";
+  const verificationRequiredMessage =
+    verificationRequired &&
+    verificationRequired.estateId === estate.estateId &&
+    verificationRequired.releaseId === release?.id
+      ? verificationRequired.message
+      : null;
 
   const canExit = !releaseInProgress;
   const exitDisabledTooltip = releaseInProgress
@@ -264,7 +280,11 @@ function EstateDrawer({
       window.open(url, "_blank");
     } catch (err) {
       if (err instanceof ServiceError && err.code === "IDENTITY_VERIFICATION_REQUIRED") {
-        setVerificationRequiredMessage(err.message);
+        setVerificationRequired({
+          estateId: estate.estateId,
+          releaseId: estate.release.id,
+          message: err.message,
+        });
       } else {
         addToast("Failed to load report. Please try again.", "error");
       }
