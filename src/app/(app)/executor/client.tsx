@@ -9,10 +9,13 @@ import type { LucideIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { FormSection } from "@/components/ui/form-section";
+import { PaywallModal } from "@/components/ui/paywall-modal";
 import { ExecutorService } from "@/services/executor.service";
 import { useToastStore } from "@/stores/toastStore";
 import { ServiceError } from "@/lib/types";
 import { executorSchema } from "@/lib/schemas/executor";
+import { trustedContactLimitFor } from "@/lib/plan-limits";
+import { usePlan } from "@/hooks/usePlan";
 import type { Executor, ExecutorNotificationState } from "@/lib/types";
 
 function getNotificationState(executor: Executor): ExecutorNotificationState {
@@ -101,7 +104,7 @@ function RemoveDialog({
   );
 }
 
-// ── Designate Form (State A) ──────────────────────────────────────────────────
+// ── Designate Form ───────────────────────────────────────────────────────────
 
 interface DesignateFormProps {
   onCreated: (executor: Executor) => void;
@@ -123,52 +126,53 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
   });
 
   const onSubmit = async ({ notifyNow, ...values }: DesignateFormValues) => {
+    let executor: Executor;
     try {
-      const executor = await ExecutorService.create(values);
-
-      if (notifyNow) {
-        try {
-          await ExecutorService.notify();
-          toast(`Trusted contact designated and notified.`, "success");
-        } catch {
-          toast(
-            `Trusted contact designated, but the notification failed to send.`,
-            "error",
-          );
-        }
-      } else {
-        toast(
-          `Trusted contact designated. Notify them whenever you're ready.`,
-          "success",
-        );
-      }
-
-      onCreated(executor);
+      executor = await ExecutorService.create(values);
     } catch (err) {
       if (err instanceof ServiceError && err.status === 409) {
-        setError("root", { message: "A trusted contact is already designated." });
+        setError("root", { message: "This person is already one of your trusted contacts." });
       } else {
         setError("root", {
           message:
             err instanceof ServiceError ? err.message : "Something went wrong",
         });
       }
+      return;
+    }
+
+    if (!notifyNow) {
+      toast(
+        `Trusted contact designated. Notify them whenever you're ready.`,
+        "success",
+      );
+      onCreated(executor);
+      return;
+    }
+
+    try {
+      await ExecutorService.notify(executor.id);
+    } catch {
+      toast(
+        `Trusted contact designated, but the notification failed to send.`,
+        "error",
+      );
+      onCreated(executor);
+      return;
+    }
+
+    toast(`Trusted contact designated and notified.`, "success");
+    try {
+      const latest = await ExecutorService.list();
+      onCreated(latest.find((e) => e.id === executor.id) ?? executor);
+    } catch {
+      // Notification succeeded; the card just starts out stale until the next refresh.
+      onCreated(executor);
     }
   };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-[28px] text-text-primary">
-          Designate your trusted contact
-        </h1>
-        <p className="text-[13.5px] text-text-secondary mt-1">
-          Your trusted contact is the person who will receive your release summary and
-          manage the discovery process if your vault becomes inactive. Choose
-          someone you trust completely.
-        </p>
-      </div>
-
       <div className="flex items-start gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl p-4">
         <Info size={16} className="text-blue-500 flex-shrink-0 mt-[1px]" />
         <p className="text-[13px] text-blue-800">
@@ -238,7 +242,7 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
   );
 }
 
-// ── Executor Card (State B) ───────────────────────────────────────────────────
+// ── Executor Card ─────────────────────────────────────────────────────────────
 
 interface ExecutorCardProps {
   executor: Executor;
@@ -317,22 +321,25 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
   const [showRemoveDialog, setShowDialog] = useState(false);
   const [removing, setRemoving] = useState(false);
 
-  const refresh = async () => {
-    const latest = await ExecutorService.get();
-    if (latest) onUpdated(latest);
-  };
-
   // Also refreshes the verification link when unverified — there's no
   // separate "resend verification" action, since it would do nothing this
   // doesn't already do.
   const handleNotify = async () => {
     setNotifying(true);
     try {
-      await ExecutorService.notify();
-      toast("Trusted contact notified", "success");
-      await refresh();
+      await ExecutorService.notify(executor.id);
     } catch {
       toast("Failed to notify trusted contact", "error");
+      setNotifying(false);
+      return;
+    }
+    toast("Trusted contact notified", "success");
+    try {
+      const latest = await ExecutorService.list();
+      const updated = latest.find((e) => e.id === executor.id);
+      if (updated) onUpdated(updated);
+    } catch {
+      // Notification succeeded; the card just stays stale until the next refresh.
     } finally {
       setNotifying(false);
     }
@@ -341,7 +348,7 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
   const handleRemove = async () => {
     setRemoving(true);
     try {
-      await ExecutorService.remove();
+      await ExecutorService.remove(executor.id);
       toast("Trusted contact removed", "success");
       setShowDialog(false);
       onRemoved();
@@ -355,74 +362,63 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
   const StatusIcon = status.Icon;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-[28px] text-text-primary">
-          Your trusted contact
-        </h1>
-        <p className="text-[13.5px] text-text-secondary mt-1">
-          This person will receive your release summary if a release is triggered.
-        </p>
+    <div className="bg-surface border border-border-color rounded-xl shadow-sm p-6">
+      <div className="flex items-center gap-4 pb-5 mb-5 border-b border-border-color">
+        <div className="w-12 h-12 rounded-full bg-navy flex items-center justify-center flex-shrink-0">
+          <span className="text-white font-semibold text-lg">
+            {getInitials(executor.name)}
+          </span>
+        </div>
+        <div>
+          <p className="font-semibold text-[15px] text-text-primary">
+            {executor.name}
+          </p>
+          <p className="text-[13px] text-text-secondary">
+            {executor.relationship ? `${executor.relationship} · ` : ""}
+            {executor.email}
+          </p>
+        </div>
       </div>
 
-      <div className="bg-surface border border-border-color rounded-xl shadow-sm p-6">
-        <div className="flex items-center gap-4 pb-5 mb-5 border-b border-border-color">
-          <div className="w-12 h-12 rounded-full bg-navy flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-semibold text-lg">
-              {getInitials(executor.name)}
-            </span>
-          </div>
-          <div>
-            <p className="font-semibold text-[15px] text-text-primary">
-              {executor.name}
-            </p>
-            <p className="text-[13px] text-text-secondary">
-              {executor.relationship ? `${executor.relationship} · ` : ""}
-              {executor.email}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-3 mb-5">
-          <div
-            className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${status.iconClassName}`}
-          >
-            <StatusIcon size={16} />
-          </div>
-          <div>
-            <p className="font-semibold text-[14px] text-text-primary">
-              {status.title}
-            </p>
-            <p className="text-[13px] text-text-secondary mt-1">
-              {status.description}
-              {executor.notifiedAt &&
-                !executor.acceptedAt &&
-                ` Notified ${formatDate(executor.notifiedAt)}.`}
-            </p>
-          </div>
-        </div>
-
-        {status.ctaLabel && (
-          <div className="flex justify-center">
-            <Button onClick={handleNotify} disabled={notifying}>
-              {notifying ? (
-                <Loader2 size={15} className="animate-spin" />
-              ) : (
-                <StatusIcon size={15} />
-              )}
-              {status.ctaLabel}
-            </Button>
-          </div>
-        )}
-
-        <button
-          type="button"
-          onClick={() => setShowDialog(true)}
-          className="block w-full text-center text-[13px] text-text-tertiary hover:text-red transition-colors bg-transparent border-none cursor-pointer font-sans mt-3"
+      <div className="flex items-start gap-3 mb-5">
+        <div
+          className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${status.iconClassName}`}
         >
-          Remove trusted contact
-        </button>
+          <StatusIcon size={16} />
+        </div>
+        <div>
+          <p className="font-semibold text-[14px] text-text-primary">
+            {status.title}
+          </p>
+          <p className="text-[13px] text-text-secondary mt-1">
+            {status.description}
+            {executor.notifiedAt &&
+              !executor.acceptedAt &&
+              ` Notified ${formatDate(executor.notifiedAt)}.`}
+          </p>
+        </div>
       </div>
+
+      {status.ctaLabel && (
+        <div className="flex justify-center">
+          <Button onClick={handleNotify} disabled={notifying}>
+            {notifying ? (
+              <Loader2 size={15} className="animate-spin" />
+            ) : (
+              <StatusIcon size={15} />
+            )}
+            {status.ctaLabel}
+          </Button>
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={() => setShowDialog(true)}
+        className="block w-full text-center text-[13px] text-text-tertiary hover:text-red transition-colors bg-transparent border-none cursor-pointer font-sans mt-3"
+      >
+        Remove trusted contact
+      </button>
 
       {showRemoveDialog && (
         <RemoveDialog
@@ -440,17 +436,20 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
 
 export default function ExecutorClient() {
   const [loading, setLoading] = useState(true);
-  const [executor, setExecutor] = useState<Executor | null>(null);
+  const [executors, setExecutors] = useState<Executor[]>([]);
   const [fetchError, setFetchError] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const { isPro, loading: planLoading, refetch: refetchPlan } = usePlan();
 
   useEffect(() => {
-    ExecutorService.get()
-      .then((data) => setExecutor(data ?? null))
+    ExecutorService.list()
+      .then(setExecutors)
       .catch(() => setFetchError(true))
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
+  if (loading || planLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 size={20} className="animate-spin text-text-tertiary" />
@@ -466,15 +465,85 @@ export default function ExecutorClient() {
     );
   }
 
-  if (executor === null) {
-    return <DesignateForm onCreated={(e) => setExecutor(e)} />;
+  const limit = trustedContactLimitFor(isPro);
+  const atLimit = executors.length >= limit;
+
+  function handleAddClick() {
+    if (!atLimit) setShowAddForm(true);
+    else if (!isPro) setShowPaywall(true);
+    // Pro users at their plan cap: no-op — the "Add" button is disabled below instead.
+  }
+
+  if (executors.length === 0 && !showAddForm) {
+    return (
+      <>
+        <div className="space-y-6">
+          <div>
+            <h1 className="font-heading text-[28px] text-text-primary">Trusted Contacts</h1>
+            <p className="text-[13.5px] text-text-secondary mt-1">
+              The people who will receive your release summary if a release is triggered.
+            </p>
+          </div>
+          <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+            <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[13px] font-[500] text-amber-900">No trusted contact designated</p>
+              <p className="text-[12px] text-amber-700">Your release summary cannot be made available without at least one trusted contact.</p>
+            </div>
+          </div>
+          <Button onClick={handleAddClick}>Add trusted contact</Button>
+        </div>
+        <PaywallModal
+          open={showPaywall}
+          onClose={() => setShowPaywall(false)}
+          reason="trustedContact"
+          onUpgraded={() => { setShowPaywall(false); refetchPlan(); }}
+        />
+      </>
+    );
   }
 
   return (
-    <ExecutorCard
-      executor={executor}
-      onRemoved={() => setExecutor(null)}
-      onUpdated={(e) => setExecutor(e)}
-    />
+    <div className="space-y-6">
+      <div>
+        <h1 className="font-heading text-[28px] text-text-primary">Trusted Contacts</h1>
+        <p className="text-[13.5px] text-text-secondary mt-1">
+          Each contact independently receives your release summary if a release is triggered — every verified contact has equal access.
+        </p>
+      </div>
+
+      {executors.map((executor) => (
+        <ExecutorCard
+          key={executor.id}
+          executor={executor}
+          onRemoved={() => setExecutors((cur) => cur.filter((e) => e.id !== executor.id))}
+          onUpdated={(updated) => setExecutors((cur) => cur.map((e) => (e.id === updated.id ? updated : e)))}
+        />
+      ))}
+
+      {showAddForm && (
+        <DesignateForm onCreated={(e) => { setExecutors((cur) => [...cur, e]); setShowAddForm(false); }} />
+      )}
+
+      {!showAddForm && (
+        atLimit && isPro ? (
+          <div className="flex items-center gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl px-4 py-3">
+            <Info size={16} className="text-blue-500 flex-shrink-0" />
+            <p className="text-[13px] text-blue-800">
+              Pro plan includes up to {limit} trusted contacts. Remove one to add another.
+            </p>
+          </div>
+        ) : (
+          <Button variant="secondary" onClick={handleAddClick}>Add another trusted contact</Button>
+        )
+      )}
+
+      <PaywallModal
+        open={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        reason="trustedContact"
+        onUpgraded={() => { setShowPaywall(false); refetchPlan(); }}
+      />
+    </div>
   );
 }

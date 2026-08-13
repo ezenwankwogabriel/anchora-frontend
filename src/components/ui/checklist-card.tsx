@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Link from "next/link";
-import { Check, ChevronDown, ChevronRight } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface ChecklistItem {
@@ -31,7 +31,6 @@ function ProgressBar({ doneCount, total, rounded }: { doneCount: number; total: 
 
 export function ChecklistCard({ items, onDismiss, className, compact }: ChecklistCardProps) {
   const doneCount = items.filter((i) => i.done).length;
-  const allDone = doneCount === items.length;
   // The strip is only ever a space-saving default, not a dead end — a user
   // with incomplete items must still be able to reach them, so compact only
   // hides the list until they ask to see it.
@@ -61,20 +60,27 @@ export function ChecklistCard({ items, onDismiss, className, compact }: Checklis
             </div>
             <ProgressBar doneCount={doneCount} total={items.length} rounded />
           </div>
-          {allDone && onDismiss ? (
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDismiss();
-              }}
-              className="text-[11.5px] text-text-tertiary hover:text-text-secondary underline flex-shrink-0"
-            >
-              Dismiss
-            </button>
-          ) : (
-            <ChevronDown size={14} className="text-text-tertiary flex-shrink-0" />
-          )}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <ChevronDown size={14} className="text-text-tertiary" />
+            {onDismiss && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDismiss();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.stopPropagation();
+                  }
+                }}
+                aria-label="Dismiss checklist"
+                className="text-text-tertiary hover:text-text-secondary transition-colors"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -91,15 +97,18 @@ export function ChecklistCard({ items, onDismiss, className, compact }: Checklis
             {doneCount} of {items.length} complete
           </p>
         </div>
-        {allDone && onDismiss && (
-          <button
-            type="button"
-            onClick={onDismiss}
-            className="text-[12px] text-text-tertiary hover:text-text-secondary underline"
-          >
-            Dismiss
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {onDismiss && (
+            <button
+              type="button"
+              onClick={onDismiss}
+              aria-label="Dismiss checklist"
+              className="text-text-tertiary hover:text-text-secondary transition-colors"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
       </div>
 
       <ProgressBar doneCount={doneCount} total={items.length} />

@@ -172,25 +172,6 @@ export interface SharedVaultItem {
   assetCount:   number;
 }
 
-// ── Guardian ──────────────────────────────────────────
-
-export interface Guardian {
-  id: string;
-  firstName: string;
-  email: string;
-  beneficiaryId: string | null;
-  acceptedAt: string | null;
-  declinedAt: string | null;
-  confirmedAt: string | null;
-  createdAt: string;
-}
-
-export interface GuardianInput {
-  firstName: string;
-  email: string;
-  beneficiaryId?: string;
-}
-
 // ── Executor ──────────────────────────────────────────
 
 export interface Executor {
@@ -258,9 +239,11 @@ export interface IdentityStatus {
 
 export class ServiceError extends Error {
   status: number;
-  constructor(message: string, status: number) {
+  code?: string;
+  constructor(message: string, status: number, code?: string) {
     super(message);
     this.status = status;
+    this.code = code;
     this.name = "ServiceError";
   }
 }

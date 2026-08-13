@@ -721,7 +721,7 @@ const REMINDER_OPTIONS: Array<{ value: number; label: string; recommended?: bool
 const MONTHS_TO_DAYS: Record<number, number> = { 1: 30, 3: 90, 6: 180, 0: 0 };
 const DAYS_TO_MONTHS: Record<number, number> = { 30: 1, 90: 3, 180: 6, 0: 0 };
 
-function InactivityRemindersSection({ isFree, planLoading }: { isFree: boolean; planLoading: boolean }) {
+function InactivityRemindersSection({ planLoading }: { planLoading: boolean }) {
   const user         = useAuthStore((s) => s.user);
   const setAuth      = useAuthStore((s) => s.setAuth);
   const accessToken  = useAuthStore((s) => s.accessToken);
@@ -801,7 +801,6 @@ function InactivityRemindersSection({ isFree, planLoading }: { isFree: boolean; 
       </p>
 
       <div className="bg-surface rounded-xl border border-border-color overflow-hidden mb-5">
-        <div className={cn(isFree && "pointer-events-none opacity-60")}>
         {/* Inactivity window */}
         <div className="p-5">
           <p className="text-[13px] font-semibold text-text-primary mb-0.5">Inactivity window</p>
@@ -872,20 +871,13 @@ function InactivityRemindersSection({ isFree, planLoading }: { isFree: boolean; 
             </p>
           )}
         </div>
-        </div>
 
         {/* Save */}
         <div className="px-5 py-4 border-t border-border-color flex justify-end">
-          {isFree ? (
-            <Link href="/settings/upgrade">
-              <Button>Upgrade to Pro</Button>
-            </Link>
-          ) : (
-            <Button onClick={handleSave} disabled={saving}>
-              {saving && <Loader2 size={15} className="animate-spin" />}
-              Save changes
-            </Button>
-          )}
+          <Button onClick={handleSave} disabled={saving}>
+            {saving && <Loader2 size={15} className="animate-spin" />}
+            Save changes
+          </Button>
         </div>
       </div>
     </div>
@@ -1350,7 +1342,7 @@ export function SettingsClient({ initialTab }: { initialTab?: string }) {
         {tab === "Identity Verification" && (
           <IdentityVerificationTab isFree={isFree} planLoading={planLoading} />
         )}
-        {tab === "Notifications" && <InactivityRemindersSection isFree={isFree} planLoading={planLoading} />}
+        {tab === "Notifications" && <InactivityRemindersSection planLoading={planLoading} />}
         {tab === "Plan" && <PlanTab planData={planData} loading={planLoading} onPlanUpdated={refetchPlan} />}
         {tab === "Account" && <DangerZone />}
     </div>

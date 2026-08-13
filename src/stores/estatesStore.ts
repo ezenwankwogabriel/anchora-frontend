@@ -17,6 +17,7 @@ function computeAttentionRequired(
 ): boolean {
   return estates.some((e) => {
     if (!e.acceptedAt && !e.declinedAt) return true;
+    if (e.declinedAt) return false;
     if (e.release?.reportAvailable) return true;
     if (
       e.release &&
