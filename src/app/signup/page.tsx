@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -15,6 +15,8 @@ import { PasswordStrength } from "@/components/ui/password-strength";
 import { SocialAuthButtons } from "@/components/ui/social-auth-buttons";
 import { AuthService } from "@/services/auth.service";
 import { ServiceError } from "@/lib/types";
+import { captureAcquisition } from "@/lib/acquisition";
+import { initPostHog, posthog } from "@/lib/posthog";
 
 const schema = z
   .object({
@@ -59,14 +61,35 @@ function SignupForm() {
 
   const passwordValue = watch("password") ?? "";
 
+  useEffect(() => {
+    initPostHog();
+    captureAcquisition();
+  }, []);
+
   const onSubmit = async (data: FormData) => {
     try {
-      await AuthService.register({
+      const acquisition = captureAcquisition();
+      const result = await AuthService.register({
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
         password: data.password,
+        acquisitionSource: acquisition?.acquisitionSource,
+        acquisitionMedium: acquisition?.acquisitionMedium,
+        acquisitionCampaign: acquisition?.acquisitionCampaign,
+        acquisitionContent: acquisition?.acquisitionContent,
+        landingPage: acquisition?.landingPage,
+        firstTouchAt: acquisition?.firstTouchAt,
       });
+
+      posthog.identify(result.userId, { email: data.email });
+      posthog.capture("signup_complete", {
+        acquisition_source: acquisition?.acquisitionSource,
+        acquisition_medium: acquisition?.acquisitionMedium,
+        acquisition_campaign: acquisition?.acquisitionCampaign,
+        acquisition_content: acquisition?.acquisitionContent,
+      });
+
       router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
     } catch (err) {
       setError("root", {
