@@ -15,16 +15,18 @@
     --text-primary: #1A1915;
     --text-secondary: #6B6860;
     --text-tertiary: #9C9A96;
-    --accent: #1E3A8A;
-    --accent-light: #EEF2FD;
-    --accent-hover: #1E40AF;
+    --accent: #141B34;
+    --accent-light: #EEF0F5;
+    --accent-hover: #1E2748;
     --green: #1D7A4A;
     --green-light: #E8F5EE;
     --amber: #B45309;
     --amber-light: #FEF3C7;
     --red: #B91C1C;
     --red-light: #FEE2E2;
-    --gold: #C8963A;
+    --gold: #EBA73A;
+    --gold-hover: #D89424;
+    --gold-light: #FDEAD9;
     --navy: #141B34;
 
     /* ── shadcn/ui semantic tokens (mapped to Anchora palette) ── */
@@ -34,7 +36,7 @@
     --card-foreground: #1A1915;
     --popover: #FFFFFF;
     --popover-foreground: #1A1915;
-    --primary: #1E3A8A;
+    --primary: #141B34;
     --primary-foreground: #FFFFFF;
     --secondary: #F2F1EE;
     --secondary-foreground: #1A1915;
@@ -46,7 +48,7 @@
     --destructive-foreground: #FFFFFF;
     --border: #E8E6E1;
     --input: #E8E6E1;
-    --ring: #1E3A8A;
+    --ring: #141B34;
     --radius: 0.5rem;
 
     /* ── shadows ── */

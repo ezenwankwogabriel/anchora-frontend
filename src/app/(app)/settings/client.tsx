@@ -227,7 +227,7 @@ function ProfileTab({ planData }: { planData: ReturnType<typeof usePlan>["planDa
     <Section title="Profile" description="Your personal information on Anchora.">
       <div className="flex items-center justify-between pb-6 mb-6 border-b border-border-color">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-navy to-accent flex items-center justify-center text-[18px] font-semibold text-white flex-shrink-0">
+          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-navy to-gold flex items-center justify-center text-[18px] font-semibold text-white flex-shrink-0">
             {initials}
           </div>
           <div>
@@ -238,7 +238,7 @@ function ProfileTab({ planData }: { planData: ReturnType<typeof usePlan>["planDa
               {planData && (
                 planData.tier === "PRO"
                   ? <ProBadge />
-                  : <span className="bg-gray-100 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-full">FREE</span>
+                  : <span className="bg-surface-2 text-text-secondary text-xs font-medium px-2 py-0.5 rounded-full">FREE</span>
               )}
             </div>
             <p className="text-[13px] text-text-tertiary">{user.email}</p>
@@ -249,7 +249,7 @@ function ProfileTab({ planData }: { planData: ReturnType<typeof usePlan>["planDa
           <button
             type="button"
             onClick={startEdit}
-            className="flex items-center gap-1.5 text-[12.5px] text-text-secondary hover:text-accent transition-colors"
+            className="self-start flex items-center gap-1.5 text-[12.5px] text-text-secondary hover:text-accent transition-colors"
           >
             <Pencil size={13} />
             Edit
@@ -937,8 +937,8 @@ function CheckoutStatusView({
   if (phase === "timeout") {
     return (
       <div className="flex flex-col items-center text-center py-16">
-        <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mb-4">
-          <Mail size={26} className="text-amber-600" />
+        <div className="w-14 h-14 rounded-full bg-amber-light flex items-center justify-center mb-4">
+          <Mail size={26} className="text-amber" />
         </div>
         <p className="font-semibold text-[15px] text-text-primary mb-1">This is taking longer than usual</p>
         <p className="text-[13px] text-text-secondary mb-5 max-w-[300px]">
@@ -966,9 +966,9 @@ function CheckoutStatusView({
 // ── Identity Verification ─────────────────────────────────────────────────────
 
 const IDENTITY_STATUS_BADGE: Record<GovIdVerificationStatus, { label: string; cls: string }> = {
-  UNVERIFIED: { label: "Not verified", cls: "bg-amber-100 text-amber-700" },
-  VERIFIED:   { label: "Verified",     cls: "bg-emerald-100 text-emerald-700" },
-  FAILED:     { label: "Unsuccessful", cls: "bg-red-100 text-red-700" },
+  UNVERIFIED: { label: "Not verified", cls: "bg-amber-light text-amber" },
+  VERIFIED:   { label: "Verified",     cls: "bg-green-light text-green" },
+  FAILED:     { label: "Unsuccessful", cls: "bg-red-light text-red" },
 };
 
 function IdentityStatusBadge({ status }: { status: GovIdVerificationStatus }) {
@@ -1143,7 +1143,7 @@ function RenewalBanner({
   };
 
   const tone = renewalStatus === "expiring_soon"
-    ? "bg-amber-50 border-amber-200 text-amber-800"
+    ? "bg-amber-light border-[#F0C878] text-amber"
     : "bg-red-light border-[#F5B0B0] text-red";
 
   return (
@@ -1251,7 +1251,7 @@ function PlanTab({
       <div className="flex flex-col sm:flex-row gap-5">
         {/* Free card */}
         <div className="flex-1 bg-surface border border-border-color rounded-xl p-5">
-          <span className="bg-[#F3F4F6] text-[#6B7280] text-[11.5px] font-medium px-2.5 py-1 rounded-full">
+          <span className="bg-surface-2 text-text-secondary text-[11.5px] font-medium px-2.5 py-1 rounded-full">
             Free
           </span>
           <p className="text-[26px] font-heading text-text-primary mt-3">₦0</p>

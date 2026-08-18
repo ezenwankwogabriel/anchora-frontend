@@ -134,14 +134,14 @@ export function VaultDocumentSection({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4">
+    <div className="bg-surface border border-border-color rounded-lg p-4">
       <p className="font-medium text-[13px] text-text-primary">Documents</p>
       <p className="text-[13px] text-text-secondary mt-1">
         Attach a photo or scan of the source document for this asset.
       </p>
 
       {documentUrl && (
-        <div className="mt-3 flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2 bg-gray-50">
+        <div className="mt-3 flex items-center justify-between gap-3 border border-border-color rounded-lg px-3 py-2 bg-surface-2">
           <a
             href={documentUrl}
             target="_blank"
@@ -166,10 +166,10 @@ export function VaultDocumentSection({
           {documents.map((doc, i) => (
             <li
               key={doc.id}
-              className="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2"
+              className="flex items-center justify-between gap-3 border border-border-color rounded-lg px-3 py-2"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <FileText size={16} className="text-gray-400 flex-shrink-0" />
+                <FileText size={16} className="text-text-tertiary flex-shrink-0" />
                 <div className="min-w-0">
                   <p className="text-[13px] text-text-primary truncate">Document {i + 1}</p>
                   <p className="text-[11.5px] text-text-tertiary">{formatBytes(doc.sizeBytes)}</p>
@@ -259,10 +259,10 @@ export function VaultDocumentSection({
             aria-disabled={uploadsDisabled}
             className={`mt-4 border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
               uploadsDisabled
-                ? "cursor-not-allowed opacity-50 border-blue-300 bg-[#F8FAFF]"
+                ? "cursor-not-allowed opacity-50 border-[#D3D7E0] bg-accent-light"
                 : dragOver
-                  ? "cursor-pointer border-[#3B82F6] bg-[#3B82F6]/5"
-                  : "cursor-pointer border-blue-300 bg-[#F8FAFF] hover:border-[#3B82F6]"
+                  ? "cursor-pointer border-navy bg-navy/5"
+                  : "cursor-pointer border-[#D3D7E0] bg-accent-light hover:border-navy"
             }`}
             onClick={() => { if (!uploadsDisabled) inputRef.current?.click(); }}
             onKeyDown={(e) => {
@@ -276,7 +276,7 @@ export function VaultDocumentSection({
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
           >
-            <Upload size={24} className="text-[#3B82F6] mx-auto" />
+            <Upload size={24} className="text-navy mx-auto" />
             <p className="text-[13px] text-text-secondary mt-2">
               Click to upload or drag and drop
             </p>
