@@ -57,7 +57,7 @@ function UserCard({ onClose }: { onClose: () => void }) {
   return (
     <div className="px-5 pt-4 border-t border-border-color">
       <div className="flex items-center gap-[10px] p-2 rounded-md">
-        <div className="w-8 h-8 bg-gradient-to-br from-navy to-accent rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0">
+        <div className="w-8 h-8 bg-gradient-to-br from-navy to-gold rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0">
           {initials}
         </div>
         <div className="flex-1 min-w-0">

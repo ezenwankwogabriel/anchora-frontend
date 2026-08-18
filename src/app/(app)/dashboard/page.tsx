@@ -155,13 +155,13 @@ function renderExecutorNudge(state: ExecutorDashboardState, executors: Executor[
 
   if (state === "NONE") {
     return (
-      <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-        <Shield size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
+      <div className="flex items-start gap-3 bg-amber-light border border-[#F0C878] rounded-xl px-4 py-3">
+        <Shield size={16} className="text-amber flex-shrink-0 mt-[2px]" />
         <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-[500] text-amber-900">No trusted contact designated</p>
-          <p className="text-[12px] text-amber-700">Your release summary cannot be made available without at least one trusted contact.</p>
+          <p className="text-[13px] font-[500] text-amber">No trusted contact designated</p>
+          <p className="text-[12px] text-amber">Your release summary cannot be made available without at least one trusted contact.</p>
         </div>
-        <Link href="/executor" className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap flex-shrink-0">
+        <Link href="/executor" className="text-[12.5px] font-semibold text-amber hover:opacity-80 whitespace-nowrap flex-shrink-0">
           Designate now →
         </Link>
       </div>
@@ -172,26 +172,26 @@ function renderExecutorNudge(state: ExecutorDashboardState, executors: Executor[
   return (
     <div
       className={`flex items-start gap-3 rounded-xl px-4 py-3 border ${
-        allAccepted ? "bg-emerald-50 border-emerald-200" : "bg-[#EFF6FF] border-[#BFDBFE]"
+        allAccepted ? "bg-green-light border-[#A0E5C6]" : "bg-accent-light border-[#D3D7E0]"
       }`}
     >
       {allAccepted ? (
-        <CheckCircle size={16} className="text-emerald-500 flex-shrink-0 mt-[2px]" />
+        <CheckCircle size={16} className="text-green flex-shrink-0 mt-[2px]" />
       ) : (
-        <Clock size={16} className="text-blue-500 flex-shrink-0 mt-[2px]" />
+        <Clock size={16} className="text-accent flex-shrink-0 mt-[2px]" />
       )}
       <div className="flex-1 min-w-0">
-        <p className={`text-[13px] font-[500] ${allAccepted ? "text-emerald-900" : "text-blue-900"}`}>
+        <p className={`text-[13px] font-[500] ${allAccepted ? "text-green" : "text-accent"}`}>
           {executors.length} trusted contact{executors.length === 1 ? "" : "s"} added
         </p>
-        <p className={`text-[12px] ${allAccepted ? "text-emerald-700" : "text-blue-700"}`}>
+        <p className={`text-[12px] ${allAccepted ? "text-green" : "text-accent"}`}>
           {allAccepted ? "All have accepted." : "Some haven't confirmed yet."}
         </p>
       </div>
       <Link
         href="/executor"
-        className={`text-[12.5px] font-semibold whitespace-nowrap flex-shrink-0 ${
-          allAccepted ? "text-emerald-700 hover:text-emerald-900" : "text-blue-700 hover:text-blue-900"
+        className={`text-[12.5px] font-semibold whitespace-nowrap flex-shrink-0 hover:opacity-80 ${
+          allAccepted ? "text-green" : "text-accent"
         }`}
       >
         View trusted contacts →
@@ -325,14 +325,12 @@ export default function DashboardPage() {
           <>
             <HealthCard
               label="Trusted Contact"
-              borderAccent="accent"
               value={executorHealthCard.value}
               subtext={executorHealthCard.subtext}
               status={executorHealthCard.status}
             />
             <HealthCard
               label="Asset coverage"
-              borderAccent="navy"
               value={error ? "—" : `${totalCovered}/${totalCategories}`}
               subtext={
                 error ? "Could not load"
@@ -349,22 +347,22 @@ export default function DashboardPage() {
 
       {/* Renewal attention banner */}
       {!planLoading && needsBannerFor(planData?.renewalStatus) && !pastDueDismissed && (
-        <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-          <CreditCard size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
+        <div className="flex items-start gap-3 bg-amber-light border border-[#F0C878] rounded-xl px-4 py-3">
+          <CreditCard size={16} className="text-amber flex-shrink-0 mt-[2px]" />
           <div className="flex-1 min-w-0">
-            <p className="text-[13px] font-[500] text-amber-900">{RENEWAL_BANNER_COPY[planData!.renewalStatus!].title}</p>
-            <p className="text-[12px] text-amber-700">
+            <p className="text-[13px] font-[500] text-amber">{RENEWAL_BANNER_COPY[planData!.renewalStatus!].title}</p>
+            <p className="text-[12px] text-amber">
               {RENEWAL_BANNER_COPY[planData!.renewalStatus!].message}
             </p>
           </div>
           <div className="flex items-center gap-3 flex-shrink-0">
-            <Link href="/settings?tab=Plan" className="text-[12.5px] font-semibold text-amber-700 hover:text-amber-900 whitespace-nowrap">
+            <Link href="/settings?tab=Plan" className="text-[12.5px] font-semibold text-amber hover:opacity-80 whitespace-nowrap">
               Manage plan →
             </Link>
             <button
               type="button"
               onClick={dismissPastDueBanner}
-              className="text-amber-500 hover:text-amber-700 transition-colors"
+              className="text-amber hover:opacity-80 transition-colors"
               aria-label="Dismiss"
             >
               <X size={15} />

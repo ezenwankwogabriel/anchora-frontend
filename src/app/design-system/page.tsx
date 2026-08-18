@@ -76,10 +76,13 @@ export default function DesignSystemPage() {
             <Swatch color="#D4D1CB" label="Border Strong" value="#D4D1CB" />
           </div>
           <div className="grid grid-cols-4 gap-4">
-            <Swatch color="#2B5CE6" label="Accent" value="#2B5CE6" />
+            <Swatch color="#141B34" label="Accent (Navy)" value="#141B34" />
             <Swatch color="#1D7A4A" label="Success" value="#1D7A4A" />
             <Swatch color="#B45309" label="Warning" value="#B45309" />
             <Swatch color="#B91C1C" label="Error" value="#B91C1C" />
+          </div>
+          <div className="grid grid-cols-4 gap-4 mt-6">
+            <Swatch color="#EBA73A" label="Gold" value="#EBA73A" />
           </div>
         </Section>
 
@@ -87,38 +90,38 @@ export default function DesignSystemPage() {
         <Section title="Typography">
           <div className="flex flex-col gap-5 bg-surface border border-border-color rounded-xl p-6 shadow-sm">
             <div>
-              <p className="text-[11px] text-text-tertiary mb-1">DM Serif Display · 40px · heading</p>
+              <p className="text-[11px] text-text-tertiary mb-1">Cabinet Grotesk · 40px · heading</p>
               <p className="font-heading text-[40px] leading-tight text-text-primary">
                 Financial Legacy
               </p>
             </div>
             <div>
-              <p className="text-[11px] text-text-tertiary mb-1">DM Serif Display · 32px · page title</p>
+              <p className="text-[11px] text-text-tertiary mb-1">Cabinet Grotesk · 32px · page title</p>
               <p className="font-heading text-[32px] leading-tight text-text-primary">
                 Your vault, secured.
               </p>
             </div>
             <div>
-              <p className="text-[11px] text-text-tertiary mb-1">DM Serif Display · 24px · section title</p>
+              <p className="text-[11px] text-text-tertiary mb-1">Cabinet Grotesk · 24px · section title</p>
               <p className="font-heading text-[24px] text-text-primary">
                 Beneficiary Management
               </p>
             </div>
             <div className="border-t border-border-color pt-4">
-              <p className="text-[11px] text-text-tertiary mb-1">DM Sans · 14px · 400 · body</p>
+              <p className="text-[11px] text-text-tertiary mb-1">Figtree · 14px · 400 · body</p>
               <p className="text-[14px] text-text-primary leading-relaxed">
                 Register your financial accounts and designate who gets access.
                 Anchora ensures nothing is lost.
               </p>
             </div>
             <div>
-              <p className="text-[11px] text-text-tertiary mb-1">DM Sans · 13.5px · 600 · label</p>
+              <p className="text-[11px] text-text-tertiary mb-1">Figtree · 13.5px · 600 · label</p>
               <p className="text-[13.5px] font-semibold text-text-primary">
                 Account Details
               </p>
             </div>
             <div>
-              <p className="text-[11px] text-text-tertiary mb-1">DM Sans · 12.5px · 400 · caption</p>
+              <p className="text-[11px] text-text-tertiary mb-1">Figtree · 12.5px · 400 · caption</p>
               <p className="text-[12.5px] text-text-secondary">
                 Last updated 3 days ago · 4 beneficiaries active
               </p>
@@ -336,7 +339,7 @@ export default function DesignSystemPage() {
           <div>
             <p className="text-[12px] text-text-tertiary">Sprint 1 · Design System Validation</p>
             <p className="text-[11px] text-text-tertiary mt-0.5">
-              Next.js 14 · Tailwind CSS · shadcn/ui · DM Serif Display + DM Sans
+              Next.js 14 · Tailwind CSS · shadcn/ui · Cabinet Grotesk + Figtree
             </p>
           </div>
           <StatusBadge variant="success" label="Build passing" />

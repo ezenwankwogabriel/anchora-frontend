@@ -239,6 +239,12 @@ model User {
   deletedAt       DateTime?
   govIdVerificationStatus       GovIdVerificationStatus @default(UNVERIFIED)
   govIdVerifiedAt               DateTime?
+  acquisitionSource      String?
+  acquisitionMedium      String?
+  acquisitionCampaign    String?
+  acquisitionContent     String?
+  landingPage            String?
+  firstTouchAt           DateTime?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
@@ -250,8 +256,7 @@ model User {
   releases            Release[]
   notifications       Notification[]
   beneficiaryAccounts BeneficiaryAccount[] @relation("BeneficiaryAccountOwner")
-  guardian            Guardian?
-  executor            Executor?
+  executors           Executor[]
   billing             Billing?
 
   @@index([email])
@@ -259,6 +264,7 @@ model User {
   @@index([inactivityStatus])
   @@index([lastActivityAt])
   @@index([govIdVerificationStatus])
+  @@index([acquisitionSource])
 }
 
 model Billing {
@@ -319,7 +325,7 @@ model VaultRecord {
   executorIntent      ExecutorIntent @default(UNSPECIFIED)
   intendedBeneficiary String?
   isSelfCustodied     Boolean        @default(false)
-  encryptedData       String
+  encryptedData       String // includes estimatedValue (kobo) alongside the other encrypted fields
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
 
@@ -364,7 +370,7 @@ model DocumentAccessToken {
 
 model Executor {
   id           String    @id @default(uuid())
-  userId       String    @unique
+  userId       String
   name         String
   email        String
   phone        String?
@@ -385,6 +391,11 @@ model Executor {
   user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   executorReleases ExecutorRelease[]
 
+  // Case-insensitive duplicate guard on (userId, lower(email)) is enforced by
+  // a raw unique index (see migration add_executor_email_ci_unique) — Prisma
+  // can't express a functional index in the schema DSL, so it isn't declared
+  // here. Do not re-add a plain @@unique([userId, email]); it would be
+  // case-sensitive and conflict with that index.
   @@index([userId])
   @@index([verificationToken])
 }
@@ -393,13 +404,15 @@ model ExecutorRelease {
   id         String   @id @default(cuid())
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  releaseId  String   @unique
+  releaseId  String
   executorId String
 
   release  Release  @relation(fields: [releaseId], references: [id])
   executor Executor @relation(fields: [executorId], references: [id])
 
+  @@unique([releaseId, executorId])
   @@index([executorId])
+  @@index([releaseId])
 }
 
 // @deprecated — replaced by Executor model.
@@ -422,7 +435,6 @@ model Beneficiary {
   vaultRecords VaultRecordBeneficiary[]
   account      BeneficiaryAccount?
   releases     BeneficiaryRelease[]
-  guardian     Guardian?
 
   @@unique([userId, email])
   @@index([userId])
@@ -488,7 +500,7 @@ model Release {
 
   user                 User                  @relation(fields: [userId], references: [id])
   report               ReleaseReport?
-  executorRelease      ExecutorRelease?
+  executorReleases     ExecutorRelease[]
   beneficiaries        BeneficiaryRelease[]
   documentAccessTokens DocumentAccessToken[]
 
@@ -552,30 +564,6 @@ model Notification {
 // AuditLog deliberately has no FK relations.
 // Audit records must survive user deletion.
 // actorId and targetId are plain strings —
-model Guardian {
-  id                      String    @id @default(cuid())
-  userId                  String    @unique
-  firstName               String
-  email                   String
-  inviteToken             String?
-  inviteTokenSentAt       DateTime?
-  acceptedAt              DateTime?
-  declinedAt              DateTime?
-  confirmationToken       String?
-  confirmationTokenSentAt DateTime?
-  confirmedAt             DateTime?
-  releaseId               String?
-  beneficiaryId           String?   @unique
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
-
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  beneficiary Beneficiary? @relation(fields: [beneficiaryId], references: [id], onDelete: SetNull)
-
-  @@index([confirmationToken])
-  @@index([inviteToken])
-}
-
 // they record who did what even after the
 // referenced records no longer exist.
 model AuditLog {

@@ -19,7 +19,7 @@ export function DocumentedValueCard({ records, onUpdateClick }: DocumentedValueC
           <p className="text-[11.5px] font-semibold uppercase tracking-[0.07em] text-text-tertiary mb-1">
             Documented value
           </p>
-          <p className="text-[34px] font-serif-display leading-none text-text-primary">
+          <p className="text-[34px] font-heading leading-none text-text-primary">
             {formatNaira(totalKobo)}
           </p>
           <p className="text-[12px] text-text-tertiary mt-2">

@@ -33,7 +33,7 @@ function RecordRow({ record, onDelete }: RecordRowProps) {
             {record.institutionName}
           </p>
           {record.category === "CRYPTO_WALLET" && record.isSelfCustodied && (
-            <span className="bg-amber-100 text-amber-800 text-[10.5px] font-medium px-2 py-0.5 rounded-full flex-shrink-0">
+            <span className="bg-amber-light text-amber text-[10.5px] font-medium px-2 py-0.5 rounded-full flex-shrink-0">
               Self-custodied
             </span>
           )}

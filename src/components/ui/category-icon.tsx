@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import type { AssetCategory } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { DIGITAL_ASSET_CATEGORIES, PHYSICAL_ASSET_CATEGORIES } from "@/lib/schemas/vault";
 
 const iconMap: Record<AssetCategory, React.ElementType> = {
   BANK_ACCOUNT:        Landmark,
@@ -30,20 +31,20 @@ const iconMap: Record<AssetCategory, React.ElementType> = {
   OTHER:               Archive,
 };
 
+// Colored by the same digital/physical grouping used across the app
+// (see DIGITAL_ASSET_CATEGORIES / PHYSICAL_ASSET_CATEGORIES) rather than a
+// unique hue per category — icon shape carries per-category recognition,
+// color carries the broader grouping.
 const colorMap: Record<AssetCategory, string> = {
-  BANK_ACCOUNT:        "bg-[#EBF1FD] text-accent",
-  INVESTMENT_PLATFORM: "bg-[#E8F8EF] text-green",
-  CRYPTO_WALLET:       "bg-[#FEF6E7] text-amber",
-  PENSION_PORTAL:      "bg-[#EBF1FD] text-navy",
-  INSURANCE_POLICY:    "bg-[#F0EDFC] text-[#6B4EE6]",
-  FOREIGN_ACCOUNT:     "bg-[#E8F8EF] text-green",
-  REAL_ESTATE:         "bg-[#F0FDF4] text-emerald-600",
-  VEHICLE:             "bg-[#FFF7ED] text-orange-500",
-  JEWELRY_WATCHES:     "bg-[#FDF4FF] text-purple-500",
-  SHARE_CERTIFICATES:  "bg-[#EFF6FF] text-blue-600",
-  SUBSCRIPTION:        "bg-[#E8F4FD] text-[#2B7EC1]",
-  OTHER:               "bg-surface-2 text-text-secondary",
-};
+  ...Object.fromEntries(
+    DIGITAL_ASSET_CATEGORIES.map((c) => [c, "bg-accent-light text-accent"])
+  ),
+  ...Object.fromEntries(
+    PHYSICAL_ASSET_CATEGORIES.map((c) => [c, "bg-gold-light text-gold"])
+  ),
+  SUBSCRIPTION: "bg-surface-2 text-text-secondary",
+  OTHER:        "bg-surface-2 text-text-secondary",
+} as Record<AssetCategory, string>;
 
 interface CategoryIconProps {
   category: AssetCategory;
@@ -58,7 +59,7 @@ export function CategoryIcon({ category, size = 16, className, solid }: Category
     <div
       className={cn(
         "w-8 h-8 rounded-[8px] flex items-center justify-center flex-shrink-0",
-        solid ? "bg-[#10B981] text-white" : colorMap[category],
+        solid ? "bg-green text-white" : colorMap[category],
         className
       )}
     >
