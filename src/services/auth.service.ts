@@ -1,6 +1,6 @@
 import http, { normalise } from "@/lib/axios";
 import { useAuthStore } from "@/stores/authStore";
-import type { AssetCategory, AuthResponse, MfaLoginResponse, MfaSetupResponse, User } from "@/lib/types";
+import type { AssetCategory, AuthResponse, MfaLoginResponse, MfaSetupResponse, RegisterResponse, User } from "@/lib/types";
 
 export const AuthService = {
   register: async (data: {
@@ -8,9 +8,15 @@ export const AuthService = {
     lastName: string;
     email: string;
     password: string;
-  }): Promise<AuthResponse> => {
+    acquisitionSource?: string | null;
+    acquisitionMedium?: string | null;
+    acquisitionCampaign?: string | null;
+    acquisitionContent?: string | null;
+    landingPage?: string;
+    firstTouchAt?: string;
+  }): Promise<RegisterResponse> => {
     try {
-      return (await http.post<AuthResponse>("/auth/register", data)).data;
+      return (await http.post<RegisterResponse>("/auth/register", data)).data;
     } catch (err) {
       normalise(err);
     }

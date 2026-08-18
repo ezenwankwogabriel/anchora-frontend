@@ -30,6 +30,11 @@ export type AuthResponse =
       mfaGraceDaysRemaining: number;
     };
 
+export interface RegisterResponse {
+  message: string;
+  userId: string;
+}
+
 export interface MfaLoginResponse {
   accessToken: string;
   refreshToken: string;
