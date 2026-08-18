@@ -19,14 +19,13 @@ function formatBytes(bytes: number): string {
 interface VaultDocumentPickerProps {
   files: File[];
   onChange: (files: File[]) => void;
-  accented?: boolean;
 }
 
 // Staged, not-yet-uploaded documents for the create-asset flow — the record
 // doesn't exist yet, so nothing is sent to the backend here. The parent
 // uploads these files right after the record is created, as part of the
 // same "Save asset" action.
-export function VaultDocumentPicker({ files, onChange, accented }: VaultDocumentPickerProps) {
+export function VaultDocumentPicker({ files, onChange }: VaultDocumentPickerProps) {
   const addToast = useToastStore((s) => s.add);
   const { isFree } = usePlan();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -53,14 +52,8 @@ export function VaultDocumentPicker({ files, onChange, accented }: VaultDocument
   };
 
   return (
-    <div className={accented ? "bg-surface border border-border-color rounded-lg p-4" : "mt-6"}>
-      <label
-        className={
-          accented
-            ? "block text-[13px] font-medium text-text-primary mb-[10px]"
-            : "block text-[12.5px] font-semibold text-text-secondary mb-[6px] tracking-[0.02em]"
-        }
-      >
+    <div className="bg-surface border border-border-color rounded-lg p-4">
+      <label className="block text-[13px] font-medium text-text-primary mb-[10px]">
         Documents
       </label>
 
@@ -69,10 +62,10 @@ export function VaultDocumentPicker({ files, onChange, accented }: VaultDocument
           {files.map((file, i) => (
             <li
               key={`${file.name}-${i}`}
-              className="flex items-center justify-between gap-3 border border-gray-200 rounded-lg px-3 py-2"
+              className="flex items-center justify-between gap-3 border border-border-color rounded-lg px-3 py-2"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <FileText size={16} className="text-gray-400 flex-shrink-0" />
+                <FileText size={16} className="text-text-tertiary flex-shrink-0" />
                 <div className="min-w-0">
                   <p className="text-[13px] text-text-primary truncate">Document {i + 1}</p>
                   <p className="text-[11.5px] text-text-tertiary">{formatBytes(file.size)}</p>
@@ -95,13 +88,9 @@ export function VaultDocumentPicker({ files, onChange, accented }: VaultDocument
           <div
             className={cn(
               "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
-              accented
-                ? dragOver
-                  ? "border-[#3B82F6] bg-[#3B82F6]/5"
-                  : "border-blue-300 bg-[#F8FAFF] hover:border-[#3B82F6]"
-                : dragOver
-                  ? "border-navy bg-navy/5"
-                  : "border-gray-300 bg-gray-50 hover:border-navy",
+              dragOver
+                ? "border-navy bg-navy/5"
+                : "border-[#D3D7E0] bg-accent-light hover:border-navy",
             )}
             onClick={() => inputRef.current?.click()}
             onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
@@ -113,7 +102,7 @@ export function VaultDocumentPicker({ files, onChange, accented }: VaultDocument
               if (file) addFile(file);
             }}
           >
-            <Upload size={20} className={cn("mx-auto", accented ? "text-[#3B82F6]" : "text-gray-400")} />
+            <Upload size={20} className="mx-auto text-navy" />
             <p className="text-[12.5px] text-text-secondary mt-1.5">
               Click to upload or drag and drop
             </p>

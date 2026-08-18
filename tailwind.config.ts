@@ -12,7 +12,6 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
         heading: ["var(--font-heading)", "ui-sans-serif", "system-ui", "sans-serif"],
-        "serif-display": ["var(--font-serif-display)", "ui-serif", "Georgia", "serif"],
       },
       colors: {
         bg: "var(--bg)",
@@ -33,7 +32,11 @@ const config: Config = {
           DEFAULT: "var(--red)",
           light: "var(--red-light)",
         },
-        gold: "var(--gold)",
+        gold: {
+          DEFAULT: "var(--gold)",
+          hover: "var(--gold-hover)",
+          light: "var(--gold-light)",
+        },
         navy: "var(--navy)",
         "text-primary": "var(--text-primary)",
         "text-secondary": "var(--text-secondary)",

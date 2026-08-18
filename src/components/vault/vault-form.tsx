@@ -339,7 +339,6 @@ export function VaultForm({
           <VaultDocumentPicker
             files={stagedFiles}
             onChange={onStagedFilesChange}
-            accented
           />
         </div>
       )}

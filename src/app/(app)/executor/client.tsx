@@ -173,9 +173,9 @@ function DesignateForm({ onCreated }: DesignateFormProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl p-4">
-        <Info size={16} className="text-blue-500 flex-shrink-0 mt-[1px]" />
-        <p className="text-[13px] text-blue-800">
+      <div className="flex items-start gap-3 bg-accent-light border border-[#D3D7E0] rounded-xl p-4">
+        <Info size={16} className="text-accent flex-shrink-0 mt-[1px]" />
+        <p className="text-[13px] text-accent">
           Saving this never sends an email on its own. Choose below if
           you&apos;d like to notify your trusted contact right away, or do it later
           from this page.
@@ -268,7 +268,7 @@ function getStatusPresentation(executor: Executor): StatusPresentation {
   if (executor.acceptedAt) {
     return {
       Icon: CheckCircle2,
-      iconClassName: "bg-emerald-100 text-emerald-700",
+      iconClassName: "bg-green-light text-green",
       title: "Accepted",
       description: `${name} has confirmed and can access your release summary if a release is triggered.`,
     };
@@ -289,7 +289,7 @@ function getStatusPresentation(executor: Executor): StatusPresentation {
   if (notificationState === "VERIFIED") {
     return {
       Icon: CheckCircle2,
-      iconClassName: "bg-[#EFF6FF] text-blue-600",
+      iconClassName: "bg-accent-light text-accent",
       title: "Confirmed, hasn't joined yet",
       description: `${name} confirmed their email. They just need to create an Anchora account to formally accept this role.`,
     };
@@ -298,7 +298,7 @@ function getStatusPresentation(executor: Executor): StatusPresentation {
   if (notificationState === "NOTIFIED") {
     return {
       Icon: Mail,
-      iconClassName: "bg-amber-100 text-amber-800",
+      iconClassName: "bg-amber-light text-amber",
       title: "Notified, not yet confirmed",
       description:
         "An unverified email never blocks or changes the release. It only means we haven't confirmed the inbox is reachable yet.",
@@ -308,7 +308,7 @@ function getStatusPresentation(executor: Executor): StatusPresentation {
 
   return {
     Icon: Send,
-    iconClassName: "bg-amber-100 text-amber-800",
+    iconClassName: "bg-amber-light text-amber",
     title: "Hasn't been told yet",
     description: `Letting ${name} know doesn't share any account details, just that you've chosen them for this role.`,
     ctaLabel: `Let ${name} know`,
@@ -401,24 +401,26 @@ function ExecutorCard({ executor, onRemoved, onUpdated }: ExecutorCardProps) {
 
       {status.ctaLabel && (
         <div className="flex justify-center">
-          <Button onClick={handleNotify} disabled={notifying}>
+          <Button size="sm" onClick={handleNotify} disabled={notifying}>
             {notifying ? (
-              <Loader2 size={15} className="animate-spin" />
+              <Loader2 size={13} className="animate-spin" />
             ) : (
-              <StatusIcon size={15} />
+              <StatusIcon size={13} />
             )}
             {status.ctaLabel}
           </Button>
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => setShowDialog(true)}
-        className="block w-full text-center text-[13px] text-text-tertiary hover:text-red transition-colors bg-transparent border-none cursor-pointer font-sans mt-3"
-      >
-        Remove trusted contact
-      </button>
+      <div className="flex justify-center">
+        <button
+          type="button"
+          onClick={() => setShowDialog(true)}
+          className="text-[13px] text-text-tertiary hover:text-red transition-colors bg-transparent border-none cursor-pointer font-sans mt-3"
+        >
+          Remove trusted contact
+        </button>
+      </div>
 
       {showRemoveDialog && (
         <RemoveDialog
@@ -484,11 +486,11 @@ export default function ExecutorClient() {
               The people who will receive your release summary if a release is triggered.
             </p>
           </div>
-          <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-            <AlertTriangle size={16} className="text-amber-500 flex-shrink-0 mt-[2px]" />
+          <div className="flex items-start gap-3 bg-amber-light border border-[#F0C878] rounded-xl px-4 py-3">
+            <AlertTriangle size={16} className="text-amber flex-shrink-0 mt-[2px]" />
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-[500] text-amber-900">No trusted contact designated</p>
-              <p className="text-[12px] text-amber-700">Your release summary cannot be made available without at least one trusted contact.</p>
+              <p className="text-[13px] font-[500] text-amber">No trusted contact designated</p>
+              <p className="text-[12px] text-amber">Your release summary cannot be made available without at least one trusted contact.</p>
             </div>
           </div>
           <Button onClick={handleAddClick}>Add trusted contact</Button>
@@ -527,9 +529,9 @@ export default function ExecutorClient() {
 
       {!showAddForm && (
         atLimit && isPro ? (
-          <div className="flex items-center gap-3 bg-[#EFF6FF] border border-[#BFDBFE] rounded-xl px-4 py-3">
-            <Info size={16} className="text-blue-500 flex-shrink-0" />
-            <p className="text-[13px] text-blue-800">
+          <div className="flex items-center gap-3 bg-accent-light border border-[#D3D7E0] rounded-xl px-4 py-3">
+            <Info size={16} className="text-accent flex-shrink-0" />
+            <p className="text-[13px] text-accent">
               Pro plan includes up to {limit} trusted contacts. Remove one to add another.
             </p>
           </div>

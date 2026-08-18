@@ -80,19 +80,19 @@ function VerificationBanner({
 }) {
   if (status === "UNVERIFIED") {
     return (
-      <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-        <ShieldAlert className="text-amber-600 w-5 h-5 flex-shrink-0 mt-0.5" />
+      <div className="bg-amber-light border border-[#F0C878] rounded-xl p-4 flex items-start gap-3">
+        <ShieldAlert className="text-amber w-5 h-5 flex-shrink-0 mt-0.5" />
         <div className="flex-1">
-          <p className="text-sm font-medium text-amber-900">
+          <p className="text-sm font-medium text-amber">
             Your identity is not verified.
           </p>
-          <p className="text-sm text-amber-700 mt-0.5">
+          <p className="text-sm text-amber mt-0.5">
             Verify once to be ready for anything shared with you.
           </p>
         </div>
         <Link
           href="/settings?tab=Identity%20Verification"
-          className="text-amber-700 text-sm font-medium underline hover:no-underline whitespace-nowrap flex-shrink-0"
+          className="text-amber text-sm font-medium underline hover:no-underline whitespace-nowrap flex-shrink-0"
         >
           Verify identity
         </Link>
@@ -102,19 +102,19 @@ function VerificationBanner({
 
   if (status === "FAILED") {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-        <XCircle className="text-red-500 w-5 h-5 flex-shrink-0 mt-0.5" />
+      <div className="bg-red-light border border-[#F5B0B0] rounded-xl p-4 flex items-start gap-3">
+        <XCircle className="text-red w-5 h-5 flex-shrink-0 mt-0.5" />
         <div className="flex-1">
-          <p className="text-sm font-medium text-red-900">
+          <p className="text-sm font-medium text-red">
             We couldn&apos;t verify your identity.
           </p>
-          <p className="text-sm text-red-700 mt-0.5">
+          <p className="text-sm text-red mt-0.5">
             {rejectionReason ?? "You can try again."}
           </p>
         </div>
         <Link
           href="/settings?tab=Identity%20Verification"
-          className="text-red-700 text-sm font-medium underline hover:no-underline whitespace-nowrap flex-shrink-0"
+          className="text-red text-sm font-medium underline hover:no-underline whitespace-nowrap flex-shrink-0"
         >
           Retry verification
         </Link>
@@ -138,7 +138,7 @@ function StatusPill({
 
   if (!release) {
     return (
-      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-accent-light text-accent">
         Designated
       </span>
     );
@@ -146,7 +146,7 @@ function StatusPill({
 
   if (release.status === "CANCELLED") {
     return (
-      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-surface-2 text-text-secondary">
         Release halted
       </span>
     );
@@ -154,25 +154,25 @@ function StatusPill({
 
   if (release.reportAvailable) {
     return (
-      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-light text-green">
         Report available
-        <span className="w-2 h-2 rounded-full bg-emerald-500 ml-1.5 inline-block" />
+        <span className="w-2 h-2 rounded-full bg-green ml-1.5 inline-block" />
       </span>
     );
   }
 
   if (verificationStatus === "VERIFIED") {
     return (
-      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-accent-light text-accent">
         Report being prepared
       </span>
     );
   }
 
   return (
-    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-light text-amber">
       Action required
-      <span className="w-2 h-2 rounded-full bg-amber-400 ml-1.5 inline-block" />
+      <span className="w-2 h-2 rounded-full bg-amber ml-1.5 inline-block" />
     </span>
   );
 }
@@ -201,9 +201,9 @@ function VerificationBadge({ status }: { status: GovIdVerificationStatus }) {
     GovIdVerificationStatus,
     { label: string; cls: string }
   > = {
-    UNVERIFIED: { label: "Not verified", cls: "bg-amber-100 text-amber-700" },
-    VERIFIED: { label: "Verified", cls: "bg-emerald-100 text-emerald-700" },
-    FAILED: { label: "Unsuccessful", cls: "bg-red-100 text-red-700" },
+    UNVERIFIED: { label: "Not verified", cls: "bg-amber-light text-amber" },
+    VERIFIED: { label: "Verified", cls: "bg-green-light text-green" },
+    FAILED: { label: "Unsuccessful", cls: "bg-red-light text-red" },
   };
   const { label, cls } = map[status];
   return (
@@ -336,7 +336,7 @@ function EstateDrawer({
             <DrawerDetail
               label="Status"
               value={
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-accent-light text-accent">
                   Designated trusted contact
                 </span>
               }
@@ -354,7 +354,7 @@ function EstateDrawer({
               value={<VerificationBadge status={verificationStatus} />}
             />
           </div>
-          <div className="mt-4 bg-gray-50 rounded-xl p-4">
+          <div className="mt-4 bg-surface-2 rounded-xl p-4">
             <p className="text-sm text-text-secondary">
               You will be notified by email if a release is triggered for this
               vault.
@@ -363,7 +363,7 @@ function EstateDrawer({
           <div className="mt-6 pt-4 border-t border-border-color">
             <button
               onClick={openExitFlow}
-              className="w-full rounded-lg py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+              className="w-full rounded-lg py-2 text-sm font-medium text-red hover:bg-red-light transition-colors"
             >
               Stop being Trusted Contact for {estate.ownerName}
             </button>
@@ -407,15 +407,15 @@ function EstateDrawer({
             <DrawerDetail
               label="Status"
               value={
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-light text-amber">
                   Action required
                 </span>
               }
             />
           </div>
-          <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-            <AlertTriangle className="text-amber-600 w-5 h-5 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-amber-800">
+          <div className="mt-4 bg-amber-light border border-[#F0C878] rounded-xl p-4 flex items-start gap-3">
+            <AlertTriangle className="text-amber w-5 h-5 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-amber">
               {verificationRequiredMessage ??
                 "A release has been triggered for this vault. Verify your identity to access the release summary."}
             </p>
@@ -431,7 +431,7 @@ function EstateDrawer({
             <div title={exitDisabledTooltip}>
               <button
                 disabled={!canExit}
-                className="w-full rounded-lg py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="w-full rounded-lg py-2 text-sm font-medium text-red hover:bg-red-light disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
                 Stop being Trusted Contact for {estate.ownerName}
               </button>
@@ -456,7 +456,7 @@ function EstateDrawer({
             <DrawerDetail
               label="Status"
               value={
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-light text-green">
                   Report available
                 </span>
               }
@@ -492,13 +492,13 @@ function EstateDrawer({
               Link expired. A fresh link will be generated when you download.
             </p>
           )}
-          <div className="mt-4 bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
-            <Info className="text-blue-500 w-4 h-4 flex-shrink-0 mt-0.5" />
+          <div className="mt-4 bg-accent-light border border-[#D3D7E0] rounded-xl p-4 flex items-start gap-3">
+            <Info className="text-accent w-4 h-4 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm font-semibold text-blue-900">
+              <p className="text-sm font-semibold text-accent">
                 Where to start
               </p>
-              <p className="text-sm text-blue-800 mt-1">
+              <p className="text-sm text-accent mt-1">
                 Begin with the Legal Foundation section of the report before
                 approaching any institution.
               </p>
@@ -507,7 +507,7 @@ function EstateDrawer({
           <div className="mt-6 pt-4 border-t border-border-color">
             <button
               onClick={openExitFlow}
-              className="w-full rounded-lg py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+              className="w-full rounded-lg py-2 text-sm font-medium text-red hover:bg-red-light transition-colors"
             >
               Stop being Trusted Contact for {estate.ownerName}
             </button>
@@ -547,14 +547,14 @@ function EstateDrawer({
           <DrawerDetail
             label="Status"
             value={
-              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-surface-2 text-text-secondary">
                 Release halted
               </span>
             }
           />
         </div>
-        <div className="mt-4 bg-gray-50 rounded-xl p-4 flex items-start gap-3">
-          <Info className="text-gray-400 w-5 h-5 flex-shrink-0 mt-0.5" />
+        <div className="mt-4 bg-surface-2 rounded-xl p-4 flex items-start gap-3">
+          <Info className="text-text-tertiary w-5 h-5 flex-shrink-0 mt-0.5" />
           <p className="text-sm text-text-secondary">
             The owner has been detected as active. The release process has been
             paused.
@@ -563,7 +563,7 @@ function EstateDrawer({
         <div className="mt-6 pt-4 border-t border-border-color">
           <button
             onClick={openExitFlow}
-            className="w-full rounded-lg py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+            className="w-full rounded-lg py-2 text-sm font-medium text-red hover:bg-red-light transition-colors"
           >
             Stop being Trusted Contact for {estate.ownerName}
           </button>
@@ -611,7 +611,7 @@ function ExitDialog({
           <AlertDialogAction
             onClick={onConfirm}
             disabled={loading}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-red hover:opacity-90 text-white"
           >
             {loading ? (
               <Loader2 size={14} className="animate-spin mr-1" />
@@ -665,7 +665,7 @@ function ExitWithReportDialog({
           </Button>
           <AlertDialogAction
             onClick={onExitAnyway}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-red hover:opacity-90 text-white"
           >
             Exit anyway
           </AlertDialogAction>
@@ -679,15 +679,15 @@ function ExitWithReportDialog({
 
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-xl shadow-sm p-4 flex items-center justify-between animate-pulse">
+    <div className="bg-surface rounded-xl shadow-sm p-4 flex items-center justify-between animate-pulse">
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-full bg-gray-100" />
+        <div className="w-10 h-10 rounded-full bg-surface-2" />
         <div className="space-y-1.5">
-          <div className="h-3.5 w-32 bg-gray-100 rounded" />
-          <div className="h-3 w-24 bg-gray-100 rounded" />
+          <div className="h-3.5 w-32 bg-surface-2 rounded" />
+          <div className="h-3 w-24 bg-surface-2 rounded" />
         </div>
       </div>
-      <div className="h-6 w-24 bg-gray-100 rounded-full" />
+      <div className="h-6 w-24 bg-surface-2 rounded-full" />
     </div>
   );
 }
@@ -734,10 +734,10 @@ function PendingInviteCard({
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-amber-200 p-4">
+    <div className="bg-surface rounded-xl shadow-sm border border-[#F0C878] p-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center text-amber-700 font-semibold text-sm flex-shrink-0">
+          <div className="w-10 h-10 bg-amber-light rounded-full flex items-center justify-center text-amber font-semibold text-sm flex-shrink-0">
             {initials(estate.ownerName)}
           </div>
           <div className="min-w-0">
@@ -820,13 +820,13 @@ export default function EstatesPage() {
         <div className="flex items-center gap-3 flex-wrap">
           <h1 className="font-heading text-2xl text-text-primary">Shared with me</h1>
           {verificationStatus === "VERIFIED" && (
-            <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium">
-              <ShieldCheck className="w-4 h-4 text-emerald-500" />
+            <span className="flex items-center gap-1 text-xs text-green font-medium">
+              <ShieldCheck className="w-4 h-4 text-green" />
               Identity verified
             </span>
           )}
         </div>
-        <p className="text-secondary text-sm mt-1">
+        <p className="text-text-secondary text-sm mt-1">
           What others have shared with you as their Trusted Contact.
         </p>
       </div>
@@ -863,7 +863,7 @@ export default function EstatesPage() {
         </div>
       ) : activeEstates.length === 0 && pendingEstates.length === 0 ? (
         <div className="py-12 flex flex-col items-center">
-          <Users className="w-10 h-10 text-gray-300" />
+          <Users className="w-10 h-10 text-text-tertiary" />
           <p className="text-base font-medium text-text-secondary text-center mt-3">
             Nothing shared with you yet
           </p>
@@ -878,7 +878,7 @@ export default function EstatesPage() {
             <button
               key={estate.estateId}
               onClick={() => setSelectedEstate(estate)}
-              className="w-full bg-white rounded-xl shadow-sm p-4 flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow text-left"
+              className="w-full bg-surface rounded-xl shadow-sm p-4 flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow text-left"
             >
               <div className="flex items-center">
                 <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center text-accent font-semibold text-sm flex-shrink-0">
@@ -898,7 +898,7 @@ export default function EstatesPage() {
                   estate={estate}
                   verificationStatus={verificationStatus}
                 />
-                <ChevronRight className="w-4 h-4 text-gray-400 ml-3 flex-shrink-0" />
+                <ChevronRight className="w-4 h-4 text-text-tertiary ml-3 flex-shrink-0" />
               </div>
             </button>
           ))}

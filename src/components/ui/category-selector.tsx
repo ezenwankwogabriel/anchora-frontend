@@ -42,13 +42,13 @@ function CategoryCard({
       className={cn(
         "flex items-center gap-[14px] px-[16px] py-[14px] border-[1.5px] rounded-xl text-left transition-all",
         selected
-          ? "border-accent bg-[#EFF6FF]"
+          ? "border-accent bg-accent-light"
           : "border-border-color hover:border-accent hover:bg-surface-2"
       )}
     >
       <div className={cn(
         "w-9 h-9 rounded-[9px] flex items-center justify-center flex-shrink-0 transition-colors",
-        selected ? "bg-[#EFF6FF]" : "bg-surface-2"
+        selected ? "bg-accent-light" : "bg-surface-2"
       )}>
         <CategoryIcon category={category} size={16} className="w-auto h-auto bg-transparent rounded-none" />
       </div>
