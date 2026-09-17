@@ -18,7 +18,9 @@ export function middleware(request: NextRequest) {
 
   // ── Admin routes ────────────────────────────────────────────────────────────
   if (pathname.startsWith("/admin")) {
-    if (pathname === "/admin/login") return NextResponse.next();
+    if (pathname === "/admin/login" || pathname === "/admin/set-password") {
+      return NextResponse.next();
+    }
 
     const adminAuth = request.cookies.get("anchora_admin_auth");
     if (!adminAuth) {

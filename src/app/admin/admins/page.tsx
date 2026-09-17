@@ -13,6 +13,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { AdminService } from "@/services/admin.service";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
 import { ServiceError } from "@/lib/types";
+import { useToastStore } from "@/stores/toastStore";
 import type { AdminAccount, AdminRole } from "@/lib/admin-types";
 
 const zodResolver = _zodResolver as unknown as <T extends object>(
@@ -169,6 +170,7 @@ export default function AdminAccountsPage() {
   const [showCreate, setShowCreate]   = useState(false);
   const [deactivating, setDeactivating] = useState<AdminAccount | null>(null);
   const [deactivateLoading, setDeactivateLoading] = useState(false);
+  const addToast = useToastStore((s) => s.add);
 
   // Only SUPER_ADMIN may access this page
   useEffect(() => {
@@ -300,6 +302,7 @@ export default function AdminAccountsPage() {
           onSuccess={(newAdmin) => {
             setAdmins((prev) => [newAdmin, ...prev]);
             setShowCreate(false);
+            addToast(`Invite sent to ${newAdmin.email}`, "success");
           }}
           onClose={() => setShowCreate(false)}
         />

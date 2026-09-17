@@ -20,6 +20,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/debug-sentry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AppController_getError"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/register": {
         parameters: {
             query?: never;
@@ -411,16 +427,16 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get: operations["ExecutorController_getExecutor"];
+        get: operations["ExecutorController_list"];
         put?: never;
-        post: operations["ExecutorController_createExecutor"];
-        delete: operations["ExecutorController_removeExecutor"];
+        post: operations["ExecutorController_create"];
+        delete?: never;
         options?: never;
         head?: never;
-        patch: operations["ExecutorController_updateExecutor"];
+        patch?: never;
         trace?: never;
     };
-    "/api/v1/executor/notify": {
+    "/api/v1/executor/{id}": {
         parameters: {
             query?: never;
             header?: never;
@@ -429,7 +445,23 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        post: operations["ExecutorController_notifyExecutor"];
+        post?: never;
+        delete: operations["ExecutorController_remove"];
+        options?: never;
+        head?: never;
+        patch: operations["ExecutorController_update"];
+        trace?: never;
+    };
+    "/api/v1/executor/{id}/notify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["ExecutorController_notify"];
         delete?: never;
         options?: never;
         head?: never;
@@ -718,6 +750,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["AdminAuthController_login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/auth/set-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminAuthController_setPassword"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1279,6 +1327,7 @@ export interface components {
         AdminLoginResponseDto: {
             token: string;
         };
+        SetAdminPasswordDto: Record<string, never>;
         AdminMeDto: {
             id: string;
             email: string;
@@ -1318,7 +1367,7 @@ export interface components {
             createdAt: string;
             plan: string;
             vaultItemCount: number;
-            executor: components["schemas"]["UserExecutorSummaryDto"] | null;
+            executors: components["schemas"]["UserExecutorSummaryDto"][];
         };
         PaginatedMetaDto: {
             total: number;
@@ -1368,7 +1417,7 @@ export interface components {
             govIdVerificationStatus: string;
             govIdVerifiedAt: Record<string, never> | null;
             releases: components["schemas"]["UserReleaseDto"][];
-            executor: components["schemas"]["UserExecutorDto"] | null;
+            executors: components["schemas"]["UserExecutorDto"][];
         };
         SuspendUserDto: Record<string, never>;
         SetUserPlanDto: Record<string, never>;
@@ -1387,7 +1436,7 @@ export interface components {
             triggeredAt: string;
             completedAt: Record<string, never> | null;
             cancelledAt: Record<string, never> | null;
-            executor: components["schemas"]["ReleaseExecutorSummaryDto"] | null;
+            executors: components["schemas"]["ReleaseExecutorSummaryDto"][];
         };
         AdminReleaseListResponseDto: {
             data: components["schemas"]["AdminReleaseDto"][];
@@ -1420,7 +1469,7 @@ export interface components {
             cancelReason: Record<string, never> | null;
             emptyVault: boolean;
             user: components["schemas"]["ReleaseUserDto"];
-            executor: components["schemas"]["ReleaseExecutorDto"] | null;
+            executors: components["schemas"]["ReleaseExecutorDto"][];
             report: components["schemas"]["ReleaseReportDto"] | null;
         };
         CancelReleaseDto: Record<string, never>;
@@ -1459,6 +1508,23 @@ export interface components {
 export type $defs = Record<string, never>;
 export interface operations {
     AppController_getHello: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    AppController_getError: {
         parameters: {
             query?: never;
             header?: never;
@@ -1969,7 +2035,7 @@ export interface operations {
             };
         };
     };
-    ExecutorController_getExecutor: {
+    ExecutorController_list: {
         parameters: {
             query?: never;
             header?: never;
@@ -1986,7 +2052,7 @@ export interface operations {
             };
         };
     };
-    ExecutorController_createExecutor: {
+    ExecutorController_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -2007,11 +2073,13 @@ export interface operations {
             };
         };
     };
-    ExecutorController_removeExecutor: {
+    ExecutorController_remove: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -2024,11 +2092,13 @@ export interface operations {
             };
         };
     };
-    ExecutorController_updateExecutor: {
+    ExecutorController_update: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         requestBody: {
@@ -2045,11 +2115,13 @@ export interface operations {
             };
         };
     };
-    ExecutorController_notifyExecutor: {
+    ExecutorController_notify: {
         parameters: {
             query?: never;
             header?: never;
-            path?: never;
+            path: {
+                id: string;
+            };
             cookie?: never;
         };
         requestBody?: never;
@@ -2570,6 +2642,27 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AdminLoginResponseDto"];
                 };
+            };
+        };
+    };
+    AdminAuthController_setPassword: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetAdminPasswordDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
