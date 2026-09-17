@@ -26,11 +26,14 @@ function AdminSidebar() {
     router.replace("/admin/login");
   };
 
-  const visibleNav = NAV_ITEMS.filter(
-    (item) =>
-      (!item.superAdminOnly || admin?.role === "SUPER_ADMIN") &&
-      (!item.devOnly || DEV_TOOLS_ENABLED)
-  );
+  const visibleNav =
+    admin?.role === "READ_ONLY"
+      ? NAV_ITEMS.filter((item) => item.href === "/admin/users")
+      : NAV_ITEMS.filter(
+          (item) =>
+            (!item.superAdminOnly || admin?.role === "SUPER_ADMIN") &&
+            (!item.devOnly || DEV_TOOLS_ENABLED)
+        );
 
   return (
     <aside className="w-56 bg-[#0f1a2e] flex flex-col flex-shrink-0">
@@ -91,7 +94,7 @@ function AdminTopBar() {
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  if (pathname === "/admin/login") {
+  if (pathname === "/admin/login" || pathname === "/admin/set-password") {
     return <>{children}</>;
   }
 

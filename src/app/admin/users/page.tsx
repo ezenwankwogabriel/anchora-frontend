@@ -53,7 +53,8 @@ function formatDate(iso: string) {
 }
 
 export default function AdminUsersPage() {
-  const { isAuthenticated } = useAdminAuth();
+  const { isAuthenticated, admin } = useAdminAuth();
+  const canView = admin?.role !== "READ_ONLY";
 
   const [users, setUsers]           = useState<AdminUserListItem[]>([]);
   const [total, setTotal]           = useState(0);
@@ -200,12 +201,14 @@ export default function AdminUsersPage() {
                     {u.vaultItemCount}
                   </td>
                   <td className="px-5 py-3.5 text-right">
-                    <Link
-                      href={`/admin/users/${u.id}`}
-                      className="inline-flex items-center gap-1 text-[12.5px] text-accent hover:underline"
-                    >
-                      View <ChevronRight size={13} />
-                    </Link>
+                    {canView && (
+                      <Link
+                        href={`/admin/users/${u.id}`}
+                        className="inline-flex items-center gap-1 text-[12.5px] text-accent hover:underline"
+                      >
+                        View <ChevronRight size={13} />
+                      </Link>
+                    )}
                   </td>
                 </tr>
               ))}

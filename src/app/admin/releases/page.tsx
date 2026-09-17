@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Loader2, ChevronRight } from "lucide-react";
 import { AdminService } from "@/services/admin.service";
 import { useAdminAuth } from "@/hooks/useAdminAuth";
@@ -36,7 +37,8 @@ function formatDate(iso: string | null) {
 const LIMIT = 20;
 
 export default function AdminReleasesPage() {
-  const { isAuthenticated } = useAdminAuth();
+  const router = useRouter();
+  const { isAuthenticated, admin } = useAdminAuth();
 
   const [releases, setReleases]   = useState<AdminRelease[]>([]);
   const [total, setTotal]         = useState(0);
@@ -65,7 +67,13 @@ export default function AdminReleasesPage() {
 
   useEffect(() => { fetchReleases(); }, [fetchReleases]);
 
-  if (!isAuthenticated) return null;
+  useEffect(() => {
+    if (isAuthenticated && admin?.role === "READ_ONLY") {
+      router.replace("/admin/users");
+    }
+  }, [isAuthenticated, admin, router]);
+
+  if (!isAuthenticated || admin?.role === "READ_ONLY") return null;
 
   const totalPages = Math.ceil(total / LIMIT);
 

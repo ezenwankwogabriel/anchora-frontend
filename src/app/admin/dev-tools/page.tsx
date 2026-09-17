@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, ExternalLink } from "lucide-react";
 import { AdminService } from "@/services/admin.service";
@@ -78,7 +79,8 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 export default function DevToolsPage() {
-  const { isAuthenticated } = useAdminAuth();
+  const router = useRouter();
+  const { isAuthenticated, admin } = useAdminAuth();
 
   const [query, setQuery]       = useState("");
   const [state, setState]       = useState<DevUserState | null>(null);
@@ -93,8 +95,14 @@ export default function DevToolsPage() {
   // Set-plan controls
   const [selectedPlan, setSelectedPlan] = useState<UserPlan>("PRO");
 
+  useEffect(() => {
+    if (isAuthenticated && admin?.role === "READ_ONLY") {
+      router.replace("/admin/users");
+    }
+  }, [isAuthenticated, admin, router]);
+
   if (process.env.NEXT_PUBLIC_DEV_TOOLS !== "true") return null;
-  if (!isAuthenticated) return null;
+  if (!isAuthenticated || admin?.role === "READ_ONLY") return null;
 
   function clearFeedback() {
     setActionMsg(null);

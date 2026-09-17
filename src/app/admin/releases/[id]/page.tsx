@@ -95,6 +95,12 @@ export default function AdminReleaseDetailPage() {
   const [actionError, setActionError]     = useState<string | null>(null);
 
   useEffect(() => {
+    if (isAuthenticated && admin?.role === "READ_ONLY") {
+      router.replace("/admin/users");
+    }
+  }, [isAuthenticated, admin, router]);
+
+  useEffect(() => {
     if (!isAuthenticated) return;
     AdminService.getRelease(releaseId)
       .then(setRelease)
@@ -120,7 +126,7 @@ export default function AdminReleaseDetailPage() {
     }
   };
 
-  if (!isAuthenticated) return null;
+  if (!isAuthenticated || admin?.role === "READ_ONLY") return null;
 
   if (loading) {
     return (
