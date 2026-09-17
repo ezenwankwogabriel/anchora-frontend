@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Download, Loader2, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AdminService } from "@/services/admin.service";
@@ -32,6 +33,7 @@ function resultBadge(result: string) {
 }
 
 export default function AdminAuditLogsPage() {
+  const router = useRouter();
   const { isAuthenticated, admin } = useAdminAuth();
 
   const [entries, setEntries]       = useState<AuditLogEntry[]>([]);
@@ -88,6 +90,12 @@ export default function AdminAuditLogsPage() {
 
   useEffect(() => { fetchLogs(); }, [fetchLogs]);
 
+  useEffect(() => {
+    if (isAuthenticated && admin?.role === "READ_ONLY") {
+      router.replace("/admin/users");
+    }
+  }, [isAuthenticated, admin, router]);
+
   const handleExport = async () => {
     setExporting(true);
     try {
@@ -109,7 +117,7 @@ export default function AdminAuditLogsPage() {
     }
   };
 
-  if (!isAuthenticated) return null;
+  if (!isAuthenticated || admin?.role === "READ_ONLY") return null;
 
   const canExport = admin?.role === "SUPER_ADMIN";
 

@@ -138,6 +138,12 @@ export default function AdminUserDetailPage() {
   const [planFeedback, setPlanFeedback]   = useState<{ ok: boolean; msg: string } | null>(null);
 
   useEffect(() => {
+    if (isAuthenticated && admin?.role === "READ_ONLY") {
+      router.replace("/admin/users");
+    }
+  }, [isAuthenticated, admin, router]);
+
+  useEffect(() => {
     if (!isAuthenticated) return;
     AdminService.getUser(userId)
       .then((u) => { setUser(u); setPlanOverride(u.plan); })
@@ -190,7 +196,7 @@ export default function AdminUserDetailPage() {
     }
   };
 
-  if (!isAuthenticated) return null;
+  if (!isAuthenticated || admin?.role === "READ_ONLY") return null;
 
   if (loading) {
     return (
