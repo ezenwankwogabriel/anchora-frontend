@@ -1,4 +1,5 @@
 import adminHttp, { normaliseAdmin } from "@/lib/admin-axios";
+import http, { normalise } from "@/lib/axios";
 import type {
   AdminAuthResponse,
   AdminUser,
@@ -171,6 +172,17 @@ export const AdminService = {
       await adminHttp.patch(`/admin/auth/admins/${id}/deactivate`);
     } catch (err) {
       normaliseAdmin(err);
+    }
+  },
+
+  setAdminPassword: async (data: {
+    token: string;
+    newPassword: string;
+  }): Promise<void> => {
+    try {
+      await http.post("/admin/auth/set-password", data);
+    } catch (err) {
+      normalise(err);
     }
   },
 
