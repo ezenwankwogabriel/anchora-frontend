@@ -23,20 +23,23 @@ function statusLabel(isSuspended: boolean) {
   return isSuspended ? "Suspended" : "Active";
 }
 
-function ExecutorBadge({ executor }: { executor: AdminUserListItem["executor"] }) {
-  if (!executor) {
+function ExecutorBadge({ executors }: { executors: AdminUserListItem["executors"] }) {
+  if (executors.length === 0) {
     return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">None</span>;
   }
-  if (executor.declinedAt) {
-    return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-red-100 text-red-700">Declined</span>;
+
+  const suffix = executors.length > 1 ? ` (${executors.length})` : "";
+
+  if (executors.some((e) => e.acceptedAt)) {
+    return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Accepted{suffix}</span>;
   }
-  if (executor.acceptedAt) {
-    return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Accepted</span>;
+  if (executors.some((e) => e.notifiedAt && !e.declinedAt)) {
+    return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Pending{suffix}</span>;
   }
-  if (executor.notifiedAt) {
-    return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">Pending</span>;
+  if (executors.some((e) => e.declinedAt)) {
+    return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-red-100 text-red-700">Declined{suffix}</span>;
   }
-  return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Not notified</span>;
+  return <span className="text-[11.5px] font-[500] px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Not notified{suffix}</span>;
 }
 
 function PlanBadge({ plan }: { plan: AdminUserListItem["plan"] }) {
@@ -162,7 +165,16 @@ export default function AdminUsersPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border-color">
-                {["Name", "Email", "Status", "Executor", "Plan", "Joined", "Vault records", ""].map((h) => (
+                {[
+                  "Name",
+                  "Email",
+                  "Status",
+                  ...(canView ? ["Executor"] : []),
+                  "Plan",
+                  "Joined",
+                  ...(canView ? ["Vault records"] : []),
+                  "",
+                ].map((h) => (
                   <th
                     key={h}
                     className="px-5 py-3 text-left text-[11.5px] font-semibold text-text-tertiary tracking-[0.04em] uppercase"
@@ -188,18 +200,22 @@ export default function AdminUsersPage() {
                       label={statusLabel(u.isSuspended)}
                     />
                   </td>
-                  <td className="px-5 py-3.5">
-                    <ExecutorBadge executor={u.executor} />
-                  </td>
+                  {canView && (
+                    <td className="px-5 py-3.5">
+                      <ExecutorBadge executors={u.executors} />
+                    </td>
+                  )}
                   <td className="px-5 py-3.5">
                     <PlanBadge plan={u.plan} />
                   </td>
                   <td className="px-5 py-3.5 text-[13px] text-text-secondary whitespace-nowrap">
                     {formatDate(u.createdAt)}
                   </td>
-                  <td className="px-5 py-3.5 text-[13px] text-text-secondary">
-                    {u.vaultItemCount}
-                  </td>
+                  {canView && (
+                    <td className="px-5 py-3.5 text-[13px] text-text-secondary">
+                      {u.vaultItemCount}
+                    </td>
+                  )}
                   <td className="px-5 py-3.5 text-right">
                     {canView && (
                       <Link

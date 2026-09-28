@@ -306,58 +306,64 @@ export default function AdminUserDetailPage() {
 
       {/* Executor, Identity & Plan */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5">
-        {/* Executor */}
+        {/* Executors */}
         <div className="bg-surface border border-border-color rounded-xl p-5">
-          <h2 className="text-[14px] font-semibold text-text-primary mb-3">Executor</h2>
-          {user.executor ? (
-            <div>
-              <DetailRow label="Name"          value={user.executor.name} />
-              <DetailRow label="Email"         value={user.executor.email} />
-              {user.executor.relationship && (
-                <DetailRow label="Relationship" value={user.executor.relationship} />
-              )}
-              <DetailRow
-                label="Status"
-                value={
-                  <span className={`text-[11.5px] font-[500] px-2 py-0.5 rounded-full ${
-                    user.executor.declinedAt
-                      ? "bg-red-100 text-red-700"
-                      : user.executor.acceptedAt
-                      ? "bg-emerald-100 text-emerald-700"
-                      : user.executor.notifiedAt
-                      ? "bg-amber-100 text-amber-700"
-                      : "bg-gray-100 text-gray-500"
-                  }`}>
-                    {user.executor.declinedAt
-                      ? "Declined"
-                      : user.executor.acceptedAt
-                      ? "Accepted"
-                      : user.executor.notifiedAt
-                      ? "Pending"
-                      : "Not notified"}
-                  </span>
-                }
-              />
-              <DetailRow label="Invited"          value={formatDate(user.executor.invitedAt)} />
-              <DetailRow
-                label="Notified"
-                value={user.executor.notifiedAt ? formatDate(user.executor.notifiedAt) : "Not yet notified"}
-              />
-              <DetailRow
-                label="Email verified"
-                value={user.executor.emailVerifiedAt ? formatDate(user.executor.emailVerifiedAt) : "Not verified"}
-              />
-              {user.executor.acceptedAt && (
-                <DetailRow label="Accepted" value={formatDate(user.executor.acceptedAt)} />
-              )}
-              {user.executor.declinedAt && (
-                <DetailRow label="Declined" value={formatDate(user.executor.declinedAt)} />
-              )}
+          <h2 className="text-[14px] font-semibold text-text-primary mb-3">
+            Executors{user.executors.length > 0 ? ` (${user.executors.length})` : ""}
+          </h2>
+          {user.executors.length > 0 ? (
+            <div className="space-y-4">
+              {user.executors.map((executor, i) => (
+                <div key={executor.id} className={i > 0 ? "pt-4 border-t border-border-color" : undefined}>
+                  <DetailRow label="Name"          value={executor.name} />
+                  <DetailRow label="Email"         value={executor.email} />
+                  {executor.relationship && (
+                    <DetailRow label="Relationship" value={executor.relationship} />
+                  )}
+                  <DetailRow
+                    label="Status"
+                    value={
+                      <span className={`text-[11.5px] font-[500] px-2 py-0.5 rounded-full ${
+                        executor.declinedAt
+                          ? "bg-red-100 text-red-700"
+                          : executor.acceptedAt
+                          ? "bg-emerald-100 text-emerald-700"
+                          : executor.notifiedAt
+                          ? "bg-amber-100 text-amber-700"
+                          : "bg-gray-100 text-gray-500"
+                      }`}>
+                        {executor.declinedAt
+                          ? "Declined"
+                          : executor.acceptedAt
+                          ? "Accepted"
+                          : executor.notifiedAt
+                          ? "Pending"
+                          : "Not notified"}
+                      </span>
+                    }
+                  />
+                  <DetailRow label="Invited"          value={formatDate(executor.invitedAt)} />
+                  <DetailRow
+                    label="Notified"
+                    value={executor.notifiedAt ? formatDate(executor.notifiedAt) : "Not yet notified"}
+                  />
+                  <DetailRow
+                    label="Email verified"
+                    value={executor.emailVerifiedAt ? formatDate(executor.emailVerifiedAt) : "Not verified"}
+                  />
+                  {executor.acceptedAt && (
+                    <DetailRow label="Accepted" value={formatDate(executor.acceptedAt)} />
+                  )}
+                  {executor.declinedAt && (
+                    <DetailRow label="Declined" value={formatDate(executor.declinedAt)} />
+                  )}
+                </div>
+              ))}
             </div>
           ) : (
             <div className="flex items-start gap-2 rounded-lg bg-amber-50 border border-amber-200 p-3">
               <p className="text-[12.5px] text-amber-800">
-                No executor designated. This user&apos;s release summary cannot be made available without one.
+                No executors designated. This user&apos;s release summary cannot be made available without one.
               </p>
             </div>
           )}

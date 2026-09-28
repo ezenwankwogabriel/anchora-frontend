@@ -211,24 +211,34 @@ export default function AdminReleaseDetailPage() {
           </div>
         </div>
 
-        {/* Trusted contact */}
+        {/* Trusted contacts */}
         <div className="lg:col-span-2 bg-surface border border-border-color rounded-xl p-5">
-          <h2 className="text-[14px] font-semibold text-text-primary mb-3">Trusted contact</h2>
-          {!release.executor ? (
-            <p className="text-[13px] text-text-tertiary">No trusted contact on this release.</p>
+          <h2 className="text-[14px] font-semibold text-text-primary mb-3">
+            Trusted contacts{release.executors.length > 0 ? ` (${release.executors.length})` : ""}
+          </h2>
+          {release.executors.length === 0 ? (
+            <p className="text-[13px] text-text-tertiary">No trusted contacts on this release.</p>
           ) : (
-            <div className="space-y-3 text-[13px]">
-              <div className="flex justify-between">
-                <span className="text-text-tertiary">Name</span>
-                <span className="text-text-primary font-[500]">{release.executor.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-text-tertiary">Email</span>
-                <span className="text-text-secondary">{release.executor.email}</span>
-              </div>
+            <div className="space-y-4 text-[13px]">
+              {release.executors.map((executor, i) => (
+                <div
+                  key={executor.id}
+                  className={`space-y-3 ${i > 0 ? "pt-4 border-t border-border-color" : ""}`}
+                >
+                  <div className="flex justify-between">
+                    <span className="text-text-tertiary">Name</span>
+                    <span className="text-text-primary font-[500]">{executor.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-text-tertiary">Email</span>
+                    <span className="text-text-secondary">{executor.email}</span>
+                  </div>
+                </div>
+              ))}
               <p className="text-[12.5px] text-text-tertiary pt-2 border-t border-border-color">
-                Report download requires this account to have completed identity
-                verification, checked at download time, not tracked per-release.
+                Report download requires the downloading contact&apos;s account to have
+                completed identity verification, checked at download time, not tracked
+                per-release.
               </p>
             </div>
           )}
