@@ -127,7 +127,8 @@ export function SetAdminPasswordClient({ token }: Props) {
 
         {errors.root?.message === "expired" ? (
           <p className="text-[12.5px] text-red bg-red-light border border-[#F5B0B0] rounded-md px-3 py-2 mb-4">
-            This link has expired. Ask a super admin to re-invite you.
+            This link has expired. Request a new one, or ask a super admin to
+            re-invite you.
           </p>
         ) : errors.root ? (
           <p className="text-[12.5px] text-red bg-red-light border border-[#F5B0B0] rounded-md px-3 py-2 mb-4">

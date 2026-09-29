@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver as _zodResolver } from "@hookform/resolvers/zod";
@@ -86,6 +87,15 @@ export default function AdminLoginPage() {
                 <p className="text-[11.5px] text-red mt-[5px]">{errors.password.message}</p>
               )}
             </FormSection>
+
+            <div className="text-right mb-5">
+              <Link
+                href="/admin/forgot-password"
+                className="text-[12.5px] text-accent hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
 
             {errors.root?.message && (
               <p className="text-[12.5px] text-red bg-red-light border border-[#F5B0B0] rounded-md px-3 py-2 mb-4">
