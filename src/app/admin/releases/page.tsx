@@ -150,7 +150,9 @@ export default function AdminReleasesPage() {
                     <StatusBadge variant={releaseVariant(r.status)} label={r.status} />
                   </td>
                   <td className="px-5 py-3.5 text-[13px] text-text-secondary whitespace-nowrap">
-                    {r.executor ? r.executor.name : <span className="text-text-tertiary">None designated</span>}
+                    {r.executors.length > 0
+                      ? r.executors.map((e) => e.name).join(", ")
+                      : <span className="text-text-tertiary">None designated</span>}
                   </td>
                   <td className="px-5 py-3.5 text-[13px] text-text-secondary whitespace-nowrap">
                     {formatDate(r.triggeredAt)}

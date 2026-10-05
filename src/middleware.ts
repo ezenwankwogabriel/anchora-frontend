@@ -18,7 +18,11 @@ export function middleware(request: NextRequest) {
 
   // ── Admin routes ────────────────────────────────────────────────────────────
   if (pathname.startsWith("/admin")) {
-    if (pathname === "/admin/login" || pathname === "/admin/set-password") {
+    if (
+      pathname === "/admin/login" ||
+      pathname === "/admin/set-password" ||
+      pathname === "/admin/forgot-password"
+    ) {
       return NextResponse.next();
     }
 

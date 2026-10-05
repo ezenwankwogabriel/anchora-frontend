@@ -56,7 +56,7 @@ export interface AdminUserListItem {
   isSuspended: boolean;
   createdAt: string;
   vaultItemCount: number;
-  executor: { notifiedAt: string | null; acceptedAt: string | null; declinedAt: string | null } | null;
+  executors: { notifiedAt: string | null; acceptedAt: string | null; declinedAt: string | null }[];
   plan: UserPlan;
 }
 
@@ -70,7 +70,7 @@ export interface AdminUserDetail extends AdminUserListItem {
   govIdVerificationStatus: GovIdVerificationStatus;
   govIdVerifiedAt: string | null;
   releases: { id: string; status: ReleaseStatus; triggeredAt: string }[];
-  executor: AdminExecutor | null;
+  executors: AdminExecutor[];
 }
 
 // ── Releases ──────────────────────────────────────────────────────────────────
@@ -84,13 +84,13 @@ export interface AdminRelease {
   triggeredAt: string;
   completedAt: string | null;
   cancelledAt: string | null;
-  executor: { name: string; email: string } | null;
+  executors: { name: string; email: string }[];
 }
 
 export interface AdminReleaseDetail extends AdminRelease {
   cancelReason: string | null;
   emptyVault: boolean;
-  executor: AdminReleaseExecutor | null;
+  executors: AdminReleaseExecutor[];
 }
 
 // ── Audit Logs ────────────────────────────────────────────────────────────────
