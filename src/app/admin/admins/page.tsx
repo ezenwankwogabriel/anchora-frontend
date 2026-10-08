@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Plus, UserX } from "lucide-react";
+import { Loader2, Plus, UserX, UserCheck } from "lucide-react";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver as _zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -158,6 +158,42 @@ function DeactivateModal({
   );
 }
 
+// ── Reactivate confirm modal ───────────────────────────────────────────────────
+
+function ReactivateModal({
+  admin,
+  onConfirm,
+  onClose,
+  loading,
+}: {
+  admin: AdminAccount;
+  onConfirm: () => void;
+  onClose: () => void;
+  loading: boolean;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onClose} />
+      <div className="relative z-10 bg-surface rounded-2xl border border-border-color shadow-md w-full max-w-[400px] p-6">
+        <h2 className="font-heading text-[19px] text-text-primary mb-2">Reactivate account</h2>
+        <p className="text-[13px] text-text-secondary mb-6">
+          This will restore <strong className="text-text-primary">{admin.email}</strong>&apos;s
+          access to the admin dashboard.
+        </p>
+        <div className="flex gap-3">
+          <Button variant="secondary" fullWidth onClick={onClose} disabled={loading}>
+            Cancel
+          </Button>
+          <Button fullWidth onClick={onConfirm} disabled={loading}>
+            {loading && <Loader2 size={14} className="animate-spin" />}
+            Reactivate
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function AdminAccountsPage() {
@@ -170,6 +206,8 @@ export default function AdminAccountsPage() {
   const [showCreate, setShowCreate]   = useState(false);
   const [deactivating, setDeactivating] = useState<AdminAccount | null>(null);
   const [deactivateLoading, setDeactivateLoading] = useState(false);
+  const [reactivating, setReactivating] = useState<AdminAccount | null>(null);
+  const [reactivateLoading, setReactivateLoading] = useState(false);
   const addToast = useToastStore((s) => s.add);
 
   // Only SUPER_ADMIN may access this page
@@ -208,6 +246,24 @@ export default function AdminAccountsPage() {
       /* silent */
     } finally {
       setDeactivateLoading(false);
+    }
+  };
+
+  const handleReactivate = async () => {
+    if (!reactivating) return;
+    setReactivateLoading(true);
+    try {
+      await AdminService.reactivateAdmin(reactivating.id);
+      setAdmins((prev) =>
+        prev.map((a) =>
+          a.id === reactivating.id ? { ...a, isActive: true } : a
+        )
+      );
+      setReactivating(null);
+    } catch {
+      /* silent */
+    } finally {
+      setReactivateLoading(false);
     }
   };
 
@@ -289,6 +345,15 @@ export default function AdminAccountsPage() {
                         Deactivate
                       </button>
                     )}
+                    {!a.isActive && (
+                      <button
+                        onClick={() => setReactivating(a)}
+                        className="inline-flex items-center gap-1.5 text-[12.5px] text-accent hover:underline"
+                      >
+                        <UserCheck size={13} />
+                        Reactivate
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -314,6 +379,15 @@ export default function AdminAccountsPage() {
           onConfirm={handleDeactivate}
           onClose={() => setDeactivating(null)}
           loading={deactivateLoading}
+        />
+      )}
+
+      {reactivating && (
+        <ReactivateModal
+          admin={reactivating}
+          onConfirm={handleReactivate}
+          onClose={() => setReactivating(null)}
+          loading={reactivateLoading}
         />
       )}
     </div>

@@ -174,6 +174,14 @@ export const AdminService = {
     }
   },
 
+  reactivateAdmin: async (id: string): Promise<void> => {
+    try {
+      await adminHttp.patch(`/admin/auth/admins/${id}/reactivate`);
+    } catch (err) {
+      normaliseAdmin(err);
+    }
+  },
+
   setAdminPassword: async (data: {
     token: string;
     newPassword: string;
